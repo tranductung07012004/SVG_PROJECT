@@ -92,7 +92,12 @@ VOID OnPaint(HDC hdc)
    // Tô màu hình chữ nhật ở trong.
    SolidBrush solidBrush(Color(90, 255, 182, 193));
    graphics.FillRectangle(&solidBrush, 10, 10, 670, 330);
-    
+   // this code is used to draw string "Nguyen Van A".
+   SolidBrush  brush(Color(255, 200, 150, 255));
+   FontFamily  fontFamily(L"Times New Roman");
+   Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
+   PointF      pointF(340.0f, 300.0f);
+   graphics.DrawString(L"Nguyen Van A", -1, &font, pointF, &brush);
 }
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
