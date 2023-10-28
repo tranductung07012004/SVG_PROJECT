@@ -88,7 +88,10 @@ VOID OnPaint(HDC hdc)
 
     // Draw the polygon.
     graphics.DrawPolygon(&blackPen1, pPoints, 6);
-
+// Phần COMMIT của Tùng ngày 28/10/2023
+   // Tô màu hình chữ nhật ở trong.
+   SolidBrush solidBrush(Color(90, 255, 182, 193));
+   graphics.FillRectangle(&solidBrush, 10, 10, 670, 330);
     
 }
 
