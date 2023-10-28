@@ -98,6 +98,11 @@ VOID OnPaint(HDC hdc)
    Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
    PointF      pointF(340.0f, 300.0f);
    graphics.DrawString(L"Nguyen Van A", -1, &font, pointF, &brush);
+   // vẽ hai khung hình chữ nhật.
+   Pen blackPen(Color(255, 55, 55, 55), 2);
+   graphics.DrawRectangle(&blackPen, 10, 10, 670, 330);
+   Pen outer_blackPen(Color(50, 55, 55, 55), 2);
+   graphics.DrawRectangle(&outer_blackPen, 15, 15, 670, 330);
 }
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
