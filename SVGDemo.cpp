@@ -12,7 +12,7 @@ using namespace Gdiplus;
 void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
 {
     // Define the points for the 5-pointed star
-    POINT points[11];
+    POINT points[12];
     for (int i = 0; i < 10; i++)
     {
         double outerRadius = i % 2 == 0 ? size : size / 2.5;
@@ -20,8 +20,8 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
         points[i].x = cx + static_cast<int>(outerRadius * cos(angle));
         points[i].y = cy + static_cast<int>(outerRadius * sin(angle));
     }
-    points[10].x = points[0].x;
-    points[10].y = points[0].y;
+    points[10] = points[0];
+    points[11] = points[1];
     // Create and select a yellow brush
     HBRUSH yellowBrush = CreateSolidBrush(RGB(255, 255, 0));
     HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, yellowBrush);
@@ -34,7 +34,7 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     Graphics new_graphics(hdc);
     Pen another_red_pen(Color(255, 255, 0, 0), 7);
     path.StartFigure();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 11; i++) {
         path.AddLine(Point(points[i].x, points[i].y), Point(points[i + 1].x, points[i + 1].y));
     }
     another_red_pen.SetLineJoin(LineJoinMiter);
@@ -103,6 +103,11 @@ VOID OnPaint(HDC hdc)
    graphics.DrawRectangle(&blackPen, 10, 10, 670, 330);
    Pen outer_blackPen(Color(50, 55, 55, 55), 2);
    graphics.DrawRectangle(&outer_blackPen, 15, 15, 670, 330);
+   // Vẽ hình ngôi sao
+   int centerX = 240; // Adjust this to your desired position
+   int centerY = 160; // Adjust this to your desired position
+   int starSize = 120; // Adjust this to your desired size
+   DrawStar(hdc, centerX, centerY, starSize, 2.2f);
 }
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
