@@ -50,6 +50,16 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     DeleteObject(yellowBrush);
     DeleteObject(redPen);
 }
+void drawPolyline(HDC hdc) {
+    Graphics graphics(hdc);
+    Point points[] = { Point(0, 40), Point(40, 40), Point(40, 80), Point(80, 80), Point(80, 120), Point(120, 120), Point(120, 140) };
+
+    // Define the brush with fill-opacity
+    SolidBrush brush(Color(128, 80, 80, 80)); // Blue color with 50% opacity
+
+    // Fill the polyline shape
+    graphics.FillPolygon(&brush, points, 7);
+}
 
 void drawLineLeftCorner(HDC hdc) {
     Graphics graphics(hdc);
@@ -156,6 +166,7 @@ VOID OnPaint(HDC hdc)
    int centerY = 160; // Adjust this to your desired position
    int starSize = 120; // Adjust this to your desired size
    DrawStar(hdc, centerX, centerY, starSize, 2.2f);
+   drawPolyline(hdc);
 }
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
