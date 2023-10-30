@@ -50,6 +50,54 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     DeleteObject(yellowBrush);
     DeleteObject(redPen);
 }
+
+void drawLineLeftCorner(HDC hdc) {
+    Graphics graphics(hdc);
+    Pen pen(Color(255, 0, 0, 255), 5);
+    graphics.DrawLine(&pen, 10, 30, 30, 10);
+    Pen pen1(Color(255, 0, 0, 255), 10);
+    graphics.DrawLine(&pen1, 30, 30, 50, 10);
+    Pen pen2(Color(255, 0, 0, 255), 15);
+    graphics.DrawLine(&pen2, 50, 30, 70, 10);
+    Pen pen3(Color(255, 0, 0, 255), 20);
+    graphics.DrawLine(&pen3, 70, 30, 90, 10);
+    Pen pen4(Color(255, 0, 0, 255), 25);
+    graphics.DrawLine(&pen4, 90, 30, 110, 10);
+}
+
+void drawPolylineLeftCorner(HDC hdc) {
+    Graphics graphics(hdc);
+    Pen pen(Color(255, 255, 0, 0), 2);
+    PointF point1(5.0f, 37.0f);
+    PointF point2(15.0f, 37.0f);
+    PointF point3(15.0f, 32.0f);
+    PointF point4(25.0f, 32.0f);
+    PointF point5(25.0f, 37.0f);
+    PointF point6(35.0f, 37.0f);
+    PointF point7(35.0f, 25.0f);
+    PointF point8(45.0f, 25.0f);
+    PointF point9(45.0f, 37.0f);
+    PointF point10(55.0f, 37.0f);
+    PointF point11(55.0f, 17.0f);
+    PointF point12(65.0f, 17.0f);
+    PointF point13(65.0f, 37.0f);
+    PointF point14(75.0f, 37.0f);
+    PointF point15(75.0f, 10.0f);
+    PointF point16(85.0f, 10.0f);
+    PointF point17(85.0f, 37.0f);
+    PointF point18(95.0f, 37.0f);
+    PointF point19(95.0f, 2.0f);
+    PointF point20(105.0f, 2.0f);
+    PointF point21(105.0f, 37.0f);
+    PointF point22(115.0f, 37.0f);
+    PointF points[22] = { point1, point2, point3, point4, point5, point6, point7, point8,
+                            point9, point10, point11, point12, point13, point14, point15, point16,
+                            point17, point18, point19, point20, point21, point22 };
+    graphics.DrawPolygon(&pen, points, 22);
+    SolidBrush blueBrush(Color(255, 153, 204, 255));
+   // graphics.FillPolygon(&blueBrush, points, 22);
+}
+
 VOID OnPaint(HDC hdc)
 {
     Graphics graphics(hdc);
