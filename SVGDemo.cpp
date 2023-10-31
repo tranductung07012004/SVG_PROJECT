@@ -1,14 +1,16 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "rapidxml.hpp"
 #include <windows.h>
 #include <objidl.h>
 #include <gdiplus.h>
+#include <wingdi.h>
 #include <vector>
 #include <fstream>
 using namespace std;
 using namespace rapidxml;
 using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
+
 void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
 {
     // Define the points for the 5-pointed star
@@ -29,7 +31,7 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     // Create a black pen
     HPEN redPen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
     HPEN oldPen = (HPEN)SelectObject(hdc, redPen);
-    
+
     GraphicsPath path;
     Graphics new_graphics(hdc);
     Pen another_red_pen(Color(255, 255, 0, 0), 7);
@@ -39,7 +41,7 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     }
     another_red_pen.SetLineJoin(LineJoinMiter);
     new_graphics.DrawPath(&another_red_pen, &path);
-     //Draw the star
+    //Draw the star
     Polygon(hdc, points, 10);
 
     // Restore the old brush and pen
@@ -50,16 +52,19 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     DeleteObject(yellowBrush);
     DeleteObject(redPen);
 }
+
 void drawPolyline(HDC hdc) {
     Graphics graphics(hdc);
-    Point points[] = { Point(0, 40), Point(40, 40), Point(40, 80), Point(80, 80), Point(80, 120), Point(120, 120), Point(120, 140) };
+    Point points[] = { Point(0, 40), Point(40, 40), Point(40, 80), 
+                        Point(80, 80), Point(80, 120), Point(120, 120), Point(120, 140) };
 
     // Define the brush with fill-opacity
-    SolidBrush brush(Color(128, 80, 80, 80)); // Blue color with 50% opacity
+    SolidBrush brush(Color(179, 80, 80, 80)); // Blue color with 50% opacity
 
     // Fill the polyline shape
     graphics.FillPolygon(&brush, points, 7);
 }
+
 
 void drawLineLeftCorner(HDC hdc) {
     Graphics graphics(hdc);
@@ -103,17 +108,15 @@ void drawPolylineLeftCorner(HDC hdc) {
     PointF points[22] = { point1, point2, point3, point4, point5, point6, point7, point8,
                             point9, point10, point11, point12, point13, point14, point15, point16,
                             point17, point18, point19, point20, point21, point22 };
-    graphics.DrawPolygon(&pen, points, 22);
-    SolidBrush blueBrush(Color(255, 153, 204, 255));
-   // graphics.FillPolygon(&blueBrush, points, 22);
+    graphics.DrawLines(&pen, points, 22);
+
+    SolidBrush fillBrush(Color(128, 0, 255, 255));
+    graphics.FillPolygon(&fillBrush, points, 22);
 }
 
 VOID OnPaint(HDC hdc)
 {
     Graphics graphics(hdc);
-    Pen      pen(Color(255, 128, 128, 128));
-    pen.SetWidth(1.5);
-    graphics.DrawLine(&pen, 0, 38, 100, 125);
 
     Pen      pen1(Color(255, 255, 255, 0));
     pen1.SetWidth(3);
@@ -126,13 +129,13 @@ VOID OnPaint(HDC hdc)
     graphics.DrawRectangle(&blackPen, 0, 0, 200, 50);
 
     Pen      pen2(Color(255, 0, 255, 255));
-    pen2.SetWidth(15);
+    pen2.SetWidth(10);
     Rect rect1(100, 200, 210, 210);
     graphics.DrawEllipse(&pen2, rect1);
-    SolidBrush solidBrush1(Color(255, 255, 255, 0));
+    SolidBrush solidBrush1(Color(128, 255, 255, 0));
     graphics.FillEllipse(&solidBrush1, 100, 200, 210, 210);
 
-    Pen blackPen1(Color(255, 255, 192, 203), 10);
+    Pen blackPen1(Color(255, 255, 0, 102), 10);
 
     // Create an array of PointF objects that define the polygon.
     PointF point1(950.0f, 120.0f);
@@ -146,27 +149,35 @@ VOID OnPaint(HDC hdc)
 
     // Draw the polygon.
     graphics.DrawPolygon(&blackPen1, pPoints, 6);
-// Phần COMMIT của Tùng ngày 28/10/2023
-   // Tô màu hình chữ nhật ở trong.
-   SolidBrush solidBrush(Color(90, 255, 182, 193));
-   graphics.FillRectangle(&solidBrush, 10, 10, 670, 330);
-   // this code is used to draw string "Nguyen Van A".
-   SolidBrush  brush(Color(255, 200, 150, 255));
-   FontFamily  fontFamily(L"Times New Roman");
-   Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
-   PointF      pointF(340.0f, 300.0f);
-   graphics.DrawString(L"Nguyen Van A", -1, &font, pointF, &brush);
-   // vẽ hai khung hình chữ nhật.
-   Pen blackPen(Color(255, 55, 55, 55), 2);
-   graphics.DrawRectangle(&blackPen, 10, 10, 670, 330);
-   Pen outer_blackPen(Color(50, 55, 55, 55), 2);
-   graphics.DrawRectangle(&outer_blackPen, 15, 15, 670, 330);
-   // Vẽ hình ngôi sao
-   int centerX = 240; // Adjust this to your desired position
-   int centerY = 160; // Adjust this to your desired position
-   int starSize = 120; // Adjust this to your desired size
-   DrawStar(hdc, centerX, centerY, starSize, 2.2f);
-   drawPolyline(hdc);
+    // Fill polygon
+    SolidBrush blueBrush(Color(255, 153, 204, 255));
+    graphics.FillPolygon(&blueBrush, points, 6);
+
+
+    // Phần COMMIT của Tùng ngày 28/10/2023
+       // Tô màu hình chữ nhật ở trong.
+    SolidBrush solidBrush2(Color(90, 255, 182, 193));
+    graphics.FillRectangle(&solidBrush2, 10, 10, 670, 330);
+    // this code is used to draw string "Nguyen Van A".
+    SolidBrush  brush(Color(255, 200, 150, 255));
+    FontFamily  fontFamily(L"Times New Roman");
+    Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
+    PointF      pointF(340.0f, 300.0f);
+    graphics.DrawString(L"Nguyen Van A", -1, &font, pointF, &brush);
+    // vẽ hai khung hình chữ nhật.
+    Pen blackPen2(Color(255, 55, 55, 55), 2);
+    graphics.DrawRectangle(&blackPen2, 10, 10, 670, 330);
+    Pen outer_blackPen(Color(50, 55, 55, 55), 2);
+    graphics.DrawRectangle(&outer_blackPen, 15, 15, 670, 330);
+    // Vẽ hình ngôi sao
+    int centerX = 240; // Adjust this to your desired position
+    int centerY = 160; // Adjust this to your desired position
+    int starSize = 120; // Adjust this to your desired size
+    DrawStar(hdc, centerX, centerY, starSize, 2.2f);
+
+    drawPolylineLeftCorner(hdc);
+    drawLineLeftCorner(hdc);
+    drawPolyline(hdc);
 }
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
