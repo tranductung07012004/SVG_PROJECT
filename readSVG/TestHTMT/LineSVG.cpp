@@ -33,11 +33,3 @@ void Line::readLine(const string& line) {
         }
     }
 }
-
-void Line::printLine() {
-    cout << "x1: " << x1 << ", y1: " << y1 << "\n";
-    cout << "x2: " << x2 << ", y2: " << y2 << "\n";
-    cout << "stroke: " << stroke << "\n";
-    cout << "stroke-width: " << strokeWidth << "\n";
-    cout << "stroke-opacity: " << strokeOpacity << "\n";
-}
