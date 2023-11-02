@@ -113,31 +113,49 @@ void drawPolylineLeftCorner(HDC hdc) {
     SolidBrush fillBrush(Color(128, 0, 255, 255));
     graphics.FillPolygon(&fillBrush, points, 22);
 }
-
-VOID OnPaint(HDC hdc)
-{
+void drawRectangleFrame(HDC hdc) {
     Graphics graphics(hdc);
-
+    // vẽ hai khung hình chữ nhật.
+    Pen blackPen2(Color(255, 55, 55, 55), 2);
+    graphics.DrawRectangle(&blackPen2, 10, 10, 670, 330);
+    Pen outer_blackPen(Color(50, 55, 55, 55), 2);
+    graphics.DrawRectangle(&outer_blackPen, 15, 15, 670, 330);
+}
+void drawBackgroundColor(HDC hdc) {
+    Graphics graphics(hdc);
+    // Tô màu hình chữ nhật ở trong.
+    SolidBrush solidBrush2(Color(90, 255, 182, 193));
+    graphics.FillRectangle(&solidBrush2, 10, 10, 670, 330);
+}
+void drawEllipse(HDC hdc) {
+    Graphics graphics(hdc);
     Pen      pen1(Color(255, 255, 255, 0));
     pen1.SetWidth(3);
     Rect rect(500, 100, 200, 100);
     graphics.DrawEllipse(&pen1, rect);
     SolidBrush solidBrush(Color(255, 0, 255, 0));
     graphics.FillEllipse(&solidBrush, 500, 100, 200, 100);
+}
 
-    Pen blackPen(Color(255, 255, 0, 0));
-    graphics.DrawRectangle(&blackPen, 0, 0, 200, 50);
-
-    Pen      pen2(Color(255, 0, 255, 255));
-    pen2.SetWidth(10);
-    Rect rect1(100, 200, 210, 210);
-    graphics.DrawEllipse(&pen2, rect1);
+void drawCircle(HDC hdc, int centerX, int centerY, int radius) // x = 100,y =  200,r = 210.
+{
+    Graphics graphics(hdc);
+    Pen pen(Color(255, 0, 255, 255), 10); // Blue color pen
+    graphics.DrawEllipse(&pen, centerX, centerY, radius, radius);
     SolidBrush solidBrush1(Color(128, 255, 255, 0));
-    graphics.FillEllipse(&solidBrush1, 100, 200, 210, 210);
-
+    graphics.FillEllipse(&solidBrush1, centerX, centerY, radius, radius);
+}
+void drawStringNVA(HDC hdc) {
+    Graphics graphics(hdc);
+    SolidBrush  brush(Color(255, 200, 150, 255));
+    FontFamily  fontFamily(L"Times New Roman");
+    Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
+    PointF      pointF(340.0f, 300.0f);
+    graphics.DrawString(L"Nguyen Van A", -1, &font, pointF, &brush);
+}
+void drawPolygon(HDC hdc) {
+    Graphics graphics(hdc);
     Pen blackPen1(Color(255, 255, 0, 102), 10);
-
-    // Create an array of PointF objects that define the polygon.
     PointF point1(950.0f, 120.0f);
     PointF point2(1050.0f, 180.0f);
     PointF point3(1050.0f, 280.0f);
@@ -152,29 +170,20 @@ VOID OnPaint(HDC hdc)
     // Fill polygon
     SolidBrush blueBrush(Color(255, 153, 204, 255));
     graphics.FillPolygon(&blueBrush, points, 6);
+}
+VOID OnPaint(HDC hdc)
+{
+    Graphics graphics(hdc);
 
-
-    // Phần COMMIT của Tùng ngày 28/10/2023
-       // Tô màu hình chữ nhật ở trong.
-    SolidBrush solidBrush2(Color(90, 255, 182, 193));
-    graphics.FillRectangle(&solidBrush2, 10, 10, 670, 330);
+    drawRectangleFrame(hdc);
+    drawBackgroundColor(hdc);
+    drawCircle(hdc, 70, 170,150);
     // this code is used to draw string "Nguyen Van A".
-    SolidBrush  brush(Color(255, 200, 150, 255));
-    FontFamily  fontFamily(L"Times New Roman");
-    Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
-    PointF      pointF(340.0f, 300.0f);
-    graphics.DrawString(L"Nguyen Van A", -1, &font, pointF, &brush);
-    // vẽ hai khung hình chữ nhật.
-    Pen blackPen2(Color(255, 55, 55, 55), 2);
-    graphics.DrawRectangle(&blackPen2, 10, 10, 670, 330);
-    Pen outer_blackPen(Color(50, 55, 55, 55), 2);
-    graphics.DrawRectangle(&outer_blackPen, 15, 15, 670, 330);
+    drawStringNVA(hdc);
+    drawEllipse(hdc);
+    drawPolygon(hdc);
     // Vẽ hình ngôi sao
-    int centerX = 240; // Adjust this to your desired position
-    int centerY = 160; // Adjust this to your desired position
-    int starSize = 120; // Adjust this to your desired size
-    DrawStar(hdc, centerX, centerY, starSize, 2.2f);
-
+    DrawStar(hdc, 300, 160, 120, 2.2f);
     drawPolylineLeftCorner(hdc);
     drawLineLeftCorner(hdc);
     drawPolyline(hdc);
