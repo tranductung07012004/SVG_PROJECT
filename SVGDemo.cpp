@@ -24,33 +24,23 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     }
     points[10] = points[0];
     points[11] = points[1];
-    // Create and select a yellow brush
-    HBRUSH yellowBrush = CreateSolidBrush(RGB(255, 255, 0));
-    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, yellowBrush);
 
-    // Create a black pen
-    HPEN redPen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
-    HPEN oldPen = (HPEN)SelectObject(hdc, redPen);
-
+    // Create a GraphicsPath to draw the star
     GraphicsPath path;
-    Graphics new_graphics(hdc);
-    Pen another_red_pen(Color(255, 255, 0, 0), 7);
     path.StartFigure();
     for (int i = 0; i < 11; i++) {
         path.AddLine(Point(points[i].x, points[i].y), Point(points[i + 1].x, points[i + 1].y));
     }
-    another_red_pen.SetLineJoin(LineJoinMiter);
-    new_graphics.DrawPath(&another_red_pen, &path);
-    //Draw the star
-    Polygon(hdc, points, 10);
 
-    // Restore the old brush and pen
-    SelectObject(hdc, oldBrush);
-    SelectObject(hdc, oldPen);
+    // Fill the star with a yellow color
+    SolidBrush yellowBrush(Color(255, 255, 255, 0)); // Yellow color
+    Graphics new_graphics(hdc);
+    new_graphics.FillPath(&yellowBrush, &path);
 
-    // Clean up
-    DeleteObject(yellowBrush);
-    DeleteObject(redPen);
+    // Create a Pen to draw the star outline with a red color
+    Pen redPen(Color(255, 255, 0, 0), 7); // Red color, line width 7
+    new_graphics.DrawPath(&redPen, &path);
+
 }
 
 void drawPolyline(HDC hdc) {
