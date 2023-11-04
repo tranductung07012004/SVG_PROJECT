@@ -52,7 +52,7 @@ using namespace Gdiplus;
 //    DeleteObject(yellowBrush);
 //    DeleteObject(redPen);
 //}
-void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
+void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle, float fill_opacity, float stroke_opacity)
 {
     // Define the points for the 5-pointed star
     POINT points[12];
@@ -75,13 +75,13 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     }
 
     // Fill the star with a yellow color
-    SolidBrush yellowBrush(Color(0.6 * 255, 255, 255, 0)); // Yellow color
+    SolidBrush yellowBrush(Color(fill_opacity * 255, 255, 255, 0)); // Yellow color
     Graphics new_graphics(hdc);
     new_graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     new_graphics.FillPath(&yellowBrush, &path);
 
     // Create a Pen to draw the star outline with a red color
-    Pen redPen(Color(0.7 * 255, 255, 0, 0), 7); // Red color, line width 7
+    Pen redPen(Color(stroke_opacity *  255, 255, 0, 0), 7); // Red color, line width 7
     new_graphics.DrawPath(&redPen, &path);
 
 }
@@ -220,7 +220,7 @@ VOID OnPaint(HDC hdc)
     drawEllipse(hdc);
     drawPolygon(hdc);
     // Vẽ hình ngôi sao
-    DrawStar(hdc, 300, 160, 120, 2.2f);
+    DrawStar(hdc, 300, 160, 120, 2.2f, 0.6f, 0.7f);
     drawPolylineLeftCorner(hdc);
     drawLineLeftCorner(hdc);
     drawPolyline(hdc);
