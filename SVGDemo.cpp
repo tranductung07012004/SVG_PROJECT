@@ -10,7 +10,48 @@ using namespace std;
 using namespace rapidxml;
 using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
-
+//
+//void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
+//{
+//    // Define the points for the 5-pointed star
+//    POINT points[12];
+//    for (int i = 0; i < 10; i++)
+//    {
+//        double outerRadius = i % 2 == 0 ? size : size / 2.5;
+//        double angle = 3.14159 * i / 5 + rotation_angle;
+//        points[i].x = cx + static_cast<int>(outerRadius * cos(angle));
+//        points[i].y = cy + static_cast<int>(outerRadius * sin(angle));
+//    }
+//    points[10] = points[0];
+//    points[11] = points[1];
+//    // Create and select a yellow brush
+//    HBRUSH yellowBrush = CreateSolidBrush(RGB(255, 255, 0));
+//    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, yellowBrush);
+//
+//    // Create a black pen
+//    HPEN redPen = CreatePen(PS_SOLID, 7, RGB(255, 0, 0));
+//    HPEN oldPen = (HPEN)SelectObject(hdc, redPen);
+//
+//    GraphicsPath path;
+//    Graphics new_graphics(hdc);
+//    Pen another_red_pen(Color(255, 255, 0, 0), 7);
+//    path.StartFigure();
+//    for (int i = 0; i < 11; i++) {
+//        path.AddLine(Point(points[i].x, points[i].y), Point(points[i + 1].x, points[i + 1].y));
+//    }
+//    another_red_pen.SetLineJoin(LineJoinMiter);
+//    new_graphics.DrawPath(&another_red_pen, &path);
+//    //Draw the star
+//    Polygon(hdc, points, 10);
+//
+//    // Restore the old brush and pen
+//    SelectObject(hdc, oldBrush);
+//    SelectObject(hdc, oldPen);
+//
+//    // Clean up
+//    DeleteObject(yellowBrush);
+//    DeleteObject(redPen);
+//}
 void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
 {
     // Define the points for the 5-pointed star
@@ -26,6 +67,7 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     points[11] = points[1];
 
     // Create a GraphicsPath to draw the star
+    
     GraphicsPath path;
     path.StartFigure();
     for (int i = 0; i < 11; i++) {
@@ -33,18 +75,20 @@ void DrawStar(HDC hdc, int cx, int cy, int size, float rotation_angle)
     }
 
     // Fill the star with a yellow color
-    SolidBrush yellowBrush(Color(255, 255, 255, 0)); // Yellow color
+    SolidBrush yellowBrush(Color(0.6 * 255, 255, 255, 0)); // Yellow color
     Graphics new_graphics(hdc);
+    new_graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     new_graphics.FillPath(&yellowBrush, &path);
 
     // Create a Pen to draw the star outline with a red color
-    Pen redPen(Color(255, 255, 0, 0), 7); // Red color, line width 7
+    Pen redPen(Color(0.7 * 255, 255, 0, 0), 7); // Red color, line width 7
     new_graphics.DrawPath(&redPen, &path);
 
 }
 
 void drawPolyline(HDC hdc) {
     Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     Point points[] = { Point(0, 40), Point(40, 40), Point(40, 80), 
                         Point(80, 80), Point(80, 120), Point(120, 120), Point(120, 140) };
 
@@ -119,8 +163,9 @@ void drawBackgroundColor(HDC hdc) {
 }
 void drawEllipse(HDC hdc) {
     Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     Pen      pen1(Color(255, 255, 255, 0));
-    pen1.SetWidth(3);
+    pen1.SetWidth(6);
     Rect rect(500, 100, 200, 100);
     graphics.DrawEllipse(&pen1, rect);
     SolidBrush solidBrush(Color(255, 0, 255, 0));
@@ -130,6 +175,7 @@ void drawEllipse(HDC hdc) {
 void drawCircle(HDC hdc, int centerX, int centerY, int radius) // x = 100,y =  200,r = 210.
 {
     Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     Pen pen(Color(255, 0, 255, 255), 10); // Blue color pen
     graphics.DrawEllipse(&pen, centerX, centerY, radius, radius);
     SolidBrush solidBrush1(Color(128, 255, 255, 0));
@@ -145,6 +191,7 @@ void drawStringNVA(HDC hdc) {
 }
 void drawPolygon(HDC hdc) {
     Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     Pen blackPen1(Color(255, 255, 0, 102), 10);
     PointF point1(950.0f, 120.0f);
     PointF point2(1050.0f, 180.0f);
@@ -167,7 +214,7 @@ VOID OnPaint(HDC hdc)
 
     drawRectangleFrame(hdc);
     drawBackgroundColor(hdc);
-    drawCircle(hdc, 70, 170,150);
+    drawCircle(hdc, 100, 170,150);
     // this code is used to draw string "Nguyen Van A".
     drawStringNVA(hdc);
     drawEllipse(hdc);
