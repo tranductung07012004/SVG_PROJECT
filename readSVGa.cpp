@@ -29,7 +29,11 @@ vector<SVGElement> parseSVG(const string& filename) {
             element.type = node->name();
 
             for (xml_attribute<>* attr = node->first_attribute(); attr; attr = attr->next_attribute()) {
-                element.attributes[attr->name()] = attr->value();
+                string attrName = attr->name();
+                std::transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
+                string attrVal = attr->value();
+                std::transform(attrVal.begin(), attrVal.end(), attrVal.begin(), ::tolower);
+                element.attributes[attrName] = attrVal;
             }
 
             // Check if the element is of type "text" and extract its content
