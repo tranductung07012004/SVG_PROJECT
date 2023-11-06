@@ -8,6 +8,7 @@
 #include <string>
 #include <fstream>
 #include <regex>
+#include <unordered_map>
 #include "SVGDemo.h"
 using namespace std;
 using namespace rapidxml;
