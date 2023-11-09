@@ -34,6 +34,10 @@ RGBSVG colorSVG(const string& s);
 
 vector<PointSVG> parsePointString(const string& input);
 
+struct pointMinMax {
+    PointSVG pointMin = { DBL_MAX,DBL_MAX }, pointMax = { -DBL_MAX,-DBL_MAX };
+};
+
 class ShapeSVG {
 protected:
     double fillOpacity = 0;
@@ -57,7 +61,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element);
     void drawRectSVG(HDC);
-
+    void getPointMINMAX(pointMinMax&);
 };
 
 class TextSVG : public ShapeSVG {
@@ -75,6 +79,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element);
     void drawTextSVG(HDC);
+    void getPointMINMAX(pointMinMax&);
 };
 
 class CircleSVG : public ShapeSVG {
@@ -86,6 +91,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element);
     void drawCircleSVG(HDC);
+    void getPointMINMAX(pointMinMax&);
 };
 
 class EllipseSVG : public ShapeSVG {
@@ -96,7 +102,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element);
     void drawEllipseSVG(HDC);
-
+    void getPointMINMAX(pointMinMax&);
 };
 
 class LineSVG : public ShapeSVG {
@@ -105,6 +111,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element);
     void drawLineSVG(HDC);
+    void getPointMINMAX(pointMinMax&);
 };
 
 class PolygonSVG : public ShapeSVG {
@@ -113,6 +120,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element);
     void drawPolygonSVG(HDC);
+    void getPointMINMAX(pointMinMax&);
 };
 
 class PolylineSVG : public ShapeSVG {
@@ -121,4 +129,5 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element);
     void drawPolylineSVG(HDC);
+    void getPointMINMAX(pointMinMax&);
 };
