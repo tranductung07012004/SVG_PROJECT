@@ -496,44 +496,109 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element) {
     }
 }
 
+void RectSVG::getPointMINMAX(pointMinMax& pMM) {
+    if (pMM.pointMin.x > this->x) pMM.pointMin.x = this->x;
+    if (pMM.pointMin.y > this->y) pMM.pointMin.y = this->y;
+    if (pMM.pointMax.x < this->x + this->width) pMM.pointMax.x = this->x;
+    if (pMM.pointMax.y < this->y + this->height) pMM.pointMax.y = this->y;
+}
+
+void TextSVG::getPointMINMAX(pointMinMax& pMM) {
+    if (pMM.pointMin.x > this->x) pMM.pointMin.x = this->x;
+    if (pMM.pointMin.y > this->y - this->fontSize) pMM.pointMin.y = this->y - this->fontSize;
+    if (pMM.pointMax.x < this->x + this->textContent.size()*this->fontSize) pMM.pointMax.x = this->x + this->textContent.size() * this->fontSize;
+    if (pMM.pointMax.y < this->y) pMM.pointMax.y = this->y;
+}
+
+void CircleSVG::getPointMINMAX(pointMinMax& pMM) {
+    if (pMM.pointMin.x > this->cx - this->r) pMM.pointMin.x = this->cx - this->r;
+    if (pMM.pointMin.y > this->cy - this->r) pMM.pointMin.y = this->cy - this->r;
+    if (pMM.pointMax.x < this->cx + this->r) pMM.pointMax.x = this->cx + this->r;
+    if (pMM.pointMax.y < this->cy + this->r) pMM.pointMax.y = this->cy + this->r;
+}
+
+void EllipseSVG::getPointMINMAX(pointMinMax& pMM) {
+    if (pMM.pointMin.x > this->cx - this->rx) pMM.pointMin.x = this->cx - this->rx;
+    if (pMM.pointMin.y > this->cy - this->ry) pMM.pointMin.y = this->cy - this->ry;
+    if (pMM.pointMax.x < (this->cx - this->rx) + 2 * rx) pMM.pointMax.x = (this->cx - this->rx) + 2 * rx;
+    if (pMM.pointMax.y < (this->cy - this->ry) + 2 * ry) pMM.pointMax.y = (this->cy - this->ry) + 2 * ry;
+}
+
+void LineSVG::getPointMINMAX(pointMinMax& pMM) {
+    if (pMM.pointMin.x > this->x1) pMM.pointMin.x = this->x1;
+    if (pMM.pointMin.y > this->y1) pMM.pointMin.y = this->y1;
+    if (pMM.pointMax.x < this->x1) pMM.pointMax.x = this->x1;
+    if (pMM.pointMax.y < this->y1) pMM.pointMax.y = this->y1;
+    if (pMM.pointMin.x > this->x2) pMM.pointMin.x = this->x2;
+    if (pMM.pointMin.y > this->y2) pMM.pointMin.y = this->y2;
+    if (pMM.pointMax.x < this->x2) pMM.pointMax.x = this->x2;
+    if (pMM.pointMax.y < this->y2) pMM.pointMax.y = this->y2;
+}
+
+void PolygonSVG::getPointMINMAX(pointMinMax& pMM) {
+    for (int i = 0; i < this->points.size(); i++)
+    {
+        if (pMM.pointMin.x > this->points[i].x) pMM.pointMin.x = this->points[i].x;
+        if (pMM.pointMin.y > this->points[i].y) pMM.pointMin.y = this->points[i].y;
+        if (pMM.pointMax.x < this->points[i].x) pMM.pointMax.x = this->points[i].x;
+        if (pMM.pointMax.y < this->points[i].y) pMM.pointMax.y = this->points[i].y;
+    }
+}
+
+void PolylineSVG::getPointMINMAX(pointMinMax& pMM) {
+    for (int i = 0; i < this->points.size(); i++)
+    {
+        if (pMM.pointMin.x > this->points[i].x) pMM.pointMin.x = this->points[i].x;
+        if (pMM.pointMin.y > this->points[i].y) pMM.pointMin.y = this->points[i].y;
+        if (pMM.pointMax.x < this->points[i].x) pMM.pointMax.x = this->points[i].x;
+        if (pMM.pointMax.y < this->points[i].y) pMM.pointMax.y = this->points[i].y;
+    }
+}
+
 /*
 #include "readSVG.h"
 
 int main() {
     const string filename = "sample.svg";
     vector<SVGElement> elements = parseSVG(filename);
-
-    // Print the elements
+    pointMinMax ptMM;
     printSVGElements(elements);
     for (const SVGElement& element : elements)
     {
         if (element.type == "rect") {
             RectSVG rectElement;
             rectElement.parseShapeSVG(element);
+            rectElement.getPointMINMAX(ptMM);
         }
         if (element.type == "text") {
             TextSVG textElement;
             textElement.parseShapeSVG(element);
+            textElement.getPointMINMAX(ptMM);
         }
         if (element.type == "circle") {
             CircleSVG circleElement;
             circleElement.parseShapeSVG(element);
+            circleElement.getPointMINMAX(ptMM);
         }
         if (element.type == "ellipse") {
             EllipseSVG ellipseElement;
             ellipseElement.parseShapeSVG(element);
+            ellipseElement.getPointMINMAX(ptMM);
         }
         if (element.type == "line") {
             LineSVG lineElement;
             lineElement.parseShapeSVG(element);
+            lineElement.getPointMINMAX(ptMM);
         }
         if (element.type == "polygon") {
             PolygonSVG polygonElement;
             polygonElement.parseShapeSVG(element);
+            polygonElement.getPointMINMAX(ptMM);
         }
         if (element.type == "polyline") {
             PolylineSVG polylineElement;
             polylineElement.parseShapeSVG(element);
+            polylineElement.getPointMINMAX(ptMM);
         }
     }
     return 0;
