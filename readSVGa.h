@@ -18,7 +18,7 @@ struct SVGElement {
     map<string, string> attributes;
     string textContent;
 };
-
+void parseStyle(const string& s, SVGElement& element);
 vector<SVGElement> parseSVG(const string& filename);
 void printSVGElements(const vector<SVGElement>& elements);
 
