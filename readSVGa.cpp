@@ -1,5 +1,31 @@
 #include "readSVGa.h"
 
+void parseStyle(const string& s, SVGElement& element) {
+    vector<string> stylePairs;
+    stringstream ss(s);
+    string pair;
+    while (getline(ss, pair, ';')) {
+        stylePairs.push_back(pair);
+    }
+
+    for (const string& stylePair : stylePairs) {
+        size_t colonPos = stylePair.find(':');
+        if (colonPos != string::npos) {
+            string key = stylePair.substr(0, colonPos);
+            string value = stylePair.substr(colonPos + 1);
+
+            key.erase(0, key.find_first_not_of(" \t\n\r\f\v"));
+            key.erase(key.find_last_not_of(" \t\n\r\f\v") + 1);
+
+            value.erase(0, value.find_first_not_of(" \t\n\r\f\v"));
+            value.erase(value.find_last_not_of(" \t\n\r\f\v") + 1);
+
+            std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+            element.attributes[key] = value;
+        }
+    }
+}
 
 vector<SVGElement> parseSVG(const string& filename) {
     vector<SVGElement> elements;
@@ -34,6 +60,7 @@ vector<SVGElement> parseSVG(const string& filename) {
                 string attrVal = attr->value();
                 std::transform(attrVal.begin(), attrVal.end(), attrVal.begin(), ::tolower);
                 element.attributes[attrName] = attrVal;
+                if (attrName == "style") parseStyle(attrVal, element);
             }
 
             // Check if the element is of type "text" and extract its content
