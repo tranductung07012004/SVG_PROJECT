@@ -526,8 +526,9 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element) {
 void RectSVG::getPointMINMAX(pointMinMax& pMM) {
     if (pMM.pointMin.x > this->x) pMM.pointMin.x = this->x;
     if (pMM.pointMin.y > this->y) pMM.pointMin.y = this->y;
-    if (pMM.pointMax.x < this->x + this->width) pMM.pointMax.x = this->x;
-    if (pMM.pointMax.y < this->y + this->height) pMM.pointMax.y = this->y;
+    if (pMM.pointMax.x < this->x + this->width) pMM.pointMax.x = this->x + this->width;
+    if (pMM.pointMax.y < this->y + this->height) pMM.pointMax.y = this->y + this->height;
+}
 }
 
 void TextSVG::getPointMINMAX(pointMinMax& pMM) {
