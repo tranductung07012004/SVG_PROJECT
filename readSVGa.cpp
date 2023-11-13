@@ -465,7 +465,6 @@ void LineSVG::parseShapeSVG(const SVGElement& element) {
         }
     }
 }
-
 void PolygonSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "points") {
