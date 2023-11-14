@@ -441,37 +441,6 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element) {
     }
 }
 
-void LineSVG::parseShapeSVG(const SVGElement& element) {
-    for (const auto& attr : element.attributes) {
-        if (attr.first == "x1") {
-            x1 = stod(attr.second);
-        }
-        else if (attr.first == "y1") {
-            y1 = stod(attr.second);
-        }
-        else if (attr.first == "x2") {
-            x2 = stod(attr.second);
-        }
-        else if (attr.first == "y2") {
-            y2 = stod(attr.second);
-        }
-        else if (attr.first == "stroke") {
-            stroke = colorSVG(attr.second);
-        }
-        else if (attr.first == "stroke-opacity") {
-            strokeOpacity = stod(attr.second);
-        }
-        else if (attr.first == "stroke-width") {
-            strokeWidth = stod(attr.second);
-        }
-        else if (attr.first == "transform") {
-            transform = attr.second;
-        }
-        else if (attr.first == "style") {
-            style = attr.second;
-        }
-    }
-}
 
 void PolygonSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
