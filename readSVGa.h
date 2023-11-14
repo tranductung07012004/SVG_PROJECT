@@ -1,4 +1,6 @@
-#pragma once
+#ifndef READ_SVG_H_
+#define READ_SVG_H_
+
 #include "stdafx.h"
 #include "rapidxml.hpp"
 #include <iostream>
@@ -131,3 +133,5 @@ public:
     void drawPolylineSVG(HDC);
     void getPointMINMAX(pointMinMax&);
 };
+
+#endif
