@@ -447,7 +447,6 @@ void ShapeSVG::copyAttributes(const ShapeSVG& other) {
     fill = other.fill;
     stroke = other.stroke;
     strokeWidth = other.strokeWidth;
-    tfSVG = other.tfSVG;
     style = other.style;
 }
 
