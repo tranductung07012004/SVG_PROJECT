@@ -1,4 +1,6 @@
+#include "stdafx.h"
 #include "readSVGa.h"
+
 bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
@@ -665,6 +667,340 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+}
+
+
+void CircleSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    RectF ellipseRect(cx - r, cy - r, r * 2, r * 2);
+    
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillEllipse(&brush, ellipseRect);
+    graphics.DrawEllipse(&pen, ellipseRect);
+    // graphics.ResetTransform();
+}
+
+void EllipseSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    RectF ellipseRect(cx - rx, cy - ry, rx * 2, ry * 2);
+    graphics.DrawEllipse(&pen, ellipseRect);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillEllipse(&brush, ellipseRect);
+    //graphics.ResetTransform();
+}
+
+void LineSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+    PointF point1(x1, y1);
+    PointF point2(x2, y2);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    graphics.DrawLine(&pen, point1, point2);
+    // graphics.ResetTransform();
+}
+
+void PolygonSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    // graphics.ScaleTransform(2.0f, 2.0f);
+     //float zoomFactor = 1.0;
+    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+     //graphics.SetTransform(&scalingMatrix);
+
+
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    int size = points.size();
+    PointF* point = new PointF[size];
+    for (int i = 0; i < size; i++) {
+        point[i].X = points[i].x;
+        point[i].Y = points[i].y;
+    }
+
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillPolygon(&brush, point, size);
+    graphics.DrawPolygon(&pen, point, size);
+    //graphics.ResetTransform();
+}
+
+void PolylineSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    int size = points.size();
+    PointF* point = new PointF[size];
+    for (int i = 0; i < size; i++) {
+        point[i].X = points[i].x;
+        point[i].Y = points[i].y;
+    }
+    graphics.DrawLines(&pen, point, size);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillPolygon(&brush, point, size);
+
+    // graphics.ResetTransform();
+}
+
+void RectSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+   // this->TranslateRectangle(30, 50);
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    //Matrix matrix;
+    //// PointF p;
+    // //p.X = (ptMM.pointMin.x + ptMM.pointMax.x) / 2;
+    //// p.Y = (ptMM.pointMin.y + ptMM.pointMax.y) / 2;
+    // //int width = ptMM.pointMax.x - ptMM.pointMin.x;
+    // //int height = ptMM.pointMax.y - ptMM.pointMin.y;
+    //matrix.RotateAt(180.0f, PointF(500, 200)); // Rotation angle: 45 degrees, Rotation center: (150, 100)
+    //graphics.SetTransform(&matrix);
+    //// graphics.DrawRectangle(&pen, (int)ptMM.pointMin.x, (int)ptMM.pointMin.y, width, height);
+    //graphics.DrawRectangle(&pen, (int)x, (int)y, width, height);
+    
+
+
+    graphics.DrawRectangle(&pen, (int)x, (int)y, width, height);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillRectangle(&brush, (int)x, (int)y, width, height);
+
+    //graphics.ResetTransform();
+
+
+}
+
+void TextSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+    //graphics.ScaleTransform(2.0f, 2.0f);
+
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring ws = converter.from_bytes(fontFamily);
+    FontFamily fontFamily(ws.c_str());
+
+    int font1 = FontStyleRegular;
+    if (fontWeight2 == "bold" || fontWeight2 == "Bold" || fontWeight1 >= 550) {
+        font1 = FontStyleBold;
+    }
+    else if (fontStyle == "italic" || fontStyle == "Italic") {
+        font1 = FontStyleItalic;
+    }
+    else if ((fontWeight2 == "bold" || fontWeight2 == "Bold" || fontWeight1 >= 550) && (fontStyle == "italic" || fontStyle == "Italic")) {
+        font1 = FontStyleBoldItalic;
+    }
+    else if (textDecoration == "underline" || textDecoration == "Underline") {
+        font1 = FontStyleUnderline;
+    }
+    else if (textDecoration == "line-through") {
+        font1 = FontStyleStrikeout;
+    }
+    Font font(&fontFamily, fontSize, font1, UnitPixel);
+    PointF point(static_cast<float>(x) - fontSize, static_cast<float>(y) - fontSize);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    wstring wstr = converter.from_bytes(textContent);
+    graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
+
+    //graphics.ResetTransform();
+}
+
+void PathSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    //SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    PointF start = { -3.4e38,-3.4e38 };
+    PointF controlPoint;
+    PointF control;
+    GraphicsPath path;
+    char typeBefore = NULL;
+    for (const auto& data : PathData) {
+        if (data.typePointPath == 'M') {
+            // Move to the starting point
+            path.StartFigure();
+            PointF startPoint(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+            start = startPoint;
+            //path.AddLine(startPoint, startPoint);
+        }
+        else if (data.typePointPath == 'L' || data.typePointPath == 'l') {
+            // Draw a line
+            for (const auto& point : data.points) {
+                PointF endPoint(static_cast<float>(point.x), static_cast<float>(point.y));
+                path.AddLine(start, endPoint);
+                start = endPoint;
+            }
+        }
+        else if (data.typePointPath == 'C' || data.typePointPath == 'c') {
+            // Draw a Bezier curve
+            if (data.points.size() >= 3) {
+                PointF controlPoint1(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+                PointF controlPoint2(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+                PointF endPoint(static_cast<float>(data.points[2].x), static_cast<float>(data.points[2].y));
+                path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                start = endPoint;
+                controlPoint = controlPoint2;
+                typeBefore = 'C';
+            }
+        }
+
+        //else if (data.typePointPath == 'S') {
+        //    // Draw a smooth cubic Bezier curve
+        //    // C + S
+        //    if (data.points.size() >= 2) {
+        //        if (typeBefore == 'C') {
+        //            PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //            PointF controlPoint1;
+        //            controlPoint1.Y = controlPoint2.Y;
+        //            controlPoint1.X = start.X * 2 - controlPoint.X;
+        //            int count = path.GetPointCount();
+        //            path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //        }
+        //        // Q + S
+        //        else if (typeBefore == 'Q') {
+        //            PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //            PointF controlPoint1;
+        //            controlPoint1.Y = controlPoint2.Y;
+        //            controlPoint1.X = start.X * 2 - controlPoint.X;
+        //            controlPoint2.Y = (endPoint.Y + controlPoint2.Y) / 2;
+        //            controlPoint1.Y = (endPoint.Y + controlPoint1.Y) / 2;
+        //            int count = path.GetPointCount();
+        //            path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //            //path.AddLine(endPoint, controlPoint2);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //        }
+        //        
+        //        // S before, T + S
+        //        else {
+        //            PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //            PointF controlPoint1;
+        //            controlPoint1.X = controlPoint2.X;
+        //            controlPoint1.Y = (endPoint.Y + controlPoint2.Y) / 2;
+        //            int count = path.GetPointCount();
+        //            path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //        }
+        //        typeBefore = 'S';
+        //    }
+        //}
+        //else if (data.typePointPath == 'Q') {
+        //     //Draw a quadratic Bezier curve
+        //    if (data.points.size() >= 2) {
+        //        PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //        PointF controlPoint1 = { (controlPoint2.X + start.X) / 2, (controlPoint2.Y + start.Y) / 2 };
+        //        PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //        PointF controlPoint3 = { controlPoint2.X ,(controlPoint2.Y * 4)};
+        //        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //       // path.AddLine(start, controlPoint1);
+        //        //path.AddLine(endPoint, controlPoint2);
+        //        
+        //        start = endPoint;
+        //        controlPoint = controlPoint2;
+        //        control = controlPoint1;
+        //        typeBefore = 'Q';
+        //    }
+        //}
+        //else if (data.typePointPath == 'T') {
+        //    // Draw a smooth quadratic Bezier curve
+        //    
+        //    if (data.points.size() >= 1) {
+        //        // Q + T
+        //        if (typeBefore == 'Q') {
+        //            PointF endPoint(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF controlPoint1;
+        //            PointF controlPoint2;
+        //            controlPoint1.X = start.X * 2 - controlPoint.X;
+        //            controlPoint1.Y = start.Y * 2 - controlPoint.Y;
+        //            controlPoint2.X = start.X * 2 - control.X;
+        //            controlPoint2.Y = start.Y * 2 - control.Y;
+        //            path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //            control = controlPoint1;
+        //            //typeBefore = 'T';
+        //        }
+
+        //        // T
+        //        else {
+        //            PointF endPoint(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            path.AddBezier(start, start, start, endPoint);
+        //            start = endPoint;
+        //            controlPoint = endPoint;
+        //            control = endPoint;
+        //            //typeBefore = 'T';
+        //        }
+        //        typeBefore = 'T';
+        //    }
+        //}
+
+        else if (data.typePointPath == 'V') {
+            for (const auto& point : data.points) {
+                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.y));
+                path.AddLine(start, endPoint);
+                start = endPoint;
+            }
+        }
+
+        else if (data.typePointPath == 'H') {
+            for (const auto& point : data.points) {
+                PointF endPoint(static_cast<float>(point.x), static_cast<float>(start.Y));
+                path.AddLine(start, endPoint);
+                start = endPoint;
+            }
+        }
+
+        //else if (data.typePointPath == 'A') {
+        //    // Draw an elliptical arc
+        //  //  RectF ellipseBounds(static_cast<float>(data.x - data.rx), static_cast<float>(data.y - data.ry),
+        //  //                      static_cast<float>(2 * data.rx), static_cast<float>(2 * data.ry));
+        //    RectF ellipseBounds(static_cast<float>(start.X), static_cast<float>(start.Y),
+        //        static_cast<float>(data.rx), static_cast<float>(data.ry));
+        //    float startAngle = static_cast<float>(Math::RadiansToDegrees(data.xAxisRotation));
+        //    float sweepAngle = data.sweepFlag ? 1.0f : -1.0f * 360.0f;
+        //    int x_start = start.X;
+        //    int y_start = start.Y;
+        //    int width = 2 * data.rx;
+        //    int height = 2 * data.ry;
+
+        //    path.AddArc(x_start, y_start, width, height, startAngle, sweepAngle);
+        //}
+        else if (data.typePointPath == 'Z') {
+            // Close the path
+            path.CloseFigure();
+        }
+    }
+
+    graphics.DrawPath(&pen, &path);
+   // graphics.FillPath(&brush, &path);
+    
 }
 
 
