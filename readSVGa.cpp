@@ -1,6 +1,45 @@
 #include "stdafx.h"
 #include "readSVGa.h"
 
+
+vector<transformSVG> parsetransformSVG(const string& input) {
+    vector<transformSVG> transformations;
+
+    // Regular expression to match transformations
+    regex transformRegex(R"((\w+)\s*\(\s*([+-]?\d*\.?\d+)\s*(?:,\s*([+-]?\d*\.?\d+))?\s*\))");
+
+    // Iterator to iterate over matches
+    sregex_iterator it(input.begin(), input.end(), transformRegex);
+    sregex_iterator end;
+
+    while (it != end) {
+        smatch match = *it;
+
+        transformSVG transform;
+        transform.transformType = match[1];
+
+        // Set the values based on the transformation type
+        if (transform.transformType == "translate") {
+            transform.translateX = stof(match[2]);
+            transform.translateY = match[3].matched ? stof(match[3]) : 0.0f;
+        }
+        else if (transform.transformType == "rotate") {
+            transform.rotateAngle = stof(match[2]);
+        }
+        else if (transform.transformType == "scale") {
+            transform.scaleX = stof(match[2]);
+            transform.scaleY = match[3].matched ? stof(match[3]) : transform.scaleX;
+        }
+
+        // Add the transformation to the vector
+        transformations.push_back(transform);
+
+        ++it;
+    }
+
+    return transformations;
+}
+
 bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
@@ -19,12 +58,12 @@ string removeCommas(const std::string& input) {
 }
 
 
-string formatSVGPath( string& path) {
+string formatSVGPath(string& path) {
     string result;
     bool previousIsDigit = false;
 
     for (char c : path) {
-        if (isDigit(c) || c == '-' || c=='.') {
+        if (isDigit(c) || c == '-' || c == '.') {
             if (!previousIsDigit) {
                 result += ' ';
             }
@@ -47,7 +86,7 @@ string formatSVGPath( string& path) {
 }
 
 vector<PointPathSVG> parsePathData(const string& input) {
-    
+
     string sPath = removeCommas(input);
 
 
@@ -74,12 +113,12 @@ vector<PointPathSVG> parsePathData(const string& input) {
                 point.x = x;
                 point.y = y;
                 path.points.push_back(point);
-                
+
             }
             if (type == 'Q') {
-                    fstream fo("1.txt");
-                    for (const auto& pointf : path.points)
-                        fo << pointf.x << " " << pointf.y << endl;
+                fstream fo("1.txt");
+                for (const auto& pointf : path.points)
+                    fo << pointf.x << " " << pointf.y << endl;
             }
         }
         else if (type == 'H' || type == 'V') {
@@ -133,34 +172,6 @@ void parseStyle(const string& s, SVGElement& element) {
     }
 }
 
-
-vector<SVGElement> parseSVG(const string& filename) {
-    vector<SVGElement> elements;
-
-    ifstream file(filename);
-    if (!file) {
-        cerr << "Failed to open the SVG file." << endl;
-        return elements;
-    }
-
-    // Read the content of the SVG file into a string
-    string xmlContent;
-    string line;
-    while (getline(file, line)) {
-        xmlContent += line + ' ';
-    }
-
-    // Parse the XML content using RapidXML
-    xml_document<> doc;
-    doc.parse<0>(&xmlContent[0]);
-
-    // Traverse the XML document and extract data from different SVG elements
-    parseSVGNode(doc.first_node(), elements);
-
-    file.close();
-    return elements;
-}
-
 void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
     for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
         SVGElement element;
@@ -168,9 +179,9 @@ void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
 
         for (xml_attribute<>* attr = child->first_attribute(); attr; attr = attr->next_attribute()) {
             string attrName = attr->name();
-            std::transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
+            transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
             string attrVal = attr->value();
-            std::transform(attrVal.begin(), attrVal.end(), attrVal.begin(), ::tolower);
+            transform(attrVal.begin(), attrVal.end(), attrVal.begin(), ::tolower);
             element.attributes[attrName] = attrVal;
             if (attrName == "style") parseStyle(attrVal, element);
         }
@@ -180,13 +191,70 @@ void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
             element.textContent = child->value();
         }
 
-        elements.push_back(element);
-
-        // Recursively parse children if the element has any
-        if (child->first_node()) {
-            parseSVGNode(child, elements);
+        // If the element is a group ("<g>"), parse its children separately
+        if (element.type == "g") {
+            parseGroupNode(child, element);
         }
+
+        elements.push_back(element);
     }
+}
+
+// Add this function to handle the <g> element
+void parseGroupNode(xml_node<>* node, SVGElement& groupElement) {
+    for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
+        SVGElement element;
+        element.type = child->name();
+
+        for (xml_attribute<>* attr = child->first_attribute(); attr; attr = attr->next_attribute()) {
+            string attrName = attr->name();
+            transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
+            string attrVal = attr->value();
+            transform(attrVal.begin(), attrVal.end(), attrVal.begin(), ::tolower);
+            element.attributes[attrName] = attrVal;
+            if (attrName == "style") parseStyle(attrVal, element);
+        }
+
+        // Check if the element is of type "text" and extract its content
+        if (element.type == "text") {
+            element.textContent = child->value();
+        }
+        if (element.type == "g") {
+            parseGroupNode(child, element);
+        }
+        groupElement.children.push_back(element);
+    }
+}
+vector<SVGElement> parseSVG(const string& filename) {
+    vector<SVGElement> result;
+
+    // Open the SVG file
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error: Unable to open file '" << filename << "'" << endl;
+        return result;  // Return an empty vector on error
+    }
+
+    // Read the content of the SVG file into a string
+    stringstream buffer;
+    buffer << file.rdbuf();
+    file.close();
+    string content = buffer.str();
+
+    // Parse the SVG content using RapidXML
+    xml_document<> doc;
+    doc.parse<0>(&content[0]);
+
+    // Start parsing the SVG elements
+    xml_node<>* svgNode = doc.first_node("svg");
+    if (svgNode) {
+        parseSVGNode(svgNode, result);
+    }
+    else {
+        cerr << "Error: Missing 'svg' element in the SVG file" << endl;
+    }
+
+    return result;
 }
 
 
@@ -347,7 +415,7 @@ RGBSVG colorSVG(const string& s) {
             {"whitesmoke", {245, 245, 245}},
             {"yellow", {255, 255, 0}},
             {"yellowgreen", {154, 205, 50}}
-            
+
         };
         if (colorMap.find(s1) != colorMap.end()) {
             color = colorMap[s1];
@@ -373,13 +441,23 @@ vector<PointSVG> parsePointString(const string& input) {
     return points;
 }
 
+void ShapeSVG::copyAttributes(const ShapeSVG& other) {
+    fillOpacity = other.fillOpacity;
+    strokeOpacity = other.strokeOpacity;
+    fill = other.fill;
+    stroke = other.stroke;
+    strokeWidth = other.strokeWidth;
+    tfSVG = other.tfSVG;
+    style = other.style;
+}
+
 void RectSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "x") {
-            x = stod(attr.second);
+            p.x = stod(attr.second);
         }
         else if (attr.first == "y") {
-            y = stod(attr.second);
+            p.y = stod(attr.second);
         }
         else if (attr.first == "width") {
             width = stod(attr.second);
@@ -409,7 +487,7 @@ void RectSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            transform = attr.second;
+            tfSVG = parsetransformSVG(attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -420,10 +498,10 @@ void RectSVG::parseShapeSVG(const SVGElement& element) {
 void TextSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "x") {
-            x = stod(attr.second);
+            p.x = stod(attr.second);
         }
         else if (attr.first == "y") {
-            y = stod(attr.second);
+            p.y = stod(attr.second);
         }
         else if (attr.first == "font-size") {
             fontSize = stod(attr.second);
@@ -472,6 +550,9 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
         else if (attr.first == "stroke-width") {
             strokeWidth = stod(attr.second);
         }
+        else if (attr.first == "transform") {
+            tfSVG = parsetransformSVG(attr.second);
+        }
     }
 
     // Store the text content from the SVG element
@@ -484,10 +565,10 @@ void CircleSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "cx") {
-            cx = stod(attr.second);
+            c.x = stod(attr.second);
         }
         else if (attr.first == "cy") {
-            cy = stod(attr.second);
+            c.y = stod(attr.second);
         }
         else if (attr.first == "r") {
             r = stod(attr.second);
@@ -505,7 +586,7 @@ void CircleSVG::parseShapeSVG(const SVGElement& element) {
             strokeOpacity = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            transform = attr.second;
+            tfSVG = parsetransformSVG(attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -516,10 +597,10 @@ void CircleSVG::parseShapeSVG(const SVGElement& element) {
 void EllipseSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "cx") {
-            cx = stod(attr.second);
+            c.x = stod(attr.second);
         }
         else if (attr.first == "cy") {
-            cy = stod(attr.second);
+            c.y = stod(attr.second);
         }
         else if (attr.first == "rx") {
             rx = stod(attr.second);
@@ -543,7 +624,7 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            transform = attr.second;
+            tfSVG = parsetransformSVG(attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -554,16 +635,16 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element) {
 void LineSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "x1") {
-            x1 = stod(attr.second);
+            p1.x = stod(attr.second);
         }
         else if (attr.first == "y1") {
-            y1 = stod(attr.second);
+            p1.y = stod(attr.second);
         }
         else if (attr.first == "x2") {
-            x2 = stod(attr.second);
+            p2.x = stod(attr.second);
         }
         else if (attr.first == "y2") {
-            y2 = stod(attr.second);
+            p2.y = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
@@ -575,7 +656,7 @@ void LineSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            transform = attr.second;
+            tfSVG = parsetransformSVG(attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -604,7 +685,7 @@ void PolygonSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            transform = attr.second;
+            tfSVG = parsetransformSVG(attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -632,7 +713,7 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            transform = attr.second;
+            tfSVG = parsetransformSVG(attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -661,7 +742,7 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            transform = attr.second;
+            tfSVG = parsetransformSVG(attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -669,6 +750,71 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
     }
 }
 
+void GroupSVG::parseShapeSVG(const SVGElement& element)  {
+    for (const auto& attr : element.attributes) {
+        if (attr.first == "fill") {
+            fill = colorSVG(attr.second);
+        }
+        else if (attr.first == "fill-opacity") {
+            fillOpacity = stod(attr.second);
+        }
+        else if (attr.first == "stroke") {
+            stroke = colorSVG(attr.second);
+        }
+        else if (attr.first == "stroke-opacity") {
+            strokeOpacity = stod(attr.second);
+        }
+        else if (attr.first == "stroke-width") {
+            strokeWidth = stod(attr.second);
+        }
+        else if (attr.first == "transform") {
+            tfSVG = parsetransformSVG(attr.second);
+        }
+        else if (attr.first == "style") {
+            style = attr.second;
+        }
+    }
+    for (const SVGElement& childElement : element.children) {
+        if (childElement.type == "g") {
+            unique_ptr<GroupSVG> group = make_unique<GroupSVG>();
+            group->parseShapeSVG(childElement);
+            groups.push_back(move(group));
+        }
+        else {
+            unique_ptr<ShapeSVG> shape;
+            if (childElement.type == "rect") {
+                shape = make_unique<RectSVG>();
+            }
+            else if (childElement.type == "text") {
+                shape = make_unique<TextSVG>();
+            }
+            else if (childElement.type == "circle") {
+                shape = make_unique<CircleSVG>();
+            }
+            else if (childElement.type == "ellipse") {
+                shape = make_unique<EllipseSVG>();
+            }
+            else if (childElement.type == "line") {
+                shape = make_unique<LineSVG>();
+            }
+            else if (childElement.type == "polygon") {
+                shape = make_unique<PolygonSVG>();
+            }
+            else if (childElement.type == "polyline") {
+                shape = make_unique<PolylineSVG>();
+            }
+            else if (childElement.type == "path") {
+                shape = make_unique<PathSVG>();
+            }
+            else {
+                continue;
+            }
+            shape->copyAttributes(*this);
+            shape->parseShapeSVG(childElement);
+            shapes.push_back(move(shape));
+        }
+    }
+}
 
 void CircleSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
@@ -679,8 +825,8 @@ void CircleSVG::drawSVG(Graphics& graphics) {
     //graphics.SetTransform(&scalingMatrix);
 
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    RectF ellipseRect(cx - r, cy - r, r * 2, r * 2);
-    
+    RectF ellipseRect(c.x - r, c.y - r, r * 2, r * 2);
+
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
@@ -696,7 +842,7 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     //graphics.SetTransform(&scalingMatrix);
 
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    RectF ellipseRect(cx - rx, cy - ry, rx * 2, ry * 2);
+    RectF ellipseRect(c.x - rx, c.y - ry, rx * 2, ry * 2);
     graphics.DrawEllipse(&pen, ellipseRect);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillEllipse(&brush, ellipseRect);
@@ -710,8 +856,8 @@ void LineSVG::drawSVG(Graphics& graphics) {
     //float zoomFactor = 1.0;
    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
     //graphics.SetTransform(&scalingMatrix);
-    PointF point1(x1, y1);
-    PointF point2(x2, y2);
+    PointF point1((REAL)p1.x, (REAL)p1.y);
+    PointF point2(p2.x, p2.y);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     graphics.DrawLine(&pen, point1, point2);
     // graphics.ResetTransform();
@@ -760,11 +906,11 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
 void RectSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-   // this->TranslateRectangle(30, 50);
-    //graphics.ScaleTransform(2.0f, 2.0f);
-    //float zoomFactor = 1.0;
-   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
-    //graphics.SetTransform(&scalingMatrix);
+    // this->TranslateRectangle(30, 50);
+     //graphics.ScaleTransform(2.0f, 2.0f);
+     //float zoomFactor = 1.0;
+    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+     //graphics.SetTransform(&scalingMatrix);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     //Matrix matrix;
     //// PointF p;
@@ -776,12 +922,12 @@ void RectSVG::drawSVG(Graphics& graphics) {
     //graphics.SetTransform(&matrix);
     //// graphics.DrawRectangle(&pen, (int)ptMM.pointMin.x, (int)ptMM.pointMin.y, width, height);
     //graphics.DrawRectangle(&pen, (int)x, (int)y, width, height);
-    
 
 
-    graphics.DrawRectangle(&pen, (int)x, (int)y, width, height);
+
+    graphics.DrawRectangle(&pen, (int)p.x, (int)p.y, width, height);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    graphics.FillRectangle(&brush, (int)x, (int)y, width, height);
+    graphics.FillRectangle(&brush, (int)p.x, (int)p.y, width, height);
 
     //graphics.ResetTransform();
 
@@ -819,7 +965,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
         font1 = FontStyleStrikeout;
     }
     Font font(&fontFamily, fontSize, font1, UnitPixel);
-    PointF point(static_cast<float>(x) - fontSize, static_cast<float>(y) - fontSize);
+    PointF point(static_cast<float>(p.x) - fontSize, static_cast<float>(p.y) - fontSize);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
@@ -999,49 +1145,50 @@ void PathSVG::drawSVG(Graphics& graphics) {
     }
 
     graphics.DrawPath(&pen, &path);
-   // graphics.FillPath(&brush, &path);
-    
+    // graphics.FillPath(&brush, &path);
+
 }
 
+void GroupSVG::drawSVG(Graphics&) {}
 
 
 void RectSVG::getPointMINMAX(pointMinMax& pMM) {
-    if (pMM.pointMin.x > this->x) pMM.pointMin.x = this->x;
-    if (pMM.pointMin.y > this->y) pMM.pointMin.y = this->y;
-    if (pMM.pointMax.x < this->x + this->width) pMM.pointMax.x = this->x + this->width;
-    if (pMM.pointMax.y < this->y + this->height) pMM.pointMax.y = this->y + this->height;
+    if (pMM.pointMin.x > this->p.x) pMM.pointMin.x = this->p.x;
+    if (pMM.pointMin.y > this->p.y) pMM.pointMin.y = this->p.y;
+    if (pMM.pointMax.x < this->p.x + this->width) pMM.pointMax.x = this->p.x + this->width;
+    if (pMM.pointMax.y < this->p.y + this->height) pMM.pointMax.y = this->p.y + this->height;
 }
 
 void TextSVG::getPointMINMAX(pointMinMax& pMM) {
-    if (pMM.pointMin.x > this->x) pMM.pointMin.x = this->x;
-    if (pMM.pointMin.y > this->y - this->fontSize) pMM.pointMin.y = this->y - this->fontSize;
-    if (pMM.pointMax.x < this->x + this->textContent.size() * this->fontSize) pMM.pointMax.x = this->x + this->textContent.size() * this->fontSize;
-    if (pMM.pointMax.y < this->y) pMM.pointMax.y = this->y;
+    if (pMM.pointMin.x > this->p.x) pMM.pointMin.x = this->p.x;
+    if (pMM.pointMin.y > this->p.y - this->fontSize) pMM.pointMin.y = this->p.y - this->fontSize;
+    if (pMM.pointMax.x < this->p.x + this->textContent.size() * this->fontSize) pMM.pointMax.x = this->p.x + this->textContent.size() * this->fontSize;
+    if (pMM.pointMax.y < this->p.y) pMM.pointMax.y = this->p.y;
 }
 
 void CircleSVG::getPointMINMAX(pointMinMax& pMM) {
-    if (pMM.pointMin.x > this->cx - this->r) pMM.pointMin.x = this->cx - this->r;
-    if (pMM.pointMin.y > this->cy - this->r) pMM.pointMin.y = this->cy - this->r;
-    if (pMM.pointMax.x < this->cx + this->r) pMM.pointMax.x = this->cx + this->r;
-    if (pMM.pointMax.y < this->cy + this->r) pMM.pointMax.y = this->cy + this->r;
+    if (pMM.pointMin.x > this->c.x - this->r) pMM.pointMin.x = this->c.x - this->r;
+    if (pMM.pointMin.y > this->c.y - this->r) pMM.pointMin.y = this->c.y - this->r;
+    if (pMM.pointMax.x < this->c.x + this->r) pMM.pointMax.x = this->c.x + this->r;
+    if (pMM.pointMax.y < this->c.y + this->r) pMM.pointMax.y = this->c.y + this->r;
 }
 
 void EllipseSVG::getPointMINMAX(pointMinMax& pMM) {
-    if (pMM.pointMin.x > this->cx - this->rx) pMM.pointMin.x = this->cx - this->rx;
-    if (pMM.pointMin.y > this->cy - this->ry) pMM.pointMin.y = this->cy - this->ry;
-    if (pMM.pointMax.x < (this->cx - this->rx) + 2 * rx) pMM.pointMax.x = (this->cx - this->rx) + 2 * rx;
-    if (pMM.pointMax.y < (this->cy - this->ry) + 2 * ry) pMM.pointMax.y = (this->cy - this->ry) + 2 * ry;
+    if (pMM.pointMin.x > this->c.x - this->rx) pMM.pointMin.x = this->c.x - this->rx;
+    if (pMM.pointMin.y > this->c.y - this->ry) pMM.pointMin.y = this->c.y - this->ry;
+    if (pMM.pointMax.x < (this->c.x - this->rx) + 2 * rx) pMM.pointMax.x = (this->c.x - this->rx) + 2 * rx;
+    if (pMM.pointMax.y < (this->c.y - this->ry) + 2 * ry) pMM.pointMax.y = (this->c.y - this->ry) + 2 * ry;
 }
 
 void LineSVG::getPointMINMAX(pointMinMax& pMM) {
-    if (pMM.pointMin.x > this->x1) pMM.pointMin.x = this->x1;
-    if (pMM.pointMin.y > this->y1) pMM.pointMin.y = this->y1;
-    if (pMM.pointMax.x < this->x1) pMM.pointMax.x = this->x1;
-    if (pMM.pointMax.y < this->y1) pMM.pointMax.y = this->y1;
-    if (pMM.pointMin.x > this->x2) pMM.pointMin.x = this->x2;
-    if (pMM.pointMin.y > this->y2) pMM.pointMin.y = this->y2;
-    if (pMM.pointMax.x < this->x2) pMM.pointMax.x = this->x2;
-    if (pMM.pointMax.y < this->y2) pMM.pointMax.y = this->y2;
+    if (pMM.pointMin.x > this->p1.x) pMM.pointMin.x = this->p1.x;
+    if (pMM.pointMin.y > this->p1.y) pMM.pointMin.y = this->p1.y;
+    if (pMM.pointMax.x < this->p1.x) pMM.pointMax.x = this->p1.x;
+    if (pMM.pointMax.y < this->p1.y) pMM.pointMax.y = this->p1.y;
+    if (pMM.pointMin.x > this->p2.x) pMM.pointMin.x = this->p2.x;
+    if (pMM.pointMin.y > this->p2.y) pMM.pointMin.y = this->p2.y;
+    if (pMM.pointMax.x < this->p2.x) pMM.pointMax.x = this->p2.x;
+    if (pMM.pointMax.y < this->p2.y) pMM.pointMax.y = this->p2.y;
 }
 
 void PolygonSVG::getPointMINMAX(pointMinMax& pMM) {
@@ -1080,5 +1227,14 @@ void PathSVG::getPointMINMAX(pointMinMax& pMM) {
             if (pMM.pointMax.x < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.x = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
             if (pMM.pointMax.y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
         }
+    }
+}
+
+void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
+    for (const auto& shape : shapes) {
+        shape->getPointMINMAX(ptMM);
+    }
+    for (const auto& group : groups) {
+        group->getPointMINMAX(ptMM);
     }
 }
