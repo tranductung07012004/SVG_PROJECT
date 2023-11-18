@@ -1284,7 +1284,7 @@ VOID OnPaint(HDC hdc, float zoomFactor)
             shapeElement = make_unique<PathSVG>();
         }
         else if (element.type == "g") {
-            shapeElement = make_unique<PathSVG>();
+            shapeElement = make_unique<GroupSVG>();
         }
         if (shapeElement) {
             shapeElement->parseShapeSVG(element);
