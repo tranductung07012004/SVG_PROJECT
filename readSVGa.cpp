@@ -1238,3 +1238,75 @@ void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
         group->getPointMINMAX(ptMM);
     }
 }
+
+/*
+VOID OnPaint(HDC hdc, float zoomFactor)
+{
+    Graphics graphics(hdc);
+    const string filename = "sample.svg";
+    vector<SVGElement> elements = parseSVG(filename);
+    pointMinMax ptMM;
+
+    // Initialize zoom and rotation transformations
+    Matrix zoomTransform(zoomFactor, 0.0f, 0.0f, zoomFactor, 0.0f, 0.0f);
+    Matrix rotationTransform;
+
+    // Apply zoom transformation
+    graphics.SetTransform(&zoomTransform);
+
+    vector<unique_ptr<ShapeSVG>> shapes;
+
+    for (const SVGElement& element : elements) {
+        unique_ptr<ShapeSVG> shapeElement;
+
+        if (element.type == "rect") {
+            shapeElement = make_unique<RectSVG>();
+        }
+        else if (element.type == "text") {
+            shapeElement = make_unique<TextSVG>();
+        }
+        else if (element.type == "circle") {
+            shapeElement = make_unique<CircleSVG>();
+        }
+        else if (element.type == "polyline") {
+            shapeElement = make_unique<PolylineSVG>();
+        }
+        else if (element.type == "ellipse") {
+            shapeElement = make_unique<EllipseSVG>();
+        }
+        else if (element.type == "line") {
+            shapeElement = make_unique<LineSVG>();
+        }
+        else if (element.type == "polygon") {
+            shapeElement = make_unique<PolygonSVG>();
+        }
+        else if (element.type == "path") {
+            shapeElement = make_unique<PathSVG>();
+        }
+        else if (element.type == "g") {
+            shapeElement = make_unique<PathSVG>();
+        }
+        if (shapeElement) {
+            shapeElement->parseShapeSVG(element);
+            shapes.push_back(move(shapeElement));
+            shapes.back()->getPointMINMAX(ptMM);
+        }
+    }
+
+
+    PointF p;
+    p.X = (ptMM.pointMin.x + ptMM.pointMax.x) / 2 + 10;
+    p.Y = (ptMM.pointMin.y + ptMM.pointMax.y) / 2 + 10;
+
+    graphics.TranslateTransform(p.X, p.Y);
+
+    rotationTransform.Rotate(rotate_angle);
+    graphics.MultiplyTransform(&rotationTransform);
+
+    graphics.TranslateTransform(-p.X, -p.Y);
+
+    for (const auto& shape : shapes) {
+        shape->drawSVG(graphics);
+    }
+    graphics.ResetTransform();
+}*/
