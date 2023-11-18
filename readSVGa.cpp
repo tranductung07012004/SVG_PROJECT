@@ -1,4 +1,108 @@
 #include "readSVGa.h"
+bool isDigit(char c) {
+    return c >= '0' && c <= '9';
+}
+
+string removeCommas(const std::string& input) {
+    std::string result;
+    for (char c : input) {
+        if (c == ',') {
+            result += ' ';
+        }
+        else {
+            result += c;
+        }
+    }
+    return result;
+}
+
+
+string formatSVGPath( string& path) {
+    string result;
+    bool previousIsDigit = false;
+
+    for (char c : path) {
+        if (isDigit(c) || c == '-' || c=='.') {
+            if (!previousIsDigit) {
+                result += ' ';
+            }
+            result += c;
+            previousIsDigit = true;
+        }
+        else if (c == ' ') {
+            result += c;
+        }
+        else {
+            if (previousIsDigit) {
+                result += '\n';
+            }
+            result += c;
+            previousIsDigit = false;
+        }
+    }
+
+    return result;
+}
+
+vector<PointPathSVG> parsePathData(const string& input) {
+    
+    string sPath = removeCommas(input);
+
+
+    sPath = formatSVGPath(sPath);
+    std::transform(sPath.begin(), sPath.end(), sPath.begin(), ::toupper);
+    vector<PointPathSVG> DataPath;
+    istringstream ss(sPath);
+
+    string line;
+    while (getline(ss, line, '\n')) {
+        istringstream iss(line);
+        PointPathSVG path;
+        char type;
+        double x, y;
+
+        iss >> type;
+        if (type == 'Z') break;
+        path.typePointPath = type;
+
+        // Use && instead of ||
+        if (type != 'H' && type != 'V' && type != 'A') {
+            while (iss >> x >> y) {
+                PointSVG point;
+                point.x = x;
+                point.y = y;
+                path.points.push_back(point);
+                
+            }
+            if (type == 'Q') {
+                    fstream fo("1.txt");
+                    for (const auto& pointf : path.points)
+                        fo << pointf.x << " " << pointf.y << endl;
+            }
+        }
+        else if (type == 'H' || type == 'V') {
+            while (iss >> x) {
+                PointSVG point;
+                if (type == 'H') {
+                    point.x = x;
+                    point.y = 0;
+                }
+                else {
+                    point.x = 0;
+                    point.y = x;
+                }
+                path.points.push_back(point);
+            }
+        }
+        else if (type == 'A') {
+            iss >> path.rx >> path.ry >> path.xAxisRotation >> path.largeArcFlag >> path.sweepFlag >> path.x >> path.y;
+        }
+
+        DataPath.push_back(path);
+    }
+
+    return DataPath;
+}
 
 void parseStyle(const string& s, SVGElement& element) {
     vector<string> stylePairs;
@@ -27,6 +131,7 @@ void parseStyle(const string& s, SVGElement& element) {
     }
 }
 
+
 vector<SVGElement> parseSVG(const string& filename) {
     vector<SVGElement> elements;
 
@@ -48,48 +153,37 @@ vector<SVGElement> parseSVG(const string& filename) {
     doc.parse<0>(&xmlContent[0]);
 
     // Traverse the XML document and extract data from different SVG elements
-    xml_node<>* svgNode = doc.first_node("svg");
-    if (svgNode) {
-        for (xml_node<>* node = svgNode->first_node(); node; node = node->next_sibling()) {
-            SVGElement element;
-            element.type = node->name();
-
-            for (xml_attribute<>* attr = node->first_attribute(); attr; attr = attr->next_attribute()) {
-                string attrName = attr->name();
-                std::transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
-                string attrVal = attr->value();
-                std::transform(attrVal.begin(), attrVal.end(), attrVal.begin(), ::tolower);
-                element.attributes[attrName] = attrVal;
-                if (attrName == "style") parseStyle(attrVal, element);
-            }
-
-            // Check if the element is of type "text" and extract its content
-            if (element.type == "text") {
-                element.textContent = node->value();
-            }
-            elements.push_back(element);
-        }
-    }
+    parseSVGNode(doc.first_node(), elements);
 
     file.close();
     return elements;
 }
 
+void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
+    for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
+        SVGElement element;
+        element.type = child->name();
 
-void printSVGElements(const vector<SVGElement>& elements) {
-    for (const SVGElement& element : elements) {
-        cout << "Element type: " << element.type << endl;
-        cout << "Attributes:" << endl;
-
-        for (const auto& attribute : element.attributes) {
-            cout << attribute.first << " = " << attribute.second << endl;
+        for (xml_attribute<>* attr = child->first_attribute(); attr; attr = attr->next_attribute()) {
+            string attrName = attr->name();
+            std::transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
+            string attrVal = attr->value();
+            std::transform(attrVal.begin(), attrVal.end(), attrVal.begin(), ::tolower);
+            element.attributes[attrName] = attrVal;
+            if (attrName == "style") parseStyle(attrVal, element);
         }
 
-        if (!element.textContent.empty()) {
-            cout << "Text Content: " << element.textContent << endl;
+        // Check if the element is of type "text" and extract its content
+        if (element.type == "text") {
+            element.textContent = child->value();
         }
 
-        cout << "-----------------------------" << endl;
+        elements.push_back(element);
+
+        // Recursively parse children if the element has any
+        if (child->first_node()) {
+            parseSVGNode(child, elements);
+        }
     }
 }
 
@@ -135,7 +229,6 @@ RGBSVG colorSVG(const string& s) {
             {"darkcyan", {0, 139, 139}},
             {"darkgoldenrod", {184, 134, 11}},
             {"darkgray", {169, 169, 169}},
-            {"darkgrey", {169, 169, 169}},
             {"darkgreen", {0, 100, 0}},
             {"darkkhaki", {189, 183, 107}},
             {"darkmagenta", {139, 0, 139}},
@@ -147,13 +240,11 @@ RGBSVG colorSVG(const string& s) {
             {"darkseagreen", {143, 188, 143}},
             {"darkslateblue", {72, 61, 139}},
             {"darkslategray", {47, 79, 79}},
-            {"darkslategrey", {47, 79, 79}},
             {"darkturquoise", {0, 206, 209}},
             {"darkviolet", {148, 0, 211}},
             {"deeppink", {255, 20, 147}},
             {"deepskyblue", {0, 191, 255}},
             {"dimgray", {105, 105, 105}},
-            {"dimgrey", {105, 105, 105}},
             {"dodgerblue", {30, 144, 255}},
             {"firebrick", {178, 34, 34}},
             {"floralwhite", {255, 250, 240}},
@@ -164,7 +255,6 @@ RGBSVG colorSVG(const string& s) {
             {"gold", {255, 215, 0}},
             {"goldenrod", {218, 165, 32}},
             {"gray", {128, 128, 128}},
-            {"grey", {128, 128, 128}},
             {"green", {0, 128, 0}},
             {"greenyellow", {173, 255, 47}},
             {"honeydew", {240, 255, 240}},
@@ -182,14 +272,12 @@ RGBSVG colorSVG(const string& s) {
             {"lightcyan", {224, 255, 255}},
             {"lightgoldenrodyellow", {250, 250, 210}},
             {"lightgray", {211, 211, 211}},
-            {"lightgrey", {211, 211, 211}},
             {"lightgreen", {144, 238, 144}},
             {"lightpink", {255, 182, 193}},
             {"lightsalmon", {255, 160, 122}},
             {"lightseagreen", {32, 178, 170}},
             {"lightskyblue", {135, 206, 250}},
             {"lightslategray", {119, 136, 153}},
-            {"lightslategrey", {119, 136, 153}},
             {"lightsteelblue", {176, 196, 222}},
             {"lightyellow", {255, 255, 224}},
             {"lime", {0, 255, 0}},
@@ -243,7 +331,6 @@ RGBSVG colorSVG(const string& s) {
             {"skyblue", {135, 206, 235}},
             {"slateblue", {106, 90, 205}},
             {"slategray", {112, 128, 144}},
-            {"slategrey", {112, 128, 144}},
             {"snow", {255, 250, 250}},
             {"springgreen", {0, 255, 127}},
             {"steelblue", {70, 130, 180}},
@@ -258,6 +345,7 @@ RGBSVG colorSVG(const string& s) {
             {"whitesmoke", {245, 245, 245}},
             {"yellow", {255, 255, 0}},
             {"yellowgreen", {154, 205, 50}}
+            
         };
         if (colorMap.find(s1) != colorMap.end()) {
             color = colorMap[s1];
@@ -268,24 +356,18 @@ RGBSVG colorSVG(const string& s) {
 
 vector<PointSVG> parsePointString(const string& input) {
     vector<PointSVG> points;
-    istringstream iss(input);
-    string pair;
+    istringstream ss(input);
+    string token;
 
-    while (getline(iss, pair, ' ')) {
-        istringstream pairStream(pair);
-        double x, y;
-
-        if (getline(pairStream, pair, ',') && getline(pairStream, pair, ',')) {
-            x = stod(pair);
-
-            if (getline(pairStream, pair, ',')) {
-                y = stod(pair);
-                PointSVG point = { x, y };
-                points.push_back(point);
-            }
+    while (getline(ss, token, ' ')) {
+        PointSVG point;
+        size_t commaPos = token.find(',');
+        if (commaPos != string::npos) {
+            point.x = stod(token.substr(0, commaPos));
+            point.y = stod(token.substr(commaPos + 1));
+            points.push_back(point);
         }
     }
-
     return points;
 }
 
@@ -345,22 +427,48 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
             fontSize = stod(attr.second);
         }
         else if (attr.first == "font-weight") {
-            fontWeight = stod(attr.second);
+            try {
+                fontWeight1 = stoi(attr.second);
+            }
+            catch (const std::invalid_argument&) {
+                fontWeight2 = attr.second;
+                std::transform(fontWeight2.begin(), fontWeight2.end(), fontWeight2.begin(), ::tolower);
+            }
         }
         else if (attr.first == "font-style") {
             fontStyle = attr.second;
+            std::transform(fontStyle.begin(), fontStyle.end(), fontStyle.begin(), ::tolower);
         }
         else if (attr.first == "font-family") {
             fontFamily = attr.second;
+            std::transform(fontFamily.begin(), fontFamily.end(), fontFamily.begin(), ::tolower);
         }
         else if (attr.first == "text-anchor") {
             textAnchor = attr.second;
+            std::transform(textAnchor.begin(), textAnchor.end(), textAnchor.begin(), ::tolower);
         }
         else if (attr.first == "text-decoration") {
             textDecoration = attr.second;
+            std::transform(textDecoration.begin(), textDecoration.end(), textDecoration.begin(), ::tolower);
         }
         else if (attr.first == "text-transform") {
             textTransform = attr.second;
+            std::transform(textTransform.begin(), textTransform.end(), textTransform.begin(), ::tolower);
+        }
+        else if (attr.first == "fill") {
+            fill = colorSVG(attr.second);
+        }
+        else if (attr.first == "fill-opacity") {
+            fillOpacity = stod(attr.second);
+        }
+        else if (attr.first == "stroke") {
+            stroke = colorSVG(attr.second);
+        }
+        else if (attr.first == "stroke-opacity") {
+            strokeOpacity = stod(attr.second);
+        }
+        else if (attr.first == "stroke-width") {
+            strokeWidth = stod(attr.second);
         }
     }
 
@@ -530,18 +638,48 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element) {
     }
 }
 
+void PathSVG::parseShapeSVG(const SVGElement& element) {
+    for (const auto& attr : element.attributes) {
+        if (attr.first == "d") {
+            PathData = parsePathData(attr.second);
+        }
+        else if (attr.first == "fill") {
+            fill = colorSVG(attr.second);
+        }
+        else if (attr.first == "fill-opacity") {
+            fillOpacity = stod(attr.second);
+        }
+        else if (attr.first == "stroke") {
+            stroke = colorSVG(attr.second);
+        }
+        else if (attr.first == "stroke-opacity") {
+            strokeOpacity = stod(attr.second);
+        }
+        else if (attr.first == "stroke-width") {
+            strokeWidth = stod(attr.second);
+        }
+        else if (attr.first == "transform") {
+            transform = attr.second;
+        }
+        else if (attr.first == "style") {
+            style = attr.second;
+        }
+    }
+}
+
+
+
 void RectSVG::getPointMINMAX(pointMinMax& pMM) {
     if (pMM.pointMin.x > this->x) pMM.pointMin.x = this->x;
     if (pMM.pointMin.y > this->y) pMM.pointMin.y = this->y;
     if (pMM.pointMax.x < this->x + this->width) pMM.pointMax.x = this->x + this->width;
     if (pMM.pointMax.y < this->y + this->height) pMM.pointMax.y = this->y + this->height;
 }
-}
 
 void TextSVG::getPointMINMAX(pointMinMax& pMM) {
     if (pMM.pointMin.x > this->x) pMM.pointMin.x = this->x;
     if (pMM.pointMin.y > this->y - this->fontSize) pMM.pointMin.y = this->y - this->fontSize;
-    if (pMM.pointMax.x < this->x + this->textContent.size()*this->fontSize) pMM.pointMax.x = this->x + this->textContent.size() * this->fontSize;
+    if (pMM.pointMax.x < this->x + this->textContent.size() * this->fontSize) pMM.pointMax.x = this->x + this->textContent.size() * this->fontSize;
     if (pMM.pointMax.y < this->y) pMM.pointMax.y = this->y;
 }
 
@@ -587,5 +725,24 @@ void PolylineSVG::getPointMINMAX(pointMinMax& pMM) {
         if (pMM.pointMin.y > this->points[i].y) pMM.pointMin.y = this->points[i].y;
         if (pMM.pointMax.x < this->points[i].x) pMM.pointMax.x = this->points[i].x;
         if (pMM.pointMax.y < this->points[i].y) pMM.pointMax.y = this->points[i].y;
+    }
+}
+
+void PathSVG::getPointMINMAX(pointMinMax& pMM) {
+    for (const auto& pointPath : PathData)
+    {
+        if (pointPath.typePointPath != 'A')
+            for (const auto& point : pointPath.points) {
+                if (pMM.pointMin.x > point.x) pMM.pointMin.x = point.x;
+                if (pMM.pointMin.y > point.y) pMM.pointMin.y = point.y;
+                if (pMM.pointMax.x < point.x) pMM.pointMax.x = point.x;
+                if (pMM.pointMax.y < point.y) pMM.pointMax.y = point.y;
+            }
+        else {
+            if (pMM.pointMin.x > pointPath.x - pointPath.rx) pMM.pointMin.x = pointPath.x - pointPath.rx;
+            if (pMM.pointMin.y > pointPath.y - pointPath.ry) pMM.pointMin.y = pointPath.y - pointPath.ry;
+            if (pMM.pointMax.x < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.x = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
+            if (pMM.pointMax.y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
+        }
     }
 }
