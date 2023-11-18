@@ -32,14 +32,23 @@ struct SVGElement {
     string type;
     map<string, string> attributes;
     string textContent;
+    vector<SVGElement> children;
 };
 
+struct transformSVG {
+    float translateX, translateY;
+    float rotateAngle;
+    float scaleX, scaleY;
+    string transformType;
+};
+
+vector<transformSVG> parsetransformSVG(const string& filename);
 string formatSVGPath(const string& path);
 vector<SVGElement> parseSVG(const string& filename);
 void parseStyle(const string& s, SVGElement& element);
 
 struct PointSVG {
-    double x, y;
+    double x=0, y=0;
 };
 
 struct RGBSVG {
@@ -58,6 +67,7 @@ RGBSVG colorSVG(const string& s);
 
 vector<PointSVG> parsePointString(const string& input);
 void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements);
+void parseGroupNode(xml_node<>* node, SVGElement& groupElement);
 vector<PointPathSVG> parsePathData(const string& input);
 
 
@@ -73,18 +83,19 @@ protected:
     RGBSVG fill;
     RGBSVG stroke;
     double strokeWidth = 0;
-    string transform = "";
+    vector<transformSVG> tfSVG;
     string style = "";
 public:
     virtual void parseShapeSVG(const SVGElement& element) = 0;
     virtual void getPointMINMAX(pointMinMax& ptMM) = 0;
     virtual void drawSVG(Graphics& graphics) = 0;
+    void copyAttributes(const ShapeSVG& other);
 };
+
 
 class RectSVG : public ShapeSVG {
 private:
-    double x = 0;
-    double y = 0;
+    PointSVG p;
     double width = 0;
     double height = 0;
     double rx = 0;
@@ -95,10 +106,10 @@ public:
     void drawSVG(Graphics&) override;
     void getPointMINMAX(pointMinMax&) override;
 };
+
 class TextSVG : public ShapeSVG {
 private:
-    double x = 0;
-    double y = 0;
+    PointSVG p;
     double fontSize = 0;
     int fontWeight1 = 0;
     string fontWeight2 = "";
@@ -116,9 +127,7 @@ public:
 
 class CircleSVG : public ShapeSVG {
 private:
-    double strokeWidth = 0;
-    double cx = 0;
-    double cy = 0;
+    PointSVG c;
     double r = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
@@ -128,8 +137,7 @@ public:
 
 class EllipseSVG : public ShapeSVG {
 private:
-    double cx = 0;
-    double cy = 0;
+    PointSVG c;
     double rx = 0, ry = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
@@ -140,7 +148,8 @@ public:
 
 class LineSVG : public ShapeSVG {
 private:
-    double x1 = 0, y1 = 0, x2 = 0, y2 = 0, width = 0, height = 0, rx = 0, ry = 0;
+    PointSVG p1, p2;
+    double width = 0, height = 0, rx = 0, ry = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
@@ -179,4 +188,15 @@ public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
     void getPointMINMAX(pointMinMax&) override;
+};
+
+class GroupSVG : public ShapeSVG {
+private:
+    vector<unique_ptr<ShapeSVG>> shapes;
+    vector<unique_ptr<GroupSVG>> groups;
+
+public:
+    void parseShapeSVG(const SVGElement& element) override;
+    void drawSVG(Graphics&) override;
+    void getPointMINMAX(pointMinMax& ptMM) override;
 };
