@@ -48,7 +48,7 @@ vector<SVGElement> parseSVG(const string& filename);
 void parseStyle(const string& s, SVGElement& element);
 
 struct PointSVG {
-    double x=0, y=0;
+    double x = 0, y = 0;
 };
 
 struct RGBSVG {
@@ -104,6 +104,25 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslateRectangle(Graphics& graphics, float dx, float dy) {
+        p.x += dx;
+        p.y += dy;
+    }
+    void ScaleRectangle(Graphics& graphics, float x, float y){
+        p.x *= x;
+        p.y *= y;
+        width *= x;
+        height *= y;
+        strokeWidth *= x;
+    }
+    void ScaleRectangle(Graphics& graphics, float d) {
+        p.x *= d;
+        p.y *= d;
+        width *= d;
+        height *= d;
+        strokeWidth *= d;
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -122,6 +141,22 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslateText(Graphics& graphics, float dx, float dy) {
+        p.x += dx;
+        p.y += dy;
+    }
+    void ScaleText(Graphics& graphics, float x, float y) {
+        p.x *= x;
+        p.y *= y;
+        fontSize *= x;
+       
+    }
+    void ScaleText(Graphics& graphics, float d) {
+        p.x *= d;
+        p.y *= d;
+        fontSize *= d;
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -132,6 +167,25 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslateCircle(Graphics& graphics, float dx, float dy) {
+        c.x += dx;
+        c.y += dy;
+    }
+    void ScaleCircle(Graphics& graphics, float x, float y) {
+        c.x *= x;
+        c.y *= y;
+        r *= x;
+        
+        strokeWidth *= x;
+    }
+    void ScaleCircle(Graphics& graphics, float d) {
+        c.x *= d;
+        c.y *= d;
+        r *= d;
+      
+        strokeWidth *= d;
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -142,8 +196,26 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslateEllipse(Graphics& graphics, float dx, float dy) {
+        c.x += dx;
+        c.y += dy;
+    }
+    void ScaleEllipse(Graphics& graphics, float x, float y) {
+        c.x *= x;
+        c.y *= y;
+        rx *= x;
+        ry *= y;
+        strokeWidth *= y;
+    }
+    void ScaleEllipse(Graphics& graphics, float d) {
+        c.x *= d;
+        c.y *= d;
+        rx *= d;
+        ry *= d;
+        strokeWidth *= d;
+    }
     void getPointMINMAX(pointMinMax&) override;
-
 };
 
 class LineSVG : public ShapeSVG {
@@ -153,6 +225,27 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslateLine(Graphics& graphics, float dx, float dy) {
+        p1.x += dx;
+        p1.y += dy;
+        p2.x += dx;
+        p2.y += dy;
+    }
+    void ScaleLine(Graphics& graphics, float x, float y) {
+        p1.x *= x;
+        p1.y *= y;
+        p2.x *= x;
+        p2.y *= y;
+        strokeWidth *= x;
+    }
+    void ScaleLine(Graphics& graphics, float d) {
+        p1.x *= d;
+        p1.y *= d;
+        p2.x *= d;
+        p2.y *= d;
+        strokeWidth *= d;
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -165,6 +258,28 @@ public:
     }
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslatePolygon(Graphics& graphics, float dx, float dy) {
+        for (int i = 0; i < points.size(); i++) {
+            points[i].x += dx;
+            points[i].y += dy;
+        }
+
+    }
+    void ScalePolygon(Graphics& graphics, float x, float y) {
+        for (int i = 0; i < points.size(); i++) {
+            points[i].x *= x;
+            points[i].y *= y;
+        }
+        strokeWidth *= x;
+    }
+    void ScalePolygon(Graphics& graphics, float d) {
+        for (int i = 0; i < points.size(); i++) {
+            points[i].x *= d;
+            points[i].y *= d;
+        }
+        strokeWidth *= d;
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -178,6 +293,28 @@ public:
     }
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslatePolyline(Graphics& graphics, float dx, float dy) {
+        for (int i = 0; i < points.size(); i++) {
+            points[i].x += dx;
+            points[i].y += dy;
+        }
+
+    }
+    void ScalePolyline(Graphics& graphics, float x, float y) {
+        for (int i = 0; i < points.size(); i++) {
+            points[i].x *= x;
+            points[i].y *= y;
+        }
+        strokeWidth *= x;
+    }
+    void ScalePolyline(Graphics& graphics, float d) {
+        for (int i = 0; i < points.size(); i++) {
+            points[i].x *= d;
+            points[i].y *= d;
+        }
+        strokeWidth *= d;
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -187,6 +324,25 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
+    
+    void TranslatePath(Graphics& graphics, float dx, float dy) {
+        for (int i = 0; i < PathData.size(); i++) {
+            PathData[i].points[i].x += dx;
+            PathData[i].points[i].y += dy;
+        }
+    }
+    void ScalePath(Graphics& graphics, float x, float y) {
+        for (int i = 0; i < PathData.size(); i++) {
+            PathData[i].points[i].x *= x;
+            PathData[i].points[i].y *= y;
+        }
+    }
+    void ScalePath(Graphics& graphics, float d) {
+        for (int i = 0; i < PathData.size(); i++) {
+            PathData[i].points[i].x *= d;
+            PathData[i].points[i].y *= d;
+        }
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -205,5 +361,5 @@ public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
     void getPointMINMAX(pointMinMax& ptMM) override;
+    
 };
-
