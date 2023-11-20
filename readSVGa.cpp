@@ -975,6 +975,10 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
         if (tf.transformType == "translate") {
 
             this->TranslatePolygon(graphics, tf.translateX, tf.translateY);
+            for (int i = 0; i < size; i++) {
+                point[i].X = points[i].x;
+                point[i].Y = points[i].y;
+            }
 
         }
         if (tf.transformType == "scale") {
@@ -1002,17 +1006,19 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     int size = points.size();
     PointF* point = new PointF[size];
+
     for (int i = 0; i < size; i++) {
         point[i].X = points[i].x;
         point[i].Y = points[i].y;
     }
-    
-    
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
             this->TranslatePolyline(graphics, tf.translateX, tf.translateY);
-
+            for (int i = 0; i < size; i++) {
+                point[i].X = points[i].x;
+                point[i].Y = points[i].y;
+            }
         }
         if (tf.transformType == "scale") {
             this->ScalePolyline(graphics, tf.scaleX, tf.scaleY);
@@ -1088,6 +1094,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    Pen pen1(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B));
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring ws = converter.from_bytes(fontFamily);
     FontFamily fontFamily(ws.c_str());
@@ -1109,18 +1116,27 @@ void TextSVG::drawSVG(Graphics& graphics) {
         font1 = FontStyleStrikeout;
     }
     Font font(&fontFamily, fontSize, font1, UnitPixel);
-    PointF point(static_cast<float>(p.x) - fontSize, static_cast<float>(p.y) - fontSize);
+    //draw string in group
+    PointF point(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize + 5);
+    //draw string outside group
+    PointF point2(static_cast<float>(p.x), static_cast<float>(p.y) - fontSize + fontSize/10);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
-    
+    PointF point1(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize - 2);
 
     GraphicsPath path;
-    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize - 1.5, point, NULL);
-    
+    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point1, NULL);
+    /*if (fontSize >= 59) {
+        path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point, NULL);
+    }*/
+    if (strokeWidth == 1) {
+        pen1.SetWidth(3);
+    }
+    else pen1.SetWidth(strokeWidth + 3);
     
     
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
-    graphics.DrawPath(&pen, &path);
+    graphics.DrawPath(&pen1, &path);
 
     //graphics.ResetTransform();
     //FontFamily fontfam(L"Arial");
