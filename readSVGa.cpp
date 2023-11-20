@@ -1113,11 +1113,37 @@ void TextSVG::drawSVG(Graphics& graphics) {
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
     
+
+    GraphicsPath path;
+    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize - 1.5, point, NULL);
+    
     
     
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
+    graphics.DrawPath(&pen, &path);
 
     //graphics.ResetTransform();
+    //FontFamily fontfam(L"Arial");
+    //Font font(L"Arial", 37);
+    //SolidBrush textBrush(Color(255, 0, 0, 255)); // Màu chữ đen
+
+    //// Tạo đối tượng GraphicsPath
+    //GraphicsPath path;
+
+    //// Thiết lập thuộc tính "outline" cho chữ
+    //path.AddString(
+    //    L"Hello World",
+    //    -1,                 // NULL-terminated string
+    //    &fontfam,
+    //    FontStyleRegular,
+    //    48,
+    //    PointF(50.0f, 50.0f),
+    //    NULL);
+
+    //// Vẽ chữ với thuộc tính "outline"
+    //Pen pen(Color(255, 255, 0, 0), 5.0f); // Màu viền đỏ và độ rộng viền
+    //graphics.DrawPath(&pen, &path);
+    //graphics.DrawString(L"Hello World", -1, &font, PointF(50.0f, 50.0f), &textBrush);
 }
 
 void PathSVG::drawSVG(Graphics& graphics) {
