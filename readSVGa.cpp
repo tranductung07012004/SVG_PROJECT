@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "readSVG.h"
+#include "ReadSVG.h"
 
 
 vector<transformSVG> parsetransformSVG(const string& input) {
@@ -89,7 +89,6 @@ vector<PointPathSVG> parsePathData(const string& input) {
 
     string sPath = removeCommas(input);
 
-
     sPath = formatSVGPath(sPath);
     std::transform(sPath.begin(), sPath.end(), sPath.begin(), ::toupper);
     vector<PointPathSVG> DataPath;
@@ -171,7 +170,6 @@ void parseStyle(const string& s, SVGElement& element) {
         }
     }
 }
-
 
 void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
     for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
@@ -449,6 +447,8 @@ void ShapeSVG::copyAttributes(const ShapeSVG& other) {
     stroke = other.stroke;
     strokeWidth = other.strokeWidth;
     style = other.style;
+    for (const auto& tf : other.tfSVG)
+        tfSVG.push_back(tf);
 }
 
 void RectSVG::parseShapeSVG(const SVGElement& element) {
@@ -749,6 +749,7 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
         }
     }
 }
+
 void GroupSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "fill") {
@@ -825,10 +826,22 @@ void CircleSVG::drawSVG(Graphics& graphics) {
    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
     //graphics.SetTransform(&scalingMatrix);
 
+    
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslateCircle(graphics, tf.translateX, tf.translateY);
+
+        }
+        if (tf.transformType == "scale") {
+            this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
+        }
+    }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     RectF ellipseRect(c.x - r, c.y - r, r * 2, r * 2);
 
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
     // graphics.ResetTransform();
@@ -842,11 +855,23 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
     //graphics.SetTransform(&scalingMatrix);
 
+    
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslateEllipse(graphics, tf.translateX, tf.translateY);
+
+        }
+        if (tf.transformType == "scale") {
+            this->ScaleEllipse(graphics, tf.scaleX, tf.scaleY);
+        }
+    }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     RectF ellipseRect(c.x - rx, c.y - ry, rx * 2, ry * 2);
-    graphics.DrawEllipse(&pen, ellipseRect);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillEllipse(&brush, ellipseRect);
+    graphics.DrawEllipse(&pen, ellipseRect);
+    
     //graphics.ResetTransform();
 }
 
@@ -857,9 +882,20 @@ void LineSVG::drawSVG(Graphics& graphics) {
     //float zoomFactor = 1.0;
    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
     //graphics.SetTransform(&scalingMatrix);
+    
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslateLine(graphics, tf.translateX, tf.translateY);
+
+        }
+        if (tf.transformType == "scale") {
+            this->ScaleLine(graphics, tf.scaleX, tf.scaleY);
+        }
+    }
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     PointF point1((REAL)p1.x, (REAL)p1.y);
     PointF point2(p2.x, p2.y);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     graphics.DrawLine(&pen, point1, point2);
     // graphics.ResetTransform();
 }
@@ -873,46 +909,96 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
      //graphics.SetTransform(&scalingMatrix);
 
 
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    
     int size = points.size();
     PointF* point = new PointF[size];
+
     for (int i = 0; i < size; i++) {
         point[i].X = points[i].x;
         point[i].Y = points[i].y;
     }
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslatePolygon(graphics, tf.translateX, tf.translateY);
+
+        }
+        if (tf.transformType == "scale") {
+            this->ScalePolygon(graphics, tf.scaleX, tf.scaleY);
+            for (int i = 0; i < size; i++) {
+                point[i].X = points[i].x;
+                point[i].Y = points[i].y;
+            }
+        }
+    }
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    
 
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    
     graphics.FillPolygon(&brush, point, size);
     graphics.DrawPolygon(&pen, point, size);
+
+    delete[] point;
     //graphics.ResetTransform();
 }
 
 void PolylineSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     int size = points.size();
     PointF* point = new PointF[size];
     for (int i = 0; i < size; i++) {
         point[i].X = points[i].x;
         point[i].Y = points[i].y;
     }
-    graphics.DrawLines(&pen, point, size);
+    
+    
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslatePolyline(graphics, tf.translateX, tf.translateY);
+
+        }
+        if (tf.transformType == "scale") {
+            this->ScalePolyline(graphics, tf.scaleX, tf.scaleY);
+            for (int i = 0; i < size; i++) {
+                point[i].X = points[i].x;
+                point[i].Y = points[i].y;
+            }
+        }
+    }
+    
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillPolygon(&brush, point, size);
-
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    graphics.DrawLines(&pen, point, size);
+    
+    delete[] point;
     // graphics.ResetTransform();
 }
 
 void RectSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
+    
+ 
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    // this->TranslateRectangle(30, 50);
+    for (const auto& tf: tfSVG) {
+        if (tf.transformType == "translate") {
+            
+            this->TranslateRectangle(graphics, tf.translateX, tf.translateY);
+            
+        }
+        if (tf.transformType == "scale") {
+            this->ScaleRectangle(graphics, tf.scaleX, tf.scaleY);
+        }
+    }
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
      //graphics.ScaleTransform(2.0f, 2.0f);
      //float zoomFactor = 1.0;
     // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
      //graphics.SetTransform(&scalingMatrix);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    
     //Matrix matrix;
     //// PointF p;
     // //p.X = (ptMM.pointMin.x + ptMM.pointMax.x) / 2;
@@ -922,16 +1008,13 @@ void RectSVG::drawSVG(Graphics& graphics) {
     //matrix.RotateAt(180.0f, PointF(500, 200)); // Rotation angle: 45 degrees, Rotation center: (150, 100)
     //graphics.SetTransform(&matrix);
     //// graphics.DrawRectangle(&pen, (int)ptMM.pointMin.x, (int)ptMM.pointMin.y, width, height);
-    //graphics.DrawRectangle(&pen, (int)x, (int)y, width, height);
+    //graphics.DrawRectangle(&pen, rx, ry, width, height);
 
-
-
-    graphics.DrawRectangle(&pen, (int)p.x, (int)p.y, width, height);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillRectangle(&brush, (int)p.x, (int)p.y, width, height);
-
+    graphics.DrawRectangle(&pen, (int)p.x, (int)p.y, width, height);
+    
     //graphics.ResetTransform();
-
 
 }
 
@@ -939,11 +1022,17 @@ void TextSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
-    //float zoomFactor = 1.0;
-   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
-    //graphics.SetTransform(&scalingMatrix);
-    //graphics.ScaleTransform(2.0f, 2.0f);
+    
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
 
+            this->TranslateText(graphics, tf.translateX, tf.translateY);
+
+        }
+        if (tf.transformType == "scale") {
+            this->ScaleText(graphics, tf.scaleX, tf.scaleY);
+        }
+    }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring ws = converter.from_bytes(fontFamily);
@@ -969,6 +1058,10 @@ void TextSVG::drawSVG(Graphics& graphics) {
     PointF point(static_cast<float>(p.x) - fontSize, static_cast<float>(p.y) - fontSize);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
+    GraphicsPath path;
+    RectF rect;
+    
+    
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
 
     //graphics.ResetTransform();
@@ -976,13 +1069,23 @@ void TextSVG::drawSVG(Graphics& graphics) {
 
 void PathSVG::drawSVG(Graphics& graphics) {
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    //SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslatePath(graphics, tf.translateX, tf.translateY);
+
+        }
+        if (tf.transformType == "scale") {
+            this->ScalePath(graphics, tf.scaleX, tf.scaleY);
+        }
+    }
+    
     PointF start = { -3.4e38,-3.4e38 };
     PointF controlPoint;
     PointF control;
     GraphicsPath path;
     char typeBefore = NULL;
+
     for (const auto& data : PathData) {
         if (data.typePointPath == 'M') {
             // Move to the starting point
@@ -1009,6 +1112,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 start = endPoint;
                 controlPoint = controlPoint2;
                 typeBefore = 'C';
+
             }
         }
 
@@ -1111,6 +1215,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
         else if (data.typePointPath == 'V') {
             for (const auto& point : data.points) {
                 PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.y));
+                
                 path.AddLine(start, endPoint);
                 start = endPoint;
             }
@@ -1140,13 +1245,17 @@ void PathSVG::drawSVG(Graphics& graphics) {
         //    path.AddArc(x_start, y_start, width, height, startAngle, sweepAngle);
         //}
         else if (data.typePointPath == 'Z') {
-            // Close the path
+           
             path.CloseFigure();
         }
     }
-
+    
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    
+    graphics.FillPath(&brush, &path);
     graphics.DrawPath(&pen, &path);
-    // graphics.FillPath(&brush, &path);
+
 
 }
 
@@ -1160,6 +1269,7 @@ void GroupSVG::drawSVG(Graphics& graphics) {
         }
     }
 }
+
 
 void RectSVG::getPointMINMAX(pointMinMax& pMM) {
     if (pMM.pointMin.x > this->p.x) pMM.pointMin.x = this->p.x;
@@ -1250,74 +1360,3 @@ void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
     }
 }
 
-/*
-VOID OnPaint(HDC hdc, float zoomFactor)
-{
-    Graphics graphics(hdc);
-    const string filename = "sample.svg";
-    vector<SVGElement> elements = parseSVG(filename);
-    pointMinMax ptMM;
-
-    // Initialize zoom and rotation transformations
-    Matrix zoomTransform(zoomFactor, 0.0f, 0.0f, zoomFactor, 0.0f, 0.0f);
-    Matrix rotationTransform;
-
-    // Apply zoom transformation
-    graphics.SetTransform(&zoomTransform);
-
-    vector<unique_ptr<ShapeSVG>> shapes;
-
-    for (const SVGElement& element : elements) {
-        unique_ptr<ShapeSVG> shapeElement;
-
-        if (element.type == "rect") {
-            shapeElement = make_unique<RectSVG>();
-        }
-        else if (element.type == "text") {
-            shapeElement = make_unique<TextSVG>();
-        }
-        else if (element.type == "circle") {
-            shapeElement = make_unique<CircleSVG>();
-        }
-        else if (element.type == "polyline") {
-            shapeElement = make_unique<PolylineSVG>();
-        }
-        else if (element.type == "ellipse") {
-            shapeElement = make_unique<EllipseSVG>();
-        }
-        else if (element.type == "line") {
-            shapeElement = make_unique<LineSVG>();
-        }
-        else if (element.type == "polygon") {
-            shapeElement = make_unique<PolygonSVG>();
-        }
-        else if (element.type == "path") {
-            shapeElement = make_unique<PathSVG>();
-        }
-        else if (element.type == "g") {
-            shapeElement = make_unique<GroupSVG>();
-        }
-        if (shapeElement) {
-            shapeElement->parseShapeSVG(element);
-            shapes.push_back(move(shapeElement));
-            shapes.back()->getPointMINMAX(ptMM);
-        }
-    }
-
-
-    PointF p;
-    p.X = (ptMM.pointMin.x + ptMM.pointMax.x) / 2 + 10;
-    p.Y = (ptMM.pointMin.y + ptMM.pointMax.y) / 2 + 10;
-
-    graphics.TranslateTransform(p.X, p.Y);
-
-    rotationTransform.Rotate(rotate_angle);
-    graphics.MultiplyTransform(&rotationTransform);
-
-    graphics.TranslateTransform(-p.X, -p.Y);
-
-    for (const auto& shape : shapes) {
-        shape->drawSVG(graphics);
-    }
-    graphics.ResetTransform();
-}*/
