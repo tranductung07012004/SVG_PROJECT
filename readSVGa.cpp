@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "readSVGa.h"
+#include "readSVG.h"
 
 
 vector<transformSVG> parsetransformSVG(const string& input) {
@@ -171,6 +171,7 @@ void parseStyle(const string& s, SVGElement& element) {
         }
     }
 }
+
 
 void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
     for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
@@ -748,8 +749,7 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
         }
     }
 }
-
-void GroupSVG::parseShapeSVG(const SVGElement& element)  {
+void GroupSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "fill") {
             fill = colorSVG(attr.second);
@@ -774,44 +774,46 @@ void GroupSVG::parseShapeSVG(const SVGElement& element)  {
         }
     }
     for (const SVGElement& childElement : element.children) {
+        GroupOrShape elementToAdd;
         if (childElement.type == "g") {
-            unique_ptr<GroupSVG> group = make_unique<GroupSVG>();
-            group->parseShapeSVG(childElement);
-            groups.push_back(move(group));
+            elementToAdd.type = GroupOrShape::GROUP;
+            elementToAdd.group = make_unique<GroupSVG>();
+            elementToAdd.group->parseShapeSVG(childElement);
         }
         else {
-            unique_ptr<ShapeSVG> shape;
+            elementToAdd.type = GroupOrShape::SHAPE;
             if (childElement.type == "rect") {
-                shape = make_unique<RectSVG>();
+                elementToAdd.shape = make_unique<RectSVG>();
             }
             else if (childElement.type == "text") {
-                shape = make_unique<TextSVG>();
+                elementToAdd.shape = make_unique<TextSVG>();
             }
             else if (childElement.type == "circle") {
-                shape = make_unique<CircleSVG>();
+                elementToAdd.shape = make_unique<CircleSVG>();
             }
             else if (childElement.type == "ellipse") {
-                shape = make_unique<EllipseSVG>();
+                elementToAdd.shape = make_unique<EllipseSVG>();
             }
             else if (childElement.type == "line") {
-                shape = make_unique<LineSVG>();
+                elementToAdd.shape = make_unique<LineSVG>();
             }
             else if (childElement.type == "polygon") {
-                shape = make_unique<PolygonSVG>();
+                elementToAdd.shape = make_unique<PolygonSVG>();
             }
             else if (childElement.type == "polyline") {
-                shape = make_unique<PolylineSVG>();
+                elementToAdd.shape = make_unique<PolylineSVG>();
             }
             else if (childElement.type == "path") {
-                shape = make_unique<PathSVG>();
+                elementToAdd.shape = make_unique<PathSVG>();
             }
             else {
                 continue;
             }
-            shape->copyAttributes(*this);
-            shape->parseShapeSVG(childElement);
-            shapes.push_back(move(shape));
+            elementToAdd.shape->copyAttributes(*this); // Copy attributes from the parent group
+            elementToAdd.shape->parseShapeSVG(childElement);
         }
+
+        elements.push_back(std::move(elementToAdd));
     }
 }
 
@@ -1148,8 +1150,16 @@ void PathSVG::drawSVG(Graphics& graphics) {
 
 }
 
-void GroupSVG::drawSVG(Graphics&) {}
-
+void GroupSVG::drawSVG(Graphics& graphics) {
+    for (const auto& element : elements) {
+        if (element.type == GroupOrShape::GROUP) {
+            element.group->drawSVG(graphics);
+        }
+        else if (element.type == GroupOrShape::SHAPE) {
+            element.shape->drawSVG(graphics);
+        }
+    }
+}
 
 void RectSVG::getPointMINMAX(pointMinMax& pMM) {
     if (pMM.pointMin.x > this->p.x) pMM.pointMin.x = this->p.x;
@@ -1230,11 +1240,13 @@ void PathSVG::getPointMINMAX(pointMinMax& pMM) {
 }
 
 void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
-    for (const auto& shape : shapes) {
-        shape->getPointMINMAX(ptMM);
-    }
-    for (const auto& group : groups) {
-        group->getPointMINMAX(ptMM);
+    for (const auto& element : elements) {
+        if (element.type == GroupOrShape::SHAPE) {
+            element.shape->getPointMINMAX(ptMM);
+        }
+        else if (element.type == GroupOrShape::GROUP) {
+            element.group->getPointMINMAX(ptMM);
+        }
     }
 }
 
