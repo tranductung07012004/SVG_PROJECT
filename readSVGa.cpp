@@ -452,6 +452,7 @@ void ShapeSVG::copyAttributes(const ShapeSVG& other) {
 }
 
 void RectSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke=0, cFill=0;
     for (const auto& attr : element.attributes) {
         if (attr.first == "x") {
             p.x = stod(attr.second);
@@ -473,12 +474,14 @@ void RectSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -493,9 +496,12 @@ void RectSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
 }
 
 void TextSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0, cFill = 0;
     for (const auto& attr : element.attributes) {
         if (attr.first == "x") {
             p.x = stod(attr.second);
@@ -537,12 +543,15 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
+
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -557,9 +566,12 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
 
     // Store the text content from the SVG element
     textContent = element.textContent;
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
 }
 
 void CircleSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0, cFill = 0;
     for (const auto& attr : element.attributes) {
         if (attr.first == "stroke-width") {
             strokeWidth = stod(attr.second);
@@ -575,12 +587,14 @@ void CircleSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -592,9 +606,12 @@ void CircleSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
 }
 
 void EllipseSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0, cFill = 0;
     for (const auto& attr : element.attributes) {
         if (attr.first == "cx") {
             c.x = stod(attr.second);
@@ -610,12 +627,15 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
+
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -630,9 +650,13 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
 }
 
 void LineSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0;
+
     for (const auto& attr : element.attributes) {
         if (attr.first == "x1") {
             p1.x = stod(attr.second);
@@ -648,6 +672,7 @@ void LineSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -662,21 +687,25 @@ void LineSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
 }
 
 void PolygonSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0, cFill = 0;
     for (const auto& attr : element.attributes) {
         if (attr.first == "points") {
             points = parsePointString(attr.second);
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -691,20 +720,27 @@ void PolygonSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
 }
 void PolylineSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0, cFill = 0;
     for (const auto& attr : element.attributes) {
         if (attr.first == "points") {
             points = parsePointString(attr.second);
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
+
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
+
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -719,21 +755,29 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
 }
 
 void PathSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0, cFill = 0;
+
     for (const auto& attr : element.attributes) {
         if (attr.first == "d") {
             PathData = parsePathData(attr.second);
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
+
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
+
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -748,18 +792,26 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
 }
 
 void GroupSVG::parseShapeSVG(const SVGElement& element) {
+    bool cStroke = 0, cFill = 0;
+
     for (const auto& attr : element.attributes) {
         if (attr.first == "fill") {
             fill = colorSVG(attr.second);
+            if (attr.second == "none") cFill = 1;
+
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
+            if (attr.second == "none") cStroke = 1;
+
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -774,6 +826,8 @@ void GroupSVG::parseShapeSVG(const SVGElement& element) {
             style = attr.second;
         }
     }
+    if (cStroke == 1) strokeOpacity = 0;
+    if (cFill == 1) fillOpacity = 0;
     for (const SVGElement& childElement : element.children) {
         GroupOrShape elementToAdd;
         if (childElement.type == "g") {
@@ -1058,8 +1112,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
     PointF point(static_cast<float>(p.x) - fontSize, static_cast<float>(p.y) - fontSize);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
-    GraphicsPath path;
-    RectF rect;
+    
     
     
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
