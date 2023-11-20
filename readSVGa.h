@@ -192,11 +192,18 @@ public:
 
 class GroupSVG : public ShapeSVG {
 private:
-    vector<unique_ptr<ShapeSVG>> shapes;
-    vector<unique_ptr<GroupSVG>> groups;
+    struct GroupOrShape {
+        enum Type { GROUP, SHAPE };
+        Type type;
+        unique_ptr<ShapeSVG> shape;
+        unique_ptr<GroupSVG> group;
+    };
+
+    vector<GroupOrShape> elements;
 
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
     void getPointMINMAX(pointMinMax& ptMM) override;
 };
+
