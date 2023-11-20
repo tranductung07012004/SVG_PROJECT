@@ -143,20 +143,20 @@ public:
     void drawSVG(Graphics&) override;
     
     void TranslateText(Graphics& graphics, float dx, float dy) {
-        p.x += dx;
-        p.y += dy;
+        float a = p.x + dx;
+        float b = p.y + dy;
+        p.x = a + (fontSize - p.x);
+        p.y = b - fontSize;
     }
     void ScaleText(Graphics& graphics, float x, float y) {
-        p.x *= x;
-        p.y *= y;
+        float a = p.x * x;
+        float b = p.y * y;
+        p.x = a + (x * fontSize - p.x);
+        p.y = b - y * fontSize;
         fontSize *= x;
        
     }
-    void ScaleText(Graphics& graphics, float d) {
-        p.x *= d;
-        p.y *= d;
-        fontSize *= d;
-    }
+    
     void getPointMINMAX(pointMinMax&) override;
 };
 
