@@ -125,6 +125,16 @@ public:
         height *= d;
         strokeWidth *= d;
     }
+    void RotateRect(Graphics& graphics, float angleDegrees) {
+        float angleRadians = angleDegrees * (3.14159 / 180.0); // Convert degrees to radians
+
+        // Create a matrix for rotation
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+
+        // Apply the rotation to the graphics object
+        graphics.SetTransform(&rotationMatrix);
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -159,6 +169,12 @@ public:
         fontSize *= x;
 
     }
+    void RotateText(Graphics& graphics, float angleDegrees) {
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+        graphics.SetTransform(&rotationMatrix);
+
+    }
 
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -189,6 +205,12 @@ public:
 
         strokeWidth *= d;
     }
+    void RotateCircle(Graphics& graphics, float angleDegrees) {
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+        graphics.SetTransform(&rotationMatrix);
+
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -217,6 +239,12 @@ public:
         rx *= d;
         ry *= d;
         strokeWidth *= d;
+    }
+    void RotateEllipse(Graphics& graphics, float angleDegrees) {
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+        graphics.SetTransform(&rotationMatrix);
+
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -248,6 +276,12 @@ public:
         p2.x *= d;
         p2.y *= d;
         strokeWidth *= d;
+    }
+    void RotateLine(Graphics& graphics, float angleDegrees) {
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+        graphics.SetTransform(&rotationMatrix);
+
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -282,6 +316,12 @@ public:
             points[i].y *= d;
         }
         strokeWidth *= d;
+    }
+    void RotatePolygon(Graphics& graphics, float angleDegrees) {
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+        graphics.SetTransform(&rotationMatrix);
+
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -318,6 +358,12 @@ public:
         }
         strokeWidth *= d;
     }
+    void RotatePolyline(Graphics& graphics, float angleDegrees) {
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+        graphics.SetTransform(&rotationMatrix);
+
+    }
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -351,6 +397,12 @@ public:
                 PathData[i].points[j].y *= d;
             }
         }
+    }
+    void RotatePath(Graphics& graphics, float angleDegrees) {
+        Matrix rotationMatrix;
+        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
+        graphics.SetTransform(&rotationMatrix);
+
     }
     void getPointMINMAX(pointMinMax&) override;
 };
