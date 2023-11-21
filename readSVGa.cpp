@@ -252,6 +252,12 @@ vector<SVGElement> parseSVG(const string& filename) {
     return result;
 }
 
+string remove_spaces(const string& input_string) {
+    string result = input_string;
+    result.erase(remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result;
+}
+
 
 RGBSVG colorSVG(const string& s) {
     RGBSVG color;
@@ -268,6 +274,7 @@ RGBSVG colorSVG(const string& s) {
         color.B = stod(match[3].str());
     }
     else {
+        s1 = remove_spaces(s1);
         unordered_map<string, RGBSVG> colorMap = {
             {"aliceblue", {240, 248, 255}},
             {"antiquewhite", {250, 235, 215}},
@@ -460,15 +467,15 @@ void RectSVG::parseShapeSVG(const SVGElement& element) {
             ry = stod(attr.second);
         }
         else if (attr.first == "fill") {
-            fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            fill = colorSVG(remove_spaces(attr.second));
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cStroke = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -530,14 +537,14 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") { cStroke = 1; }
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") { cStroke = 1; }
             else checkStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
@@ -574,14 +581,14 @@ void CircleSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cStroke = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -614,7 +621,7 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
 
         }
         else if (attr.first == "fill-opacity") {
@@ -622,7 +629,7 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cStroke = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -659,7 +666,7 @@ void LineSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cStroke = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -685,14 +692,14 @@ void PolygonSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
         }
         else if (attr.first == "fill-opacity") {
             fillOpacity = stod(attr.second);
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cStroke = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -718,7 +725,7 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
 
         }
         else if (attr.first == "fill-opacity") {
@@ -726,8 +733,7 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
-
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -755,7 +761,7 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "fill") {
             fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
 
         }
         else if (attr.first == "fill-opacity") {
@@ -763,7 +769,7 @@ void PathSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cStroke = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cStroke = 1;
 
         }
         else if (attr.first == "stroke-opacity") {
@@ -801,7 +807,7 @@ void GroupSVG::parseShapeSVG(const SVGElement& element) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "fill") {
             fill = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cFill = 1;
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cFill = 1;
 
         }
         else if (attr.first == "fill-opacity") {
@@ -809,8 +815,7 @@ void GroupSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none" || attr.second == "transparent") cStroke = 1;
-
+            if (remove_spaces(attr.second) == "none" || remove_spaces(attr.second) == "transparent") cStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
