@@ -42,7 +42,8 @@ struct transformSVG {
     string transformType;
 };
 
-vector<transformSVG> parsetransformSVG(const string& filename);
+void parsetransformSVG(vector<transformSVG>& transformations, const string& input);
+
 string formatSVGPath(const string& path);
 vector<SVGElement> parseSVG(const string& filename);
 void parseStyle(const string& s, SVGElement& element);
@@ -90,6 +91,7 @@ public:
     virtual void getPointMINMAX(pointMinMax& ptMM) = 0;
     virtual void drawSVG(Graphics& graphics) = 0;
     void copyAttributes(const ShapeSVG& other);
+    void pushpathTrasform(const ShapeSVG& other);
 };
 
 
@@ -104,12 +106,12 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslateRectangle(Graphics& graphics, float dx, float dy) {
         p.x += dx;
         p.y += dy;
     }
-    void ScaleRectangle(Graphics& graphics, float x, float y){
+    void ScaleRectangle(Graphics& graphics, float x, float y) {
         p.x *= x;
         p.y *= y;
         width *= x;
@@ -141,7 +143,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslateText(Graphics& graphics, float dx, float dy) {
         float a = p.x + dx;
         float b = p.y + dy;
@@ -154,9 +156,9 @@ public:
         p.x = a + (x * fontSize - p.x);
         p.y = b - y * fontSize;
         fontSize *= x;
-       
+
     }
-    
+
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -167,7 +169,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslateCircle(Graphics& graphics, float dx, float dy) {
         c.x += dx;
         c.y += dy;
@@ -176,14 +178,14 @@ public:
         c.x *= x;
         c.y *= y;
         r *= x;
-        
+
         strokeWidth *= x;
     }
     void ScaleCircle(Graphics& graphics, float d) {
         c.x *= d;
         c.y *= d;
         r *= d;
-      
+
         strokeWidth *= d;
     }
     void getPointMINMAX(pointMinMax&) override;
@@ -196,7 +198,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslateEllipse(Graphics& graphics, float dx, float dy) {
         c.x += dx;
         c.y += dy;
@@ -225,7 +227,7 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslateLine(Graphics& graphics, float dx, float dy) {
         p1.x += dx;
         p1.y += dy;
@@ -258,7 +260,7 @@ public:
     }
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslatePolygon(Graphics& graphics, float dx, float dy) {
         for (int i = 0; i < points.size(); i++) {
             points[i].x += dx;
@@ -293,7 +295,7 @@ public:
     }
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslatePolyline(Graphics& graphics, float dx, float dy) {
         for (int i = 0; i < points.size(); i++) {
             points[i].x += dx;
@@ -324,23 +326,29 @@ private:
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
-    
+
     void TranslatePath(Graphics& graphics, float dx, float dy) {
         for (int i = 0; i < PathData.size(); i++) {
-            PathData[i].points[i].x += dx;
-            PathData[i].points[i].y += dy;
+            for (int j = 0; j < PathData[i].points.size(); j++) {
+                PathData[i].points[j].x += dx;
+                PathData[i].points[j].y += dy;
+            }
         }
     }
     void ScalePath(Graphics& graphics, float x, float y) {
         for (int i = 0; i < PathData.size(); i++) {
-            PathData[i].points[i].x *= x;
-            PathData[i].points[i].y *= y;
+            for (int j = 0; j < PathData[i].points.size(); j++) {
+                PathData[i].points[j].x *= x;
+                PathData[i].points[j].y *= y;
+            }
         }
     }
     void ScalePath(Graphics& graphics, float d) {
         for (int i = 0; i < PathData.size(); i++) {
-            PathData[i].points[i].x *= d;
-            PathData[i].points[i].y *= d;
+            for (int j = 0; j < PathData[i].points.size(); j++) {
+                PathData[i].points[j].x *= d;
+                PathData[i].points[j].y *= d;
+            }
         }
     }
     void getPointMINMAX(pointMinMax&) override;
@@ -361,5 +369,5 @@ public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
     void getPointMINMAX(pointMinMax& ptMM) override;
-    
+
 };
