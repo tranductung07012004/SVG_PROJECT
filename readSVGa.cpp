@@ -890,8 +890,11 @@ void CircleSVG::drawSVG(Graphics& graphics) {
             this->TranslateCircle(graphics, tf.translateX, tf.translateY);
 
         }
-        if (tf.transformType == "scale") {
+        else if (tf.transformType == "scale") {
             this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateCircle(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
@@ -901,7 +904,7 @@ void CircleSVG::drawSVG(Graphics& graphics) {
 
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
-    // graphics.ResetTransform();
+    graphics.ResetTransform();
 }
 
 void EllipseSVG::drawSVG(Graphics& graphics) {
@@ -919,8 +922,11 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
             this->TranslateEllipse(graphics, tf.translateX, tf.translateY);
 
         }
-        if (tf.transformType == "scale") {
+        else if (tf.transformType == "scale") {
             this->ScaleEllipse(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateEllipse(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
@@ -929,7 +935,7 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
 
-    //graphics.ResetTransform();
+    graphics.ResetTransform();
 }
 
 void LineSVG::drawSVG(Graphics& graphics) {
@@ -946,27 +952,22 @@ void LineSVG::drawSVG(Graphics& graphics) {
             this->TranslateLine(graphics, tf.translateX, tf.translateY);
 
         }
-        if (tf.transformType == "scale") {
+        else if (tf.transformType == "scale") {
             this->ScaleLine(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateLine(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     PointF point1((REAL)p1.x, (REAL)p1.y);
     PointF point2(p2.x, p2.y);
     graphics.DrawLine(&pen, point1, point2);
-    // graphics.ResetTransform();
+     graphics.ResetTransform();
 }
 
 void PolygonSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    // graphics.ScaleTransform(2.0f, 2.0f);
-     //float zoomFactor = 1.0;
-    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
-     //graphics.SetTransform(&scalingMatrix);
-
-
-
     int size = points.size();
     PointF* point = new PointF[size];
 
@@ -982,10 +983,16 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
                 point[i].X = points[i].x;
                 point[i].Y = points[i].y;
             }
-
         }
-        if (tf.transformType == "scale") {
+        else  if (tf.transformType == "scale") {
             this->ScalePolygon(graphics, tf.scaleX, tf.scaleY);
+            for (int i = 0; i < size; i++) {
+                point[i].X = points[i].x;
+                point[i].Y = points[i].y;
+            }
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotatePolygon(graphics, tf.rotateAngle);
             for (int i = 0; i < size; i++) {
                 point[i].X = points[i].x;
                 point[i].Y = points[i].y;
@@ -993,15 +1000,11 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-
-
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-
     graphics.FillPolygon(&brush, point, size);
     graphics.DrawPolygon(&pen, point, size);
-
     delete[] point;
-    //graphics.ResetTransform();
+    graphics.ResetTransform();
 }
 
 void PolylineSVG::drawSVG(Graphics& graphics) {
@@ -1030,6 +1033,13 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
                 point[i].Y = points[i].y;
             }
         }
+        else if (tf.transformType == "rotate") {
+            this->RotatePolyline(graphics, tf.rotateAngle);
+            for (int i = 0; i < size; i++) {
+                point[i].X = points[i].x;
+                point[i].Y = points[i].y;
+            }
+        }
     }
 
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
@@ -1038,7 +1048,7 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     graphics.DrawLines(&pen, point, size);
 
     delete[] point;
-    // graphics.ResetTransform();
+     graphics.ResetTransform();
 }
 
 void RectSVG::drawSVG(Graphics& graphics) {
@@ -1052,32 +1062,19 @@ void RectSVG::drawSVG(Graphics& graphics) {
             this->TranslateRectangle(graphics, tf.translateX, tf.translateY);
 
         }
-        if (tf.transformType == "scale") {
+        else if (tf.transformType == "scale") {
             this->ScaleRectangle(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateRect(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    //graphics.ScaleTransform(2.0f, 2.0f);
-    //float zoomFactor = 1.0;
-   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
-    //graphics.SetTransform(&scalingMatrix);
-
-   //Matrix matrix;
-   //// PointF p;
-   // //p.X = (ptMM.pointMin.x + ptMM.pointMax.x) / 2;
-   //// p.Y = (ptMM.pointMin.y + ptMM.pointMax.y) / 2;
-   // //int width = ptMM.pointMax.x - ptMM.pointMin.x;
-   // //int height = ptMM.pointMax.y - ptMM.pointMin.y;
-   //matrix.RotateAt(180.0f, PointF(500, 200)); // Rotation angle: 45 degrees, Rotation center: (150, 100)
-   //graphics.SetTransform(&matrix);
-   //// graphics.DrawRectangle(&pen, (int)ptMM.pointMin.x, (int)ptMM.pointMin.y, width, height);
-   //graphics.DrawRectangle(&pen, rx, ry, width, height);
-
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillRectangle(&brush, (int)p.x, (int)p.y, width, height);
     graphics.DrawRectangle(&pen, (int)p.x, (int)p.y, width, height);
 
-    //graphics.ResetTransform();
+    graphics.ResetTransform();
 
 }
 
@@ -1092,8 +1089,11 @@ void TextSVG::drawSVG(Graphics& graphics) {
             this->TranslateText(graphics, tf.translateX, tf.translateY);
 
         }
-        if (tf.transformType == "scale") {
+        else if (tf.transformType == "scale") {
             this->ScaleText(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateText(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
@@ -1141,38 +1141,9 @@ void TextSVG::drawSVG(Graphics& graphics) {
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
     if (checkStroke == 1)
         graphics.DrawPath(&pen1, &path);
-
-    //graphics.ResetTransform();
-    //FontFamily fontfam(L"Arial");
-    //Font font(L"Arial", 37);
-    //SolidBrush textBrush(Color(255, 0, 0, 255)); // Màu chữ đen
-
-    //// Tạo đối tượng GraphicsPath
-    //GraphicsPath path;
-
-    //// Thiết lập thuộc tính "outline" cho chữ
-    //path.AddString(
-    //    L"Hello World",
-    //    -1,                 // NULL-terminated string
-    //    &fontfam,
-    //    FontStyleRegular,
-    //    48,
-    //    PointF(50.0f, 50.0f),
-    //    NULL);
-
-    //// Vẽ chữ với thuộc tính "outline"
-    //Pen pen(Color(255, 255, 0, 0), 5.0f); // Màu viền đỏ và độ rộng viền
-    //graphics.DrawPath(&pen, &path);
-    //graphics.DrawString(L"Hello World", -1, &font, PointF(50.0f, 50.0f), &textBrush);
+    graphics.ResetTransform();
 }
-void PathSVG::RotatePath(Graphics& graphics, float angleInDegrees) {
-    // Calculate rotation matrix
-    Matrix matrix;
-    matrix.Rotate(angleInDegrees);
 
-    // Apply rotation to the graphics object
-    graphics.SetTransform(&matrix);
-}
 void PathSVG::drawSVG(Graphics& graphics) {
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     for (const auto& tf : tfSVG) {
@@ -1186,7 +1157,6 @@ void PathSVG::drawSVG(Graphics& graphics) {
             this->RotatePath(graphics, tf.rotateAngle); 
         }
     }
-
     PointF start = { -3.4e38,-3.4e38 };
     PointF controlPoint;
     PointF control;
@@ -1250,7 +1220,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     graphics.FillPath(&brush, &path);
     graphics.DrawPath(&pen, &path);
 
-
+    graphics.ResetTransform();
 }
 
 void GroupSVG::drawSVG(Graphics& graphics) {
@@ -1342,7 +1312,6 @@ void PathSVG::getPointMINMAX(pointMinMax& pMM) {
         }
     }
 }
-
 void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
     for (const auto& element : elements) {
         if (element.type == GroupOrShape::SHAPE) {
