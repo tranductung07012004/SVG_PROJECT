@@ -140,6 +140,7 @@ private:
     string textDecoration = "";
     string textTransform = "";
     string textContent = "";
+    bool checkStroke = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics&) override;
