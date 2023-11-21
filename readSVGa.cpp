@@ -537,8 +537,8 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
         }
         else if (attr.first == "stroke") {
             stroke = colorSVG(attr.second);
-            if (attr.second == "none") cStroke = 1;
-
+            if (attr.second == "none") { cStroke = 1; }
+            else checkStroke = 1;
         }
         else if (attr.first == "stroke-opacity") {
             strokeOpacity = stod(attr.second);
@@ -1135,7 +1135,8 @@ void TextSVG::drawSVG(Graphics& graphics) {
 
 
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
-    graphics.DrawPath(&pen1, &path);
+    if (checkStroke == 1)
+        graphics.DrawPath(&pen1, &path);
 
     //graphics.ResetTransform();
     //FontFamily fontfam(L"Arial");
