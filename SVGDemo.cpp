@@ -89,7 +89,7 @@ VOID OnPaint(HDC hdc, float zoomFactor)
     for (const auto& shape : shapes) {
         shape->drawSVG(graphics);
     }
-    //graphics.ResetTransform();
+    graphics.ResetTransform();
 }
 
 
@@ -159,13 +159,8 @@ void HandleButtonClick(HWND hWnd, POINT point)
     {
         // Toggle the button state
         isButtonClicked = !isButtonClicked;
-
         // Toggle the scrollbar visibility
-
         isScrollBarVisible = !isScrollBarVisible;
-
-
-
         // Show or hide the scrollbar
         ShowWindow(g_hScrollBar, isScrollBarVisible ? SW_SHOWNORMAL : SW_HIDE);
 
@@ -198,6 +193,7 @@ void DrawButton(HDC hdc)
         FillRect(hdc, &rect, hCustomBrush);
         DeleteObject(hCustomBrush);
     }
+    
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
