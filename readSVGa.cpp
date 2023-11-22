@@ -878,17 +878,11 @@ void GroupSVG::parseShapeSVG(const SVGElement& element) {
 void CircleSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    //graphics.ScaleTransform(2.0f, 2.0f);
-    //float zoomFactor = 1.0;
-   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
-    //graphics.SetTransform(&scalingMatrix);
 
-
+    GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
-
             this->TranslateCircle(graphics, tf.translateX, tf.translateY);
-
         }
         else if (tf.transformType == "scale") {
             this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
@@ -904,18 +898,13 @@ void CircleSVG::drawSVG(Graphics& graphics) {
 
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
-    graphics.ResetTransform();
+    graphics.Restore(state);
 }
 
 void EllipseSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    //graphics.ScaleTransform(2.0f, 2.0f);
-    //float zoomFactor = 1.0;
-   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
-    //graphics.SetTransform(&scalingMatrix);
-
-
+    GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
@@ -935,17 +924,13 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
 
-    graphics.ResetTransform();
+   graphics.Restore(state);
 }
 
 void LineSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    //graphics.ScaleTransform(2.0f, 2.0f);
-    //float zoomFactor = 1.0;
-   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
-    //graphics.SetTransform(&scalingMatrix);
-
+    GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
@@ -963,11 +948,13 @@ void LineSVG::drawSVG(Graphics& graphics) {
     PointF point1((REAL)p1.x, (REAL)p1.y);
     PointF point2(p2.x, p2.y);
     graphics.DrawLine(&pen, point1, point2);
-     graphics.ResetTransform();
+     graphics.Restore(state);
 }
 
 void PolygonSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
     int size = points.size();
     PointF* point = new PointF[size];
 
@@ -1004,12 +991,13 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
     graphics.FillPolygon(&brush, point, size);
     graphics.DrawPolygon(&pen, point, size);
     delete[] point;
-    graphics.ResetTransform();
+    graphics.Restore(state);
 }
 
 void PolylineSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
     int size = points.size();
     PointF* point = new PointF[size];
 
@@ -1048,14 +1036,13 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     graphics.DrawLines(&pen, point, size);
 
     delete[] point;
-     graphics.ResetTransform();
+     graphics.Restore(state);
 }
 
 void RectSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
-
-
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
@@ -1074,14 +1061,13 @@ void RectSVG::drawSVG(Graphics& graphics) {
     graphics.FillRectangle(&brush, (int)p.x, (int)p.y, width, height);
     graphics.DrawRectangle(&pen, (int)p.x, (int)p.y, width, height);
 
-    graphics.ResetTransform();
-
+    graphics.Restore(state);
 }
 
 void TextSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-
+    GraphicsState state = graphics.Save();
 
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
@@ -1141,11 +1127,13 @@ void TextSVG::drawSVG(Graphics& graphics) {
     graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
     if (checkStroke == 1)
         graphics.DrawPath(&pen1, &path);
-    graphics.ResetTransform();
+    graphics.Restore(state);
 }
 
 void PathSVG::drawSVG(Graphics& graphics) {
+    //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
             this->TranslatePath(graphics, tf.translateX, tf.translateY);
@@ -1220,7 +1208,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     graphics.FillPath(&brush, &path);
     graphics.DrawPath(&pen, &path);
 
-    graphics.ResetTransform();
+    graphics.Restore(state);
 }
 
 void GroupSVG::drawSVG(Graphics& graphics) {
