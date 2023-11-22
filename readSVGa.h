@@ -92,6 +92,7 @@ public:
     virtual void drawSVG(Graphics& graphics) = 0;
     void copyAttributes(const ShapeSVG& other);
     void pushpathTrasform(const ShapeSVG& other);
+
 };
 
 
@@ -105,7 +106,7 @@ private:
 
 public:
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslateRectangle(Graphics& graphics, float dx, float dy) {
         p.x += dx;
@@ -126,14 +127,10 @@ public:
         strokeWidth *= d;
     }
     void RotateRect(Graphics& graphics, float angleDegrees) {
-        float angleRadians = angleDegrees * (3.14159 / 180.0); // Convert degrees to radians
-
-        // Create a matrix for rotation
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-
-        // Apply the rotation to the graphics object
-        graphics.SetTransform(&rotationMatrix);
+      
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
+        
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -153,7 +150,7 @@ private:
     bool checkStroke = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslateText(Graphics& graphics, float dx, float dy) {
         float a = p.x + dx;
@@ -170,10 +167,10 @@ public:
 
     }
     void RotateText(Graphics& graphics, float angleDegrees) {
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-        graphics.SetTransform(&rotationMatrix);
-
+       
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
+     
     }
 
     void getPointMINMAX(pointMinMax&) override;
@@ -185,7 +182,7 @@ private:
     double r = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslateCircle(Graphics& graphics, float dx, float dy) {
         c.x += dx;
@@ -206,9 +203,10 @@ public:
         strokeWidth *= d;
     }
     void RotateCircle(Graphics& graphics, float angleDegrees) {
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-        graphics.SetTransform(&rotationMatrix);
+      
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
+      
 
     }
     void getPointMINMAX(pointMinMax&) override;
@@ -220,7 +218,7 @@ private:
     double rx = 0, ry = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslateEllipse(Graphics& graphics, float dx, float dy) {
         c.x += dx;
@@ -241,11 +239,10 @@ public:
         strokeWidth *= d;
     }
     void RotateEllipse(Graphics& graphics, float angleDegrees) {
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-        graphics.SetTransform(&rotationMatrix);
-
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
     }
+
     void getPointMINMAX(pointMinMax&) override;
 };
 
@@ -255,7 +252,7 @@ private:
     double width = 0, height = 0, rx = 0, ry = 0;
 public:
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslateLine(Graphics& graphics, float dx, float dy) {
         p1.x += dx;
@@ -278,10 +275,8 @@ public:
         strokeWidth *= d;
     }
     void RotateLine(Graphics& graphics, float angleDegrees) {
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-        graphics.SetTransform(&rotationMatrix);
-
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -294,7 +289,7 @@ public:
         strokeOpacity = 0;
     }
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslatePolygon(Graphics& graphics, float dx, float dy) {
         for (int i = 0; i < points.size(); i++) {
@@ -318,10 +313,8 @@ public:
         strokeWidth *= d;
     }
     void RotatePolygon(Graphics& graphics, float angleDegrees) {
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-        graphics.SetTransform(&rotationMatrix);
-
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -335,7 +328,7 @@ public:
         strokeOpacity = 0;
     }
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslatePolyline(Graphics& graphics, float dx, float dy) {
         for (int i = 0; i < points.size(); i++) {
@@ -359,10 +352,8 @@ public:
         strokeWidth *= d;
     }
     void RotatePolyline(Graphics& graphics, float angleDegrees) {
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-        graphics.SetTransform(&rotationMatrix);
-
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -372,7 +363,7 @@ private:
     vector<PointPathSVG> PathData;
 public:
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
 
     void TranslatePath(Graphics& graphics, float dx, float dy) {
         for (int i = 0; i < PathData.size(); i++) {
@@ -399,10 +390,8 @@ public:
         }
     }
     void RotatePath(Graphics& graphics, float angleDegrees) {
-        Matrix rotationMatrix;
-        rotationMatrix.RotateAt(angleDegrees, PointF(0, 0));
-        graphics.SetTransform(&rotationMatrix);
-
+        graphics.TranslateTransform(0, 0);
+        graphics.RotateTransform(angleDegrees);
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -420,7 +409,7 @@ private:
 
 public:
     void parseShapeSVG(const SVGElement& element) override;
-    void drawSVG(Graphics&) override;
+    void drawSVG(Graphics& graphics) override;
     void getPointMINMAX(pointMinMax& ptMM) override;
 
 };
