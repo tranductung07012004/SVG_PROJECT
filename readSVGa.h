@@ -83,7 +83,7 @@ protected:
     double strokeOpacity = 1;
     RGBSVG fill;
     RGBSVG stroke;
-    double strokeWidth = 0;
+    double strokeWidth = 1;
     vector<transformSVG> tfSVG;
     string style = "";
 public:
@@ -127,10 +127,10 @@ public:
         strokeWidth *= d;
     }
     void RotateRect(Graphics& graphics, float angleDegrees) {
-      
+
         graphics.TranslateTransform(0, 0);
         graphics.RotateTransform(angleDegrees);
-        
+
     }
     void getPointMINMAX(pointMinMax&) override;
 };
@@ -159,18 +159,20 @@ public:
         p.y = b - fontSize;
     }
     void ScaleText(Graphics& graphics, float x, float y) {
-        float a = p.x * x;
+        /*float a = p.x * x;
         float b = p.y * y;
         p.x = a + (x * fontSize - p.x);
         p.y = b - y * fontSize;
         fontSize *= x;
+        strokeWidth *= x;*/
+        graphics.ScaleTransform(x, y);
 
     }
     void RotateText(Graphics& graphics, float angleDegrees) {
-       
+
         graphics.TranslateTransform(0, 0);
         graphics.RotateTransform(angleDegrees);
-     
+
     }
 
     void getPointMINMAX(pointMinMax&) override;
@@ -203,10 +205,10 @@ public:
         strokeWidth *= d;
     }
     void RotateCircle(Graphics& graphics, float angleDegrees) {
-      
+
         graphics.TranslateTransform(0, 0);
         graphics.RotateTransform(angleDegrees);
-      
+
 
     }
     void getPointMINMAX(pointMinMax&) override;
@@ -404,12 +406,9 @@ private:
         unique_ptr<ShapeSVG> shape;
         unique_ptr<GroupSVG> group;
     };
-
     vector<GroupOrShape> elements;
-
 public:
     void parseShapeSVG(const SVGElement& element) override;
     void drawSVG(Graphics& graphics) override;
     void getPointMINMAX(pointMinMax& ptMM) override;
-
 };
