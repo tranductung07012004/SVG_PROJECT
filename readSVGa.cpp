@@ -924,7 +924,7 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
 
-   graphics.Restore(state);
+    graphics.Restore(state);
 }
 
 void LineSVG::drawSVG(Graphics& graphics) {
@@ -948,7 +948,7 @@ void LineSVG::drawSVG(Graphics& graphics) {
     PointF point1((REAL)p1.x, (REAL)p1.y);
     PointF point2(p2.x, p2.y);
     graphics.DrawLine(&pen, point1, point2);
-     graphics.Restore(state);
+    graphics.Restore(state);
 }
 
 void PolygonSVG::drawSVG(Graphics& graphics) {
@@ -1036,7 +1036,7 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     graphics.DrawLines(&pen, point, size);
 
     delete[] point;
-     graphics.Restore(state);
+    graphics.Restore(state);
 }
 
 void RectSVG::drawSVG(Graphics& graphics) {
@@ -1068,7 +1068,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     GraphicsState state = graphics.Save();
-
+    bool checkScale = 0;
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
@@ -1077,11 +1077,13 @@ void TextSVG::drawSVG(Graphics& graphics) {
         }
         else if (tf.transformType == "scale") {
             this->ScaleText(graphics, tf.scaleX, tf.scaleY);
+            checkScale = 1;
         }
         else if (tf.transformType == "rotate") {
             this->RotateText(graphics, tf.rotateAngle);
         }
     }
+    
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     Pen pen1(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B));
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -1106,27 +1108,34 @@ void TextSVG::drawSVG(Graphics& graphics) {
     }
     Font font(&fontFamily, fontSize, font1, UnitPixel);
     //draw string in group
-    PointF point(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize + 5);
+    PointF point(static_cast<float>(p.x) + fontSize/10 - 18, static_cast<float>(p.y) - 2 * fontSize - 2);
     //draw string outside group
     PointF point2(static_cast<float>(p.x), static_cast<float>(p.y) - fontSize + fontSize / 10);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
-    PointF point1(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize - 2);
-
+    
+    PointF origin = { 0.0f,0.0f };
+    Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericDefault());
+    if (checkScale == 1) {
+        origin.X = static_cast<float>(p.x) - (p.x/2);
+        origin.Y = static_cast<float>(p.y) - 2 * fontSize;
+    }
+    if (checkScale == 0) {
+        origin.X = static_cast<float>(p.x);
+        origin.Y = static_cast<float>(p.y) - 2 * fontSize;
+    }
     GraphicsPath path;
-    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point1, NULL);
+    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, origin, &format);
     /*if (fontSize >= 59) {
         path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point, NULL);
     }*/
-    if (strokeWidth == 1) {
-        pen1.SetWidth(3);
-    }
-    else pen1.SetWidth(strokeWidth + 3);
+    
+    graphics.FillPath(&brush, &path);
 
-
-    graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
+    //graphics.DrawString(wstr.c_str(), -1, &font, origin, &brush);
     if (checkStroke == 1)
-        graphics.DrawPath(&pen1, &path);
+        graphics.DrawPath(&pen, &path);
+    
     graphics.Restore(state);
 }
 
@@ -1142,7 +1151,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             this->ScalePath(graphics, tf.scaleX, tf.scaleY);
         }
         else if (tf.transformType == "rotate") {
-            this->RotatePath(graphics, tf.rotateAngle); 
+            this->RotatePath(graphics, tf.rotateAngle);
         }
     }
     PointF start = { -3.4e38,-3.4e38 };
