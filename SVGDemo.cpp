@@ -90,6 +90,8 @@ VOID OnPaint(HDC hdc, float zoomFactor)
         shape->drawSVG(graphics);
     }
     graphics.ResetTransform();
+    
+    
 }
 
 
@@ -193,7 +195,7 @@ void DrawButton(HDC hdc)
         FillRect(hdc, &rect, hCustomBrush);
         DeleteObject(hCustomBrush);
     }
-    
+
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
