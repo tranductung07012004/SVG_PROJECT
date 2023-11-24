@@ -912,7 +912,9 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
 
         }
         else if (tf.transformType == "scale") {
+            
             this->ScaleEllipse(graphics, tf.scaleX, tf.scaleY);
+           
         }
         else if (tf.transformType == "rotate") {
             this->RotateEllipse(graphics, tf.rotateAngle);
@@ -1085,7 +1087,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
     }
     
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    Pen pen1(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B));
+    
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring ws = converter.from_bytes(fontFamily);
     FontFamily fontFamily(ws.c_str());
@@ -1107,10 +1109,6 @@ void TextSVG::drawSVG(Graphics& graphics) {
         font1 = FontStyleStrikeout;
     }
     Font font(&fontFamily, fontSize, font1, UnitPixel);
-    //draw string in group
-    PointF point(static_cast<float>(p.x) + fontSize/10 - 18, static_cast<float>(p.y) - 2 * fontSize - 2);
-    //draw string outside group
-    PointF point2(static_cast<float>(p.x), static_cast<float>(p.y) - fontSize + fontSize / 10);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
     
@@ -1126,9 +1124,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
     }
     GraphicsPath path;
     path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, origin, &format);
-    /*if (fontSize >= 59) {
-        path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point, NULL);
-    }*/
+    
     
     graphics.FillPath(&brush, &path);
 
