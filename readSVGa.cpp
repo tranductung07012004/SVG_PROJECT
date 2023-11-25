@@ -220,7 +220,7 @@ void parseGroupNode(xml_node<>* node, SVGElement& groupElement) {
         groupElement.children.push_back(element);
     }
 }
-vector<SVGElement> parseSVG(const string& filename) {
+vector<SVGElement> parseSVG(const string& filename, double& width, double& height) {
     vector<SVGElement> result;
 
     // Open the SVG file
@@ -243,6 +243,15 @@ vector<SVGElement> parseSVG(const string& filename) {
     // Start parsing the SVG elements
     xml_node<>* svgNode = doc.first_node("svg");
     if (svgNode) {
+        // Extract width and height attributes
+        if (xml_attribute<>* widthAttr = svgNode->first_attribute("width")) {
+            width = stod(widthAttr->value());
+        }
+        if (xml_attribute<>* heightAttr = svgNode->first_attribute("height")) {
+            height = stod(heightAttr->value());
+        }
+
+        // Parse the rest of the SVG elements
         parseSVGNode(svgNode, result);
     }
     else {
@@ -484,7 +493,7 @@ void RectSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            parsetransformSVG(tfSVG, attr.second);
+             parsetransformSVG(tfSVG,attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -512,6 +521,7 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
             }
             catch (const std::invalid_argument&) {
                 fontWeight2 = attr.second;
+                std::transform(fontWeight2.begin(), fontWeight2.end(), fontWeight2.begin(), ::tolower);
             }
         }
         else if (attr.first == "font-style") {
@@ -553,7 +563,7 @@ void TextSVG::parseShapeSVG(const SVGElement& element) {
             strokeWidth = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            parsetransformSVG(tfSVG, attr.second);
+             parsetransformSVG(tfSVG,attr.second);
         }
     }
 
@@ -593,7 +603,7 @@ void CircleSVG::parseShapeSVG(const SVGElement& element) {
             strokeOpacity = stod(attr.second);
         }
         else if (attr.first == "transform") {
-            parsetransformSVG(tfSVG, attr.second);
+             parsetransformSVG(tfSVG,attr.second);
         }
         else if (attr.first == "style") {
             style = attr.second;
@@ -795,9 +805,9 @@ void ShapeSVG::copyAttributes(const ShapeSVG& other) {
     stroke = other.stroke;
     strokeWidth = other.strokeWidth;
     style = other.style;
-    if (other.tfSVG.size() != 0)
+    if(other.tfSVG.size() != 0)
         for (const auto& tf : other.tfSVG)
-            tfSVG.push_back(tf);
+             tfSVG.push_back(tf);
 }
 
 void GroupSVG::parseShapeSVG(const SVGElement& element) {
@@ -878,17 +888,20 @@ void GroupSVG::parseShapeSVG(const SVGElement& element) {
 void CircleSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
 
-    GraphicsState state = graphics.Save();
+
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
+
             this->TranslateCircle(graphics, tf.translateX, tf.translateY);
+
         }
-        else if (tf.transformType == "scale") {
+        if (tf.transformType == "scale") {
             this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateCircle(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
@@ -898,26 +911,26 @@ void CircleSVG::drawSVG(Graphics& graphics) {
 
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
-    graphics.Restore(state);
+    // graphics.ResetTransform();
 }
 
 void EllipseSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+
+
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
             this->TranslateEllipse(graphics, tf.translateX, tf.translateY);
 
         }
-        else if (tf.transformType == "scale") {
-            
+        if (tf.transformType == "scale") {
             this->ScaleEllipse(graphics, tf.scaleX, tf.scaleY);
-           
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateEllipse(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
@@ -926,37 +939,44 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     graphics.FillEllipse(&brush, ellipseRect);
     graphics.DrawEllipse(&pen, ellipseRect);
 
-    graphics.Restore(state);
+    //graphics.ResetTransform();
 }
 
 void LineSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
             this->TranslateLine(graphics, tf.translateX, tf.translateY);
 
         }
-        else if (tf.transformType == "scale") {
+        if (tf.transformType == "scale") {
             this->ScaleLine(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateLine(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     PointF point1((REAL)p1.x, (REAL)p1.y);
     PointF point2(p2.x, p2.y);
     graphics.DrawLine(&pen, point1, point2);
-    graphics.Restore(state);
+    // graphics.ResetTransform();
 }
 
 void PolygonSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
+    // graphics.ScaleTransform(2.0f, 2.0f);
+     //float zoomFactor = 1.0;
+    // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+     //graphics.SetTransform(&scalingMatrix);
+
+
+
     int size = points.size();
     PointF* point = new PointF[size];
 
@@ -972,16 +992,10 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
                 point[i].X = points[i].x;
                 point[i].Y = points[i].y;
             }
+
         }
-        else  if (tf.transformType == "scale") {
+        if (tf.transformType == "scale") {
             this->ScalePolygon(graphics, tf.scaleX, tf.scaleY);
-            for (int i = 0; i < size; i++) {
-                point[i].X = points[i].x;
-                point[i].Y = points[i].y;
-            }
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotatePolygon(graphics, tf.rotateAngle);
             for (int i = 0; i < size; i++) {
                 point[i].X = points[i].x;
                 point[i].Y = points[i].y;
@@ -989,17 +1003,20 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+
+
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+
     graphics.FillPolygon(&brush, point, size);
     graphics.DrawPolygon(&pen, point, size);
+
     delete[] point;
-    graphics.Restore(state);
+    //graphics.ResetTransform();
 }
 
 void PolylineSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
     int size = points.size();
     PointF* point = new PointF[size];
 
@@ -1023,13 +1040,6 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
                 point[i].Y = points[i].y;
             }
         }
-        else if (tf.transformType == "rotate") {
-            this->RotatePolyline(graphics, tf.rotateAngle);
-            for (int i = 0; i < size; i++) {
-                point[i].X = points[i].x;
-                point[i].Y = points[i].y;
-            }
-        }
     }
 
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
@@ -1038,56 +1048,66 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     graphics.DrawLines(&pen, point, size);
 
     delete[] point;
-    graphics.Restore(state);
+    // graphics.ResetTransform();
 }
 
 void RectSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
+
+
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
             this->TranslateRectangle(graphics, tf.translateX, tf.translateY);
 
         }
-        else if (tf.transformType == "scale") {
+        if (tf.transformType == "scale") {
             this->ScaleRectangle(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateRect(graphics, tf.rotateAngle);
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    //graphics.ScaleTransform(2.0f, 2.0f);
+    //float zoomFactor = 1.0;
+   // Matrix scalingMatrix(zoomFactor, 0, 0, zoomFactor, 0, 0); // Create a scaling matrix
+    //graphics.SetTransform(&scalingMatrix);
+
+   //Matrix matrix;
+   //// PointF p;
+   // //p.X = (ptMM.pointMin.x + ptMM.pointMax.x) / 2;
+   //// p.Y = (ptMM.pointMin.y + ptMM.pointMax.y) / 2;
+   // //int width = ptMM.pointMax.x - ptMM.pointMin.x;
+   // //int height = ptMM.pointMax.y - ptMM.pointMin.y;
+   //matrix.RotateAt(180.0f, PointF(500, 200)); // Rotation angle: 45 degrees, Rotation center: (150, 100)
+   //graphics.SetTransform(&matrix);
+   //// graphics.DrawRectangle(&pen, (int)ptMM.pointMin.x, (int)ptMM.pointMin.y, width, height);
+   //graphics.DrawRectangle(&pen, rx, ry, width, height);
+
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillRectangle(&brush, (int)p.x, (int)p.y, width, height);
     graphics.DrawRectangle(&pen, (int)p.x, (int)p.y, width, height);
 
-    graphics.Restore(state);
+    //graphics.ResetTransform();
+
 }
 
 void TextSVG::drawSVG(Graphics& graphics) {
     //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
-    bool checkScale = 0;
+
+
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
 
             this->TranslateText(graphics, tf.translateX, tf.translateY);
 
         }
-        else if (tf.transformType == "scale") {
+        if (tf.transformType == "scale") {
             this->ScaleText(graphics, tf.scaleX, tf.scaleY);
-            checkScale = 1;
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateText(graphics, tf.rotateAngle);
         }
     }
-    
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    
+    Pen pen1(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B));
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring ws = converter.from_bytes(fontFamily);
     FontFamily fontFamily(ws.c_str());
@@ -1109,36 +1129,55 @@ void TextSVG::drawSVG(Graphics& graphics) {
         font1 = FontStyleStrikeout;
     }
     Font font(&fontFamily, fontSize, font1, UnitPixel);
+    //draw string in group
+    PointF point(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize + 5);
+    //draw string outside group
+    PointF point2(static_cast<float>(p.x), static_cast<float>(p.y) - fontSize + fontSize / 10);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
-    
-    PointF origin = { 0.0f,0.0f };
-    Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericDefault());
-    if (checkScale == 1) {
-        origin.X = static_cast<float>(p.x) - (p.x/2);
-        origin.Y = static_cast<float>(p.y) - 2 * fontSize;
-    }
-    if (checkScale == 0) {
-        origin.X = static_cast<float>(p.x);
-        origin.Y = static_cast<float>(p.y) - 2 * fontSize;
-    }
-    GraphicsPath path;
-    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, origin, &format);
-    
-    
-    graphics.FillPath(&brush, &path);
+    PointF point1(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize - 2);
 
-    //graphics.DrawString(wstr.c_str(), -1, &font, origin, &brush);
+    GraphicsPath path;
+    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point1, NULL);
+    /*if (fontSize >= 59) {
+        path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point, NULL);
+    }*/
+    if (strokeWidth == 1) {
+        pen1.SetWidth(3);
+    }
+    else pen1.SetWidth(strokeWidth + 3);
+
+
+    graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
     if (checkStroke == 1)
-        graphics.DrawPath(&pen, &path);
-    
-    graphics.Restore(state);
+        graphics.DrawPath(&pen1, &path);
+
+    //graphics.ResetTransform();
+    //FontFamily fontfam(L"Arial");
+    //Font font(L"Arial", 37);
+    //SolidBrush textBrush(Color(255, 0, 0, 255)); // Màu chữ đen
+
+    //// Tạo đối tượng GraphicsPath
+    //GraphicsPath path;
+
+    //// Thiết lập thuộc tính "outline" cho chữ
+    //path.AddString(
+    //    L"Hello World",
+    //    -1,                 // NULL-terminated string
+    //    &fontfam,
+    //    FontStyleRegular,
+    //    48,
+    //    PointF(50.0f, 50.0f),
+    //    NULL);
+
+    //// Vẽ chữ với thuộc tính "outline"
+    //Pen pen(Color(255, 255, 0, 0), 5.0f); // Màu viền đỏ và độ rộng viền
+    //graphics.DrawPath(&pen, &path);
+    //graphics.DrawString(L"Hello World", -1, &font, PointF(50.0f, 50.0f), &textBrush);
 }
 
 void PathSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
             this->TranslatePath(graphics, tf.translateX, tf.translateY);
@@ -1146,10 +1185,8 @@ void PathSVG::drawSVG(Graphics& graphics) {
         if (tf.transformType == "scale") {
             this->ScalePath(graphics, tf.scaleX, tf.scaleY);
         }
-        else if (tf.transformType == "rotate") {
-            this->RotatePath(graphics, tf.rotateAngle);
-        }
     }
+
     PointF start = { -3.4e38,-3.4e38 };
     PointF controlPoint;
     PointF control;
@@ -1185,6 +1222,102 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
+        //else if (data.typePointPath == 'S') {
+        //    // Draw a smooth cubic Bezier curve
+        //    // C + S
+        //    if (data.points.size() >= 2) {
+        //        if (typeBefore == 'C') {
+        //            PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //            PointF controlPoint1;
+        //            controlPoint1.Y = controlPoint2.Y;
+        //            controlPoint1.X = start.X * 2 - controlPoint.X;
+        //            int count = path.GetPointCount();
+        //            path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //        }
+        //        // Q + S
+        //        else if (typeBefore == 'Q') {
+        //            PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //            PointF controlPoint1;
+        //            controlPoint1.Y = controlPoint2.Y;
+        //            controlPoint1.X = start.X * 2 - controlPoint.X;
+        //            controlPoint2.Y = (endPoint.Y + controlPoint2.Y) / 2;
+        //            controlPoint1.Y = (endPoint.Y + controlPoint1.Y) / 2;
+        //            int count = path.GetPointCount();
+        //            path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //            //path.AddLine(endPoint, controlPoint2);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //        }
+        //        
+        //        // S before, T + S
+        //        else {
+        //            PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //            PointF controlPoint1;
+        //            controlPoint1.X = controlPoint2.X;
+        //            controlPoint1.Y = (endPoint.Y + controlPoint2.Y) / 2;
+        //            int count = path.GetPointCount();
+        //            path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //        }
+        //        typeBefore = 'S';
+        //    }
+        //}
+        //else if (data.typePointPath == 'Q') {
+        //     //Draw a quadratic Bezier curve
+        //    if (data.points.size() >= 2) {
+        //        PointF controlPoint2(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //        PointF controlPoint1 = { (controlPoint2.X + start.X) / 2, (controlPoint2.Y + start.Y) / 2 };
+        //        PointF endPoint(static_cast<float>(data.points[1].x), static_cast<float>(data.points[1].y));
+        //        PointF controlPoint3 = { controlPoint2.X ,(controlPoint2.Y * 4)};
+        //        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //       // path.AddLine(start, controlPoint1);
+        //        //path.AddLine(endPoint, controlPoint2);
+        //        
+        //        start = endPoint;
+        //        controlPoint = controlPoint2;
+        //        control = controlPoint1;
+        //        typeBefore = 'Q';
+        //    }
+        //}
+        //else if (data.typePointPath == 'T') {
+        //    // Draw a smooth quadratic Bezier curve
+        //    
+        //    if (data.points.size() >= 1) {
+        //        // Q + T
+        //        if (typeBefore == 'Q') {
+        //            PointF endPoint(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            PointF controlPoint1;
+        //            PointF controlPoint2;
+        //            controlPoint1.X = start.X * 2 - controlPoint.X;
+        //            controlPoint1.Y = start.Y * 2 - controlPoint.Y;
+        //            controlPoint2.X = start.X * 2 - control.X;
+        //            controlPoint2.Y = start.Y * 2 - control.Y;
+        //            path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+        //            start = endPoint;
+        //            controlPoint = controlPoint2;
+        //            control = controlPoint1;
+        //            //typeBefore = 'T';
+        //        }
+
+        //        // T
+        //        else {
+        //            PointF endPoint(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
+        //            path.AddBezier(start, start, start, endPoint);
+        //            start = endPoint;
+        //            controlPoint = endPoint;
+        //            control = endPoint;
+        //            //typeBefore = 'T';
+        //        }
+        //        typeBefore = 'T';
+        //    }
+        //}
+
         else if (data.typePointPath == 'V') {
             for (const auto& point : data.points) {
                 PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.y));
@@ -1201,6 +1334,21 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
+        //else if (data.typePointPath == 'A') {
+        //    // Draw an elliptical arc
+        //  //  RectF ellipseBounds(static_cast<float>(data.x - data.rx), static_cast<float>(data.y - data.ry),
+        //  //                      static_cast<float>(2 * data.rx), static_cast<float>(2 * data.ry));
+        //    RectF ellipseBounds(static_cast<float>(start.X), static_cast<float>(start.Y),
+        //        static_cast<float>(data.rx), static_cast<float>(data.ry));
+        //    float startAngle = static_cast<float>(Math::RadiansToDegrees(data.xAxisRotation));
+        //    float sweepAngle = data.sweepFlag ? 1.0f : -1.0f * 360.0f;
+        //    int x_start = start.X;
+        //    int y_start = start.Y;
+        //    int width = 2 * data.rx;
+        //    int height = 2 * data.ry;
+
+        //    path.AddArc(x_start, y_start, width, height, startAngle, sweepAngle);
+        //}
         else if (data.typePointPath == 'Z') {
 
             path.CloseFigure();
@@ -1213,7 +1361,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     graphics.FillPath(&brush, &path);
     graphics.DrawPath(&pen, &path);
 
-    graphics.Restore(state);
+
 }
 
 void GroupSVG::drawSVG(Graphics& graphics) {
@@ -1305,6 +1453,7 @@ void PathSVG::getPointMINMAX(pointMinMax& pMM) {
         }
     }
 }
+
 void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
     for (const auto& element : elements) {
         if (element.type == GroupOrShape::SHAPE) {
@@ -1315,3 +1464,76 @@ void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
         }
     }
 }
+
+
+VOID OnPaint(HDC hdc, float zoomFactor)
+//{
+//    Graphics graphics(hdc);
+//    const string filename = "sample.svg";
+//    double width = 0, height = 0;
+//    vector<SVGElement> elements = parseSVG(filename,width,height);
+//    pointMinMax ptMM;
+//
+//    // Initialize zoom and rotation transformations
+//    Matrix zoomTransform(zoomFactor, 0.0f, 0.0f, zoomFactor, 0.0f, 0.0f);
+//    Matrix rotationTransform;
+//
+//    // Apply zoom transformation
+//    graphics.SetTransform(&zoomTransform);
+//
+//    vector<unique_ptr<ShapeSVG>> shapes;
+//
+//    for (const SVGElement& element : elements) {
+//        unique_ptr<ShapeSVG> shapeElement;
+//
+//        if (element.type == "rect") {
+//            shapeElement = make_unique<RectSVG>();
+//        }
+//        else if (element.type == "text") {
+//            shapeElement = make_unique<TextSVG>();
+//        }
+//        else if (element.type == "circle") {
+//            shapeElement = make_unique<CircleSVG>();
+//        }
+//        else if (element.type == "polyline") {
+//            shapeElement = make_unique<PolylineSVG>();
+//        }
+//        else if (element.type == "ellipse") {
+//            shapeElement = make_unique<EllipseSVG>();
+//        }
+//        else if (element.type == "line") {
+//            shapeElement = make_unique<LineSVG>();
+//        }
+//        else if (element.type == "polygon") {
+//            shapeElement = make_unique<PolygonSVG>();
+//        }
+//        else if (element.type == "path") {
+//            shapeElement = make_unique<PathSVG>();
+//        }
+//        else if (element.type == "g") {
+//            shapeElement = make_unique<GroupSVG>();
+//        }
+//        if (shapeElement) {
+//            shapeElement->parseShapeSVG(element);
+//            shapes.push_back(move(shapeElement));
+//            shapes.back()->getPointMINMAX(ptMM);
+//        }
+//    }
+//
+//
+//    PointF p;
+//    p.X = (ptMM.pointMin.x + ptMM.pointMax.x) / 2 + 10;
+//    p.Y = (ptMM.pointMin.y + ptMM.pointMax.y) / 2 + 10;
+//
+//    graphics.TranslateTransform(p.X, p.Y);
+//
+//    rotationTransform.Rotate(rotate_angle);
+//    graphics.MultiplyTransform(&rotationTransform);
+//
+//    graphics.TranslateTransform(-p.X, -p.Y);
+//
+//    for (const auto& shape : shapes) {
+//        shape->drawSVG(graphics);
+//    }
+//    graphics.ResetTransform();
+//}
