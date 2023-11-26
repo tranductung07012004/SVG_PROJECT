@@ -1092,20 +1092,22 @@ void RectSVG::drawSVG(Graphics& graphics) {
 }
 
 void TextSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-
-
+    GraphicsState state = graphics.Save();
+    bool checkScale = 0;
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
-
             this->TranslateText(graphics, tf.translateX, tf.translateY);
-
         }
-        if (tf.transformType == "scale") {
+        else if (tf.transformType == "scale") {
             this->ScaleText(graphics, tf.scaleX, tf.scaleY);
+            checkScale = 1;
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateText(graphics, tf.rotateAngle);
         }
     }
+
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     Pen pen1(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B));
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -1129,51 +1131,28 @@ void TextSVG::drawSVG(Graphics& graphics) {
         font1 = FontStyleStrikeout;
     }
     Font font(&fontFamily, fontSize, font1, UnitPixel);
-    //draw string in group
-    PointF point(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize + 5);
-    //draw string outside group
-    PointF point2(static_cast<float>(p.x), static_cast<float>(p.y) - fontSize + fontSize / 10);
+
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     wstring wstr = converter.from_bytes(textContent);
-    PointF point1(static_cast<float>(p.x) - fontSize - 6, static_cast<float>(p.y) - fontSize - 2);
 
-    GraphicsPath path;
-    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point1, NULL);
-    /*if (fontSize >= 59) {
-        path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, point, NULL);
-    }*/
-    if (strokeWidth == 1) {
-        pen1.SetWidth(3);
+    PointF origin = { 0.0f,0.0f };
+    Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericDefault());
+    if (checkScale == 1) {
+        origin.X = p.x / 2;
+        origin.Y = p.y - 1.15 * fontSize;
     }
-    else pen1.SetWidth(strokeWidth + 3);
+    if (checkScale == 0) {
+        origin.X = p.x;
+        origin.Y = p.y - 1.15 * fontSize;
+    }
+    GraphicsPath path;
+    path.AddString(wstr.c_str(), -1, &fontFamily, font1, fontSize, origin, &format);
+    graphics.FillPath(&brush, &path);
 
-
-    graphics.DrawString(wstr.c_str(), -1, &font, point, &brush);
     if (checkStroke == 1)
-        graphics.DrawPath(&pen1, &path);
+        graphics.DrawPath(&pen, &path);
 
-    //graphics.ResetTransform();
-    //FontFamily fontfam(L"Arial");
-    //Font font(L"Arial", 37);
-    //SolidBrush textBrush(Color(255, 0, 0, 255)); // Màu chữ đen
-
-    //// Tạo đối tượng GraphicsPath
-    //GraphicsPath path;
-
-    //// Thiết lập thuộc tính "outline" cho chữ
-    //path.AddString(
-    //    L"Hello World",
-    //    -1,                 // NULL-terminated string
-    //    &fontfam,
-    //    FontStyleRegular,
-    //    48,
-    //    PointF(50.0f, 50.0f),
-    //    NULL);
-
-    //// Vẽ chữ với thuộc tính "outline"
-    //Pen pen(Color(255, 255, 0, 0), 5.0f); // Màu viền đỏ và độ rộng viền
-    //graphics.DrawPath(&pen, &path);
-    //graphics.DrawString(L"Hello World", -1, &font, PointF(50.0f, 50.0f), &textBrush);
+    graphics.Restore(state);
 }
 
 void PathSVG::drawSVG(Graphics& graphics) {
