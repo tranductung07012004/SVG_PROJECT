@@ -13,19 +13,21 @@ using namespace rapidxml;
 using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
 
-
+double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 HINSTANCE g_hInstance;
 bool isButtonClicked = false;
 bool isScrollBarVisible = false;
 HWND g_hScrollBar = NULL;
 int g_nScrollPos = 0;
 float rotate_angle = 0.0f;
+const string filename = "sample.svg";
 
 VOID OnPaint(HDC hdc, float zoomFactor)
 {
     Graphics graphics(hdc);
-    const string filename = "sample.svg";
-    vector<SVGElement> elements = parseSVG(filename);
+    
+    vector<SVGElement> elements = parseSVG(filename, width, height);
+    
     pointMinMax ptMM;
 
     // Initialize zoom and rotation transformations
@@ -107,6 +109,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
 
     // Initialize GDI+.
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+    vector<SVGElement> elements = parseSVG(filename, width, height);
 
     wndClass.style = CS_HREDRAW | CS_VREDRAW;
     wndClass.lpfnWndProc = WndProc;
@@ -120,6 +123,10 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
     wndClass.lpszClassName = TEXT("GettingStarted");
 
     RegisterClass(&wndClass);
+    if (width != CW_USEDEFAULT)
+        width += 17;
+    if (height != CW_USEDEFAULT)
+        height += 20;
 
     hWnd = CreateWindow(
         TEXT("GettingStarted"),   // window class name
@@ -127,12 +134,15 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
         WS_OVERLAPPEDWINDOW,      // window style
         CW_USEDEFAULT,            // initial x position
         CW_USEDEFAULT,            // initial y position
-        CW_USEDEFAULT,            // initial x size
-        CW_USEDEFAULT,            // initial y size
+       // CW_USEDEFAULT,            // initial x size
+        //CW_USEDEFAULT,            // initial y size
+        width,
+        height,
         NULL,                     // parent window handle
         NULL,                     // window menu handle
         hInstance,                // program instance handle
         NULL);                    // creation parameters
+   
 
     ShowWindow(hWnd, iCmdShow);
     UpdateWindow(hWnd);
