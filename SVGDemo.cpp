@@ -20,7 +20,7 @@ bool isScrollBarVisible = false;
 HWND g_hScrollBar = NULL;
 int g_nScrollPos = 0;
 float rotate_angle = 0.0f;
-const string filename = "sample.svg";
+const string filename = "1700574846Fox4a.svg";
 
 VOID OnPaint(HDC hdc, float zoomFactor)
 {
@@ -134,8 +134,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
         WS_OVERLAPPEDWINDOW,      // window style
         CW_USEDEFAULT,            // initial x position
         CW_USEDEFAULT,            // initial y position
-       // CW_USEDEFAULT,            // initial x size
-        //CW_USEDEFAULT,            // initial y size
         width,
         height,
         NULL,                     // parent window handle
@@ -157,56 +155,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
     return msg.wParam;
 }  // WinMain
 
-void HandleButtonClick(HWND hWnd, POINT point)
-{
-    RECT buttonRect;
-    GetClientRect(hWnd, &buttonRect);
-    buttonRect.left += 400;
-    buttonRect.top += 470;
-    buttonRect.right = 500;
-    buttonRect.bottom = 500;
-
-    // Check if the button is clicked
-    if (PtInRect(&buttonRect, point))
-    {
-        // Toggle the button state
-        isButtonClicked = !isButtonClicked;
-        // Toggle the scrollbar visibility
-        isScrollBarVisible = !isScrollBarVisible;
-        // Show or hide the scrollbar
-        ShowWindow(g_hScrollBar, isScrollBarVisible ? SW_SHOWNORMAL : SW_HIDE);
-
-        // Invalidate the entire window to redraw both button and scrollbar
-        InvalidateRect(hWnd, NULL, TRUE);
-    }
-}
-
-void DrawButton(HDC hdc)
-{
-    RECT rect;
-    rect.left = 400;    // Specify the left coordinate of the button
-    rect.top = 470;     // Specify the top coordinate of the button
-    rect.right = 500;   // Specify the right coordinate of the button
-    rect.bottom = 500;  // Specify the bottom coordinate of the button
-
-    // Draw the button
-    if (isButtonClicked)
-    {
-        // Button is clicked, draw it in a different color
-        HBRUSH hCustomBrush = CreateSolidBrush(RGB(255, 0, 255));
-        // Button is not clicked, draw it in a different color
-        FillRect(hdc, &rect, hCustomBrush);
-        DeleteObject(hCustomBrush);
-    }
-    else
-    {
-        HBRUSH hCustomBrush = CreateSolidBrush(RGB(0, 0, 255));
-        // Button is not clicked, draw it in a different color
-        FillRect(hdc, &rect, hCustomBrush);
-        DeleteObject(hCustomBrush);
-    }
-
-}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     static float zoomFactor = 1.0f;
@@ -216,58 +164,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     static HBITMAP hBitmap = nullptr;
 
     switch (message) {
-    case WM_CREATE:
-    {
-        // Create the scrollbar without showing it initially
-        g_hScrollBar = CreateWindowEx(0, L"SCROLLBAR", NULL, WS_CHILD | SBS_HORZ, 400, 440, 100, 20, hWnd, NULL, g_hInstance, NULL);
-
-        // Set the scrollbar range and position
-        SetScrollRange(g_hScrollBar, SB_CTL, 0, 360, TRUE);
-        SetScrollPos(g_hScrollBar, SB_CTL, g_nScrollPos, TRUE);
-
-        break;
-    }
-    case WM_LBUTTONDOWN:
-    {
-        POINT pt;
-        pt.x = LOWORD(lParam);
-        pt.y = HIWORD(lParam);
-        HandleButtonClick(hWnd, pt);
-        break;
-    }
-    case WM_HSCROLL:
-    {
-        int nScrollCode = LOWORD(wParam);  // Scroll code
-        int nPos = HIWORD(wParam);         // New scroll position
-
-        switch (nScrollCode)
-        {
-        case SB_LINELEFT: {
-            g_nScrollPos -= 5;
-            rotate_angle -= 5;
-            if (rotate_angle < 0) {
-                rotate_angle = 0;
+    case WM_KEYDOWN: {
+        switch (wParam) {
+        case VK_LEFT:
+            // Left arrow key pressed
+            if (GetKeyState(VK_LEFT) & 0x8000) {
+                rotate_angle -= 5;
+                if (rotate_angle < 0) {
+                    rotate_angle = 0;
+                }
             }
-            break;
-        }
-        case SB_LINERIGHT: {
-            g_nScrollPos += 5;
-            rotate_angle += 5;
-            if (rotate_angle > 360) {
-                rotate_angle = 360;
+           
+        case VK_RIGHT:
+            // Right arrow key pressed
+            if (GetKeyState(VK_RIGHT) & 0x8000) {
+                rotate_angle += 5;
+                if (rotate_angle > 360) {
+                    rotate_angle = 360;
+                }
             }
-            break;
+           
         }
-        }
-        // Update the scroll position of the scrollbar control
-        SetScrollPos(g_hScrollBar, SB_CTL, g_nScrollPos, TRUE);
-
-        // Redraw the window
         InvalidateRect(hWnd, NULL, TRUE);
-        //UpdateWindow(hWnd);
-
+        UpdateWindow(hWnd);
         break;
+        
     }
+
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
@@ -292,7 +215,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         Graphics graphicsBuffer(hdcBuffer);
         graphicsBuffer.Clear(Color(255, 255, 255, 255)); // Set the background to white
         OnPaint(hdcBuffer, zoomFactor);
-        DrawButton(hdcBuffer);
+        //DrawButton(hdcBuffer);
         BitBlt(hdc, 0, 0, clientWidth, clientHeight, hdcBuffer, 0, 0, SRCCOPY);
 
         EndPaint(hWnd, &ps);
