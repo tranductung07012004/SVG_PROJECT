@@ -207,28 +207,22 @@ void parseGroupNode(xml_node<>* node, SVGElement& groupElement) {
 }
 vector<SVGElement> parseSVG(const string& filename, double& width, double& height) {
     vector<SVGElement> result;
-
-    // Open the SVG file
     ifstream file(filename);
     if (!file.is_open()) {
         cerr << "Error: Unable to open file '" << filename << "'" << endl;
         return result;  // Return an empty vector on error
     }
-
-    // Read the content of the SVG file into a string
     stringstream buffer;
     buffer << file.rdbuf();
     file.close();
     string content = buffer.str();
 
-    // Parse the SVG content using RapidXML
     xml_document<> doc;
     doc.parse<0>(&content[0]);
 
-    // Start parsing the SVG elements
+
     xml_node<>* svgNode = doc.first_node("svg");
     if (svgNode) {
-        // Extract width and height attributes
         if (xml_attribute<>* widthAttr = svgNode->first_attribute("width")) {
             width = stod(widthAttr->value());
         }
@@ -900,8 +894,7 @@ void GroupSVG::parseShapeSVG(const SVGElement& element) {
     }
 }
 void CircleSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    graphics.SetSmoothingMode(SmoothingModeHighQuality);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
@@ -925,8 +918,7 @@ void CircleSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 void EllipseSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    graphics.SetSmoothingMode(SmoothingModeHighQuality);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
@@ -952,8 +944,7 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 void LineSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    graphics.SetSmoothingMode(SmoothingModeHighQuality);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
@@ -975,8 +966,7 @@ void LineSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 void PolygonSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    graphics.SetSmoothingMode(SmoothingModeHighQuality);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     GraphicsState state = graphics.Save();
     int size = points.size();
     PointF* point = new PointF[size];
@@ -989,24 +979,12 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
         if (tf.transformType == "translate") {
 
             this->TranslatePolygon(graphics, tf.translateX, tf.translateY);
-            //for (int i = 0; i < size; i++) {
-            //    point[i].X = points[i].x;
-            //    point[i].Y = points[i].y;
-            //}
         }
         else  if (tf.transformType == "scale") {
             this->ScalePolygon(graphics, tf.scaleX, tf.scaleY);
-  /*          for (int i = 0; i < size; i++) {
-                point[i].X = points[i].x;
-                point[i].Y = points[i].y;
-            }*/
         }
         else if (tf.transformType == "rotate") {
             this->RotatePolygon(graphics, tf.rotateAngle);
-          /*  for (int i = 0; i < size; i++) {
-                point[i].X = points[i].x;
-                point[i].Y = points[i].y;
-            }*/
         }
     }
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
@@ -1017,8 +995,7 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 void PolylineSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    graphics.SetSmoothingMode(SmoothingModeHighQuality);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     GraphicsState state = graphics.Save();
     int size = points.size();
     PointF* point = new PointF[size];
@@ -1029,26 +1006,13 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     }
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
-
             this->TranslatePolyline(graphics, tf.translateX, tf.translateY);
-          /*  for (int i = 0; i < size; i++) {
-                point[i].X = points[i].x;
-                point[i].Y = points[i].y;
-            }*/
         }
         if (tf.transformType == "scale") {
             this->ScalePolyline(graphics, tf.scaleX, tf.scaleY);
-         /*   for (int i = 0; i < size; i++) {
-                point[i].X = points[i].x;
-                point[i].Y = points[i].y;
-            }*/
         }
         else if (tf.transformType == "rotate") {
             this->RotatePolyline(graphics, tf.rotateAngle);
-        /*    for (int i = 0; i < size; i++) {
-                point[i].X = points[i].x;
-                point[i].Y = points[i].y;
-            }*/
         }
     }
 
@@ -1061,8 +1025,6 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 void RectSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
@@ -1085,10 +1047,8 @@ void RectSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 void TextSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    //graphics.SetSmoothingMode(SmoothingModeHighQuality);
-    graphics.SetSmoothingMode(SmoothingModeHighQuality);
-    graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    //graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
     GraphicsState state = graphics.Save();
     bool checkScale = 0;
     for (const auto& tf : tfSVG) {
@@ -1139,7 +1099,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
     FontFamily fontFamily1(ws.c_str());
 
    
-    Gdiplus::PointF origin(p.x - 25, p.y - fontSize + 5);
+    Gdiplus::PointF origin(p.x, p.y - 0.9 * fontSize);
     origin.X += offset_map[textAnchor];
     Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericDefault());
     format.SetAlignment(text_anchor_map[textAnchor]);
@@ -1159,8 +1119,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
 }
 
 void PathSVG::drawSVG(Graphics& graphics) {
-    //Graphics graphics(hdc);
-    graphics.SetSmoothingMode(SmoothingModeHighQuality);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
@@ -1181,7 +1140,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     char typeBefore = NULL;
 
     for (const auto& data : PathData) {
-        if (data.typePointPath == 'M') {
+        if (data.typePointPath == 'M' || data.typePointPath == 'm') {
             // Move to the starting point
             path.StartFigure();
             PointF startPoint(static_cast<float>(data.points[0].x), static_cast<float>(data.points[0].y));
@@ -1210,7 +1169,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
-        else if (data.typePointPath == 'V') {
+        else if (data.typePointPath == 'V' || data.typePointPath == 'v') {
             for (const auto& point : data.points) {
                 PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.y));
                 path.AddLine(start, endPoint);
@@ -1218,7 +1177,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
-        else if (data.typePointPath == 'H') {
+        else if (data.typePointPath == 'H'|| data.typePointPath == 'h' ) {
             for (const auto& point : data.points) {
                 PointF endPoint(static_cast<float>(point.x), static_cast<float>(start.Y));
                 path.AddLine(start, endPoint);
@@ -1226,7 +1185,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
-        else if (data.typePointPath == 'Z') {
+        else if (data.typePointPath == 'Z' || data.typePointPath == 'z') {
             
             path.CloseFigure();
         }
