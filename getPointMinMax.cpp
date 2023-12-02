@@ -17,6 +17,7 @@ void CircleSVG::getPointMINMAX(pointMinMax& pMM) {
     if (pMM.pointMin.X > this->c.X - this->r) pMM.pointMin.X = this->c.X - this->r;
     if (pMM.pointMin.Y > this->c.Y - this->r) pMM.pointMin.Y = this->c.Y - this->r;
     if (pMM.pointMax.X < this->c.X + this->r) pMM.pointMax.X = this->c.X + this->r;
+    if (pMM.pointMax.Y < this->c.Y + this->r) pMM.pointMax.Y = this->c.Y + this->r;
 }
 void EllipseSVG::getPointMINMAX(pointMinMax& pMM) {
     if (pMM.pointMin.X > this->c.X - this->rx) pMM.pointMin.X = this->c.X - this->rx;
@@ -39,6 +40,8 @@ void PolygonSVG::getPointMINMAX(pointMinMax& pMM) {
     {
         if (pMM.pointMin.X > this->points[i].X) pMM.pointMin.X = this->points[i].X;
         if (pMM.pointMin.Y > this->points[i].Y) pMM.pointMin.Y = this->points[i].Y;
+        if (pMM.pointMax.X < this->points[i].X) pMM.pointMax.X = this->points[i].X;
+        if (pMM.pointMax.Y < this->points[i].Y) pMM.pointMax.Y = this->points[i].Y;
     }
 }
 void PolylineSVG::getPointMINMAX(pointMinMax& pMM) {
@@ -63,6 +66,8 @@ void PathSVG::getPointMINMAX(pointMinMax& pMM) {
         else {
             if (pMM.pointMin.X > pointPath.x - pointPath.rx) pMM.pointMin.X = pointPath.x - pointPath.rx;
             if (pMM.pointMin.Y > pointPath.y - pointPath.ry) pMM.pointMin.Y = pointPath.y - pointPath.ry;
+            if (pMM.pointMax.X < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.X = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
+            if (pMM.pointMax.Y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.Y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
         }
     }
 }
