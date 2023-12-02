@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
-
 void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs) {
     if (attribute == "fill") {
         fill = colorSVG(data, cf);
@@ -195,40 +194,131 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStr
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
 }
+fstream fo("input.txt");
 void PathSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "d") {
             PathData = parsePathData(attr.second);
+            for (const auto& path : PathData) {
+                fo << "Type: " << path.typePointPath << ", Points: ";
+                for (const auto& point : path.points) {
+                    fo << "(" << point.X << ", " << point.Y << ") ";
+                }
+                fo << std::endl;
+            }
         }
         else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);;
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
 }
+
 void ShapeSVG::copyAttributes(const ShapeSVG& other) {
-    fillOpacity = other.fillOpacity;
-    strokeOpacity = other.strokeOpacity;
-    fill = other.fill;
-    stroke = other.stroke;
-    strokeWidth = other.strokeWidth;
-    style = other.style;
-    if (other.tfSVG.size() != 0)
-        for (const auto& tf : other.tfSVG)
-            tfSVG.push_back(tf);
+    //fillOpacity = other.fillOpacity;
+    //strokeOpacity = other.strokeOpacity;
+    //fill = other.fill;
+    //stroke = other.stroke;
+    //strokeWidth = other.strokeWidth;
+    //style = other.style;
+    //if (other.tfSVG.size() != 0)
+    for (const auto& tf : other.tfSVG)
+        tfSVG.push_back(tf);
 }
-void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
-        this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
+
+SVGElement addSVGElement(const SVGElement& e1, const SVGElement& e2) {
+    SVGElement result;
+
+    // Combine type
+    result.type = e2.type;
+
+    // Combine attributes
+    result.attributes = e2.attributes;
+    for (const auto& attr : e1.attributes) {
+        // If attribute doesn't exist in e2 and is not "transform", add it
+        if (result.attributes.find(attr.first) == result.attributes.end() && attr.first != "transform") {
+            result.attributes[attr.first] = attr.second;
+        }
+        // If attribute is "transform", append the values
+        else if (attr.first == "transform") {
+            string s = attr.second + " " + result.attributes[attr.first];
+            result.attributes[attr.first] = s;
+        }
+        else if (attr.first == "d") {
+            string s = attr.second + " " + result.attributes[attr.first];
+            result.attributes[attr.first] = s;
+        }
     }
-    //if (cStroke == 0) strokeOpacity = 0;
-    //if (cFill == 0) fillOpacity = 0;
+
+    // Combine text content
+    result.textContent = e2.textContent;
+
+    // Combine children (take children from e2)
+    result.children = e2.children;
+
+    return result;
+}
+
+//void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+//    for (const auto& attr : element.attributes) {
+//        this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
+//    }
+//    //if (cStroke == 0) strokeOpacity = 0;
+//    //if (cFill == 0) fillOpacity = 0;
+//    for (const SVGElement& childElement : element.children) {
+//        GroupOrShape elementToAdd;
+//        if (childElement.type == "g") {
+//            elementToAdd.type = GroupOrShape::GROUP;
+//            elementToAdd.group = make_unique<GroupSVG>();
+//            elementToAdd.group->copyAttributes(*this);
+//            elementToAdd.group->parseShapeSVG(childElement, cFill, cStroke);
+//        }
+//        else {
+//            elementToAdd.type = GroupOrShape::SHAPE;
+//            if (childElement.type == "rect") {
+//                elementToAdd.shape = make_unique<RectSVG>();
+//            }
+//            else if (childElement.type == "text") {
+//                elementToAdd.shape = make_unique<TextSVG>();
+//            }
+//            else if (childElement.type == "circle") {
+//                elementToAdd.shape = make_unique<CircleSVG>();
+//            }
+//            else if (childElement.type == "ellipse") {
+//                elementToAdd.shape = make_unique<EllipseSVG>();
+//            }
+//            else if (childElement.type == "line") {
+//                elementToAdd.shape = make_unique<LineSVG>();
+//            }
+//            else if (childElement.type == "polygon") {
+//                elementToAdd.shape = make_unique<PolygonSVG>();
+//            }
+//            else if (childElement.type == "polyline") {
+//                elementToAdd.shape = make_unique<PolylineSVG>();
+//            }
+//            else if (childElement.type == "path") {
+//                elementToAdd.shape = make_unique<PathSVG>();
+//            }
+//            else {
+//                continue;
+//            }
+//            elementToAdd.shape->copyAttributes(*this);
+//            elementToAdd.shape->CheckinGroup();
+//            elementToAdd.shape->parseShapeSVG(childElement, cFill, cStroke);
+//        }
+//
+//        elements.push_back(std::move(elementToAdd));
+//    }
+//}
+
+
+void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
     for (const SVGElement& childElement : element.children) {
         GroupOrShape elementToAdd;
         if (childElement.type == "g") {
             elementToAdd.type = GroupOrShape::GROUP;
             elementToAdd.group = make_unique<GroupSVG>();
-            elementToAdd.group->copyAttributes(*this);
-            elementToAdd.group->parseShapeSVG(childElement, cFill, cStroke);
+            SVGElement childElement1 = addSVGElement(element, childElement);
+            elementToAdd.group->parseShapeSVG(childElement1, 1, 0);
         }
         else {
             elementToAdd.type = GroupOrShape::SHAPE;
@@ -259,9 +349,9 @@ void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke
             else {
                 continue;
             }
-            elementToAdd.shape->copyAttributes(*this);
             elementToAdd.shape->CheckinGroup();
-            elementToAdd.shape->parseShapeSVG(childElement, cFill, cStroke);
+            SVGElement childElement1 = addSVGElement(element, childElement);
+            elementToAdd.shape->parseShapeSVG(childElement1, 1, 0);
         }
 
         elements.push_back(std::move(elementToAdd));
