@@ -10,6 +10,7 @@ void parsetransformSVG(vector<transformSVG>& transformations, const string& inpu
             result += c;
         }
     }
+    transform(result.begin(), result.end(), result.begin(), ::towlower);
     regex transformRegex(R"((\w+)\s*\(\s*([+-]?\d*\.?\d+)\s*(?:[, ]\s*([+-]?\d*\.?\d+))?\s*\))");
 
     // Iterator to iterate over matches
