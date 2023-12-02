@@ -14,7 +14,7 @@
 #include <gdiplus.h>
 #include <locale>
 #include <codecvt>
-#include <unordered_map>.
+#include <unordered_map>
 #include <cmath>
 using namespace std;
 using namespace rapidxml;
@@ -29,7 +29,7 @@ struct SVGElement {
     vector<SVGElement> children;
 };
 
-vector<SVGElement> parseSVG(const string& filename, double& width, double& height);
+vector<SVGElement> parseSVG(const string& filename, double& width, double& height, double& minX, double& minY, double& maxX, double& maxY);
 void parseStyle(const string& s, SVGElement& element);
 void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements);
 void parseGroupNode(xml_node<>* node, SVGElement& groupElement);
