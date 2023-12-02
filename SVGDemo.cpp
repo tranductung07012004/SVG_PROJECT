@@ -15,19 +15,19 @@ using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
 
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
+double minX = CW_USEDEFAULT, minY = CW_USEDEFAULT, maxX = CW_USEDEFAULT, maxY = CW_USEDEFAULT;
 HINSTANCE g_hInstance;
 bool isButtonClicked = false;
 bool isScrollBarVisible = false;
 HWND g_hScrollBar = NULL;
 int g_nScrollPos = 0;
 float rotate_angle = 0.0f;
-string filename = "svg-12.svg";
+string filename = "svg-18.svg";
 
 VOID OnPaint(HDC hdc, float zoomFactor)
 {
     Graphics graphics(hdc);
-    vector<SVGElement> elements = parseSVG(filename, width, height);
-
+    vector<SVGElement> elements = parseSVG(filename, width, height, minX, minY, maxX, maxY);
     pointMinMax ptMM;
 
     // Initialize zoom and rotation transformations
@@ -109,7 +109,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
 
     // Initialize GDI+.
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-    vector<SVGElement> elements = parseSVG(filename, width, height);
+    vector<SVGElement> elements = parseSVG(filename, width, height, minX, minY, maxX, maxY);
 
     wndClass.style = CS_HREDRAW | CS_VREDRAW;
     wndClass.lpfnWndProc = WndProc;
