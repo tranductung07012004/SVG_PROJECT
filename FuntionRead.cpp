@@ -76,7 +76,7 @@ void parseGroupNode(xml_node<>* node, SVGElement& groupElement) {
         groupElement.children.push_back(element);
     }
 }
-vector<SVGElement> parseSVG(const string& filename, double& width, double& height) {
+vector<SVGElement> parseSVG(const string& filename, double& width, double& height, double& minX, double& minY, double& maxX, double& maxY) {
     vector<SVGElement> result;
     ifstream file(filename);
     if (!file.is_open()) {
@@ -91,26 +91,30 @@ vector<SVGElement> parseSVG(const string& filename, double& width, double& heigh
     xml_document<> doc;
     doc.parse<0>(&content[0]);
 
-
     xml_node<>* svgNode = doc.first_node("svg");
     if (svgNode) {
-        if (xml_attribute<>* widthAttr = svgNode->first_attribute("width")) {
-            width = stod(widthAttr->value());
-        }
-        if (xml_attribute<>* heightAttr = svgNode->first_attribute("height")) {
-            height = stod(heightAttr->value());
-        }
+        for (xml_attribute<>* attr = svgNode->first_attribute(); attr; attr = attr->next_attribute()) {
+            string attrName = attr->name();
+            transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
+            string attrValue = attr->value();
 
-        // Parse the rest of the SVG elements
-        parseSVGNode(svgNode, result);
-    }
-    if (svgNode) {
-        // Extract width and height attributes
-        if (xml_attribute<>* widthAttr = svgNode->first_attribute("width")) {
-            width = stod(widthAttr->value());
-        }
-        if (xml_attribute<>* heightAttr = svgNode->first_attribute("height")) {
-            height = stod(heightAttr->value());
+            if (attrName == "width") {
+                width = stod(attrValue);
+            }
+            else if (attrName == "height") {
+                height = stod(attrValue);
+            }
+            else if (attrName == "viewbox") {
+                string result;
+                for (char c : attrValue) {
+                    if (c == '\n' || c == ',') {
+                        result += ' ';
+                    }
+                    else result += c;
+                }
+                istringstream viewBoxStream(result);
+                viewBoxStream >> minX >> minY >> maxX >> maxY;
+            }
         }
 
         // Parse the rest of the SVG elements
