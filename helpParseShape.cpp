@@ -4,10 +4,16 @@
 #include "FunctionRead.h"
 
 void parsetransformSVG(vector<transformSVG>& transformations, const string& input) {
-    regex transformRegex(R"((\w+)\s*\(\s*([+-]?\d*\.?\d+)\s*(?:,\s*([+-]?\d*\.?\d+))?\s*\))");
+    string result;
+    for (char c : input) {
+        if (c != '\n') {
+            result += c;
+        }
+    }
+    regex transformRegex(R"((\w+)\s*\(\s*([+-]?\d*\.?\d+)\s*(?:[, ]\s*([+-]?\d*\.?\d+))?\s*\))");
 
     // Iterator to iterate over matches
-    sregex_iterator it(input.begin(), input.end(), transformRegex);
+    sregex_iterator it(result.begin(), result.end(), transformRegex);
     sregex_iterator end;
 
     while (it != end) {
@@ -71,7 +77,7 @@ RGBSVG colorSVG(const string& s,bool &c) {
     }
     else {
         // Check for RGB color format like "rgb(255, 127, 0)"        
-        regex rgbPattern("rgb\\((-?\\d+),(-?\\d+),(-?\\d+)\\)");
+        regex rgbPattern("rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)");
         smatch rgbMatch;
         if (regex_search(s1, rgbMatch, rgbPattern) && rgbMatch.size() == 4) {
 
