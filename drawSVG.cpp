@@ -307,7 +307,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 fout << endPoint.X << " " << endPoint.Y << endl;
             }
             else if (data.points.size() > 3) {
-                for (int i = 0; i < data.points.size(); i += 3) {
+                for (int i = 0; i < (data.points.size()) / 3 * 3; i += 3) {
                     PointF controlPoint1(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
                     PointF controlPoint2(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
                     PointF endPoint(static_cast<float>(data.points[i + 2].X), static_cast<float>(data.points[i + 2].Y));
@@ -315,7 +315,6 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     start = endPoint;
                     controlPoint = controlPoint2;
                     typeBefore = 'C';
-                   
                 }
             }
         }
@@ -390,10 +389,10 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 fout << endPoint.X << " " << endPoint.Y << endl;
             }
             else if (data.points.size() > 3) {
-                for (int i = 0; i < data.points.size(); i += 3) {
+                for (int i = 0; i < (data.points.size()) / 3 * 3; i += 3) {
                     PointF controlPoint1(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
-                    PointF controlPoint2(static_cast<float>(data.points[i+1].X) + start.X, static_cast<float>(data.points[i+1].Y) + start.Y);
-                    PointF endPoint(static_cast<float>(data.points[i+2].X) + start.X, static_cast<float>(data.points[i+2].Y) + start.Y);
+                    PointF controlPoint2(static_cast<float>(data.points[i + 1].X) + start.X, static_cast<float>(data.points[i + 1].Y) + start.Y);
+                    PointF endPoint(static_cast<float>(data.points[i + 2].X) + start.X, static_cast<float>(data.points[i + 2].Y) + start.Y);
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
