@@ -5,9 +5,7 @@ void RectSVG::drawSVG(Graphics& graphics) {
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
-
             this->TranslateRectangle(graphics, tf.translateX, tf.translateY);
-
         }
         else if (tf.transformType == "scale") {
             this->ScaleRectangle(graphics, tf.scaleX, tf.scaleY);
@@ -16,6 +14,7 @@ void RectSVG::drawSVG(Graphics& graphics) {
             this->RotateRect(graphics, tf.rotateAngle);
         }
     }
+    this->TranslateRectangle(graphics, dx, dy);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillRectangle(&brush, (int)p.X, (int)p.Y, width, height);
@@ -41,7 +40,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
             this->RotateText(graphics, tf.rotateAngle);
         }
     }
-
+    this->TranslateText(graphics, dx, dy);
     int font1 = FontStyleRegular;
     if (fontWeight2 == "bold" || fontWeight2 == "Bold" || fontWeight1 >= 550) {
         font1 = FontStyleBold;
@@ -107,6 +106,7 @@ void CircleSVG::drawSVG(Graphics& graphics) {
             this->RotateCircle(graphics, tf.rotateAngle);
         }
     }
+    this->TranslateCircle(graphics, dx, dy);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     RectF ellipseRect(c.X - r, c.Y - r, r * 2, r * 2);
 
@@ -135,6 +135,7 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
             this->RotateEllipse(graphics, tf.rotateAngle);
         }
     }
+    this->TranslateEllipse(graphics, dx, dy);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     RectF ellipseRect(c.X - rx, c.Y - ry, rx * 2, ry * 2);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
@@ -160,6 +161,7 @@ void LineSVG::drawSVG(Graphics& graphics) {
             this->RotateLine(graphics, tf.rotateAngle);
         }
     }
+    this->TranslateLine(graphics, dx, dy);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     PointF point1((REAL)p1.X, (REAL)p1.Y);
     PointF point2(p2.X, p2.Y);
@@ -189,6 +191,7 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
             this->RotatePolygon(graphics, tf.rotateAngle);
         }
     }
+    this->TranslatePolygon(graphics, dx, dy);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillPolygon(&brush, point, size);
@@ -218,6 +221,7 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
             this->RotatePolyline(graphics, tf.rotateAngle);
         }
     }
+    this->TranslatePolyline(graphics, dx, dy);
 
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     graphics.FillPolygon(&brush, point, size);
@@ -227,7 +231,7 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     delete[] point;
     graphics.Restore(state);
 }
-
+fstream fout("1.txt");
 void PathSVG::drawSVG(Graphics& graphics) {
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     GraphicsState state = graphics.Save();
@@ -242,6 +246,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             this->RotatePath(graphics, tf.rotateAngle);
         }
     }
+    this->TranslatePath(graphics, dx, dy);
     PointF start = { -3.4e38,-3.4e38 };
     PointF start1 = start;
     PointF start2 = { 0,0 };
@@ -258,17 +263,20 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF startPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                 start = startPoint;
                 start2 = startPoint;
+                fout << startPoint.X << " " << startPoint.Y << endl;
             }
             else  {
                 // Move to the starting point
                 path.StartFigure();
                 PointF startPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                 start = startPoint;
+                fout << startPoint.X << " " << startPoint.Y << endl;
                 for (const auto& point : data.points) {
                     PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
                     path.AddLine(start, endPoint);
                     start = endPoint;
                     start2 = startPoint;
+                    fout << endPoint.X << " " << endPoint.Y << endl;
                 }
             }
         }
@@ -280,12 +288,13 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
                 path.AddLine(start, endPoint);
                 start = endPoint;
+                fout << endPoint.X << " " << endPoint.Y << endl;
             }
         }
         
         else if (data.typePointPath == 'C') {
             // Draw a Bezier curve
-            if (data.points.size() >= 3) {
+            if (data.points.size() == 3) {
                 PointF controlPoint1(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                 PointF controlPoint2(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
                 PointF endPoint(static_cast<float>(data.points[2].X), static_cast<float>(data.points[2].Y));
@@ -293,6 +302,21 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 start = endPoint;
                 controlPoint = controlPoint2;
                 typeBefore = 'C';
+                fout << controlPoint1.X << " " << controlPoint1.Y << endl;
+                fout << controlPoint2.X << " " << controlPoint2.Y << endl;
+                fout << endPoint.X << " " << endPoint.Y << endl;
+            }
+            else if (data.points.size() > 3) {
+                for (int i = 0; i < data.points.size(); i += 3) {
+                    PointF controlPoint1(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
+                    PointF controlPoint2(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
+                    PointF endPoint(static_cast<float>(data.points[i + 2].X), static_cast<float>(data.points[i + 2].Y));
+                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                    start = endPoint;
+                    controlPoint = controlPoint2;
+                    typeBefore = 'C';
+                   
+                }
             }
         }
         
@@ -301,6 +325,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y));
                 path.AddLine(start, endPoint);
                 start = endPoint;
+                fout << endPoint.X << " " << endPoint.Y << endl;
             }
         }
         
@@ -310,6 +335,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(point.X), static_cast<float>(start.Y));
                 path.AddLine(start, endPoint);
                 start = endPoint;
+                fout << endPoint.X << " " << endPoint.Y << endl;
             }
         }
         
@@ -324,17 +350,20 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF startPoint(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
                 start = startPoint;
                 start2 = startPoint;
+                fout << startPoint.X << " " << startPoint.Y << endl;
             }
             else {
                 // Move to the starting point
                 path.StartFigure();
                 PointF startPoint(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
                 start = startPoint;
+                fout << startPoint.X << " " << startPoint.Y << endl;
                 for (int i = 1; i < data.points.size(); i++) {
                     PointF endPoint(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
                     path.AddLine(start, endPoint);
                     start = endPoint;
                     start2 = startPoint;
+                    fout << endPoint.X << " " << endPoint.Y << endl;
                 }
             }
         }
@@ -343,18 +372,34 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(point.X) + start.X, static_cast<float>(point.Y) + start.Y);
                 path.AddLine(start, endPoint);
                 start = endPoint;
+                fout << endPoint.X << " " << endPoint.Y << endl;
             }
         }
         else if (data.typePointPath == 'c') {
 
-            if (data.points.size() >= 3) {
+            if (data.points.size() == 3) {
                 PointF controlPoint1(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
                 PointF controlPoint2(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
                 PointF endPoint(static_cast<float>(data.points[2].X) + start.X, static_cast<float>(data.points[2].Y) + start.Y);
                 path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                 start = endPoint;
                 controlPoint = controlPoint2;
-                typeBefore = 'C';
+                typeBefore = 'c';
+                fout << controlPoint1.X << " " << controlPoint1.Y << endl;
+                fout << controlPoint2.X << " " << controlPoint2.Y << endl;
+                fout << endPoint.X << " " << endPoint.Y << endl;
+            }
+            else if (data.points.size() > 3) {
+                for (int i = 0; i < data.points.size(); i += 3) {
+                    PointF controlPoint1(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
+                    PointF controlPoint2(static_cast<float>(data.points[i+1].X) + start.X, static_cast<float>(data.points[i+1].Y) + start.Y);
+                    PointF endPoint(static_cast<float>(data.points[i+2].X) + start.X, static_cast<float>(data.points[i+2].Y) + start.Y);
+                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                    start = endPoint;
+                    controlPoint = controlPoint2;
+                    typeBefore = 'c';
+
+                }
             }
         }
         else if (data.typePointPath == 'v') {
@@ -362,6 +407,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y) + start.Y);
                 path.AddLine(start, endPoint);
                 start = endPoint;
+                fout << endPoint.X << " " << endPoint.Y << endl;
             }
         }
         else if (data.typePointPath == 'h') {
@@ -369,6 +415,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(point.X) + start.X, static_cast<float>(start.Y));
                 path.AddLine(start, endPoint);
                 start = endPoint;
+                fout << endPoint.X << " " << endPoint.Y << endl;
             }
         }
 
