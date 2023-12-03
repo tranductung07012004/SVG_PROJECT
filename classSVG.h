@@ -53,6 +53,7 @@ protected:
     vector<transformSVG> tfSVG;
     string style = "";
     bool inGroup = 0;
+    double dx = 0, dy = 0;
 public:
     virtual void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) = 0;
     void parseDataSVG(string attribute, string data, bool& cf, bool& cs);
