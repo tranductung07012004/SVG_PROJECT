@@ -316,6 +316,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     controlPoint = controlPoint2;
                     typeBefore = 'C';
                 }
+                if (data.points.size() % 3 != 0) break;
             }
         }
         
@@ -399,6 +400,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     typeBefore = 'c';
 
                 }
+                if (data.points.size() % 3 != 0) break;
             }
         }
         else if (data.typePointPath == 'v') {
