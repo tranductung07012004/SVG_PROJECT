@@ -16,11 +16,6 @@ using namespace Gdiplus;
 
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double minX = CW_USEDEFAULT, minY = CW_USEDEFAULT, maxX = CW_USEDEFAULT, maxY = CW_USEDEFAULT;
-HINSTANCE g_hInstance;
-bool isButtonClicked = false;
-bool isScrollBarVisible = false;
-HWND g_hScrollBar = NULL;
-int g_nScrollPos = 0;
 float rotate_angle = 0.0f;
 string filename = "svg-02.svg";
 
