@@ -36,7 +36,8 @@ void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
             string attrName = attr->name();
             transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
             string attrVal = attr->value();
-            element.attributes[attrName] = attrVal;
+            if (element.attributes[attrName] == "")
+                element.attributes[attrName] = attrVal;
             if (attrName == "style") parseStyle(attrVal, element);
         }
 
@@ -62,7 +63,8 @@ void parseGroupNode(xml_node<>* node, SVGElement& groupElement) {
             string attrName = attr->name();
             transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
             string attrVal = attr->value();
-            element.attributes[attrName] = attrVal;
+            if (element.attributes[attrName] == "")
+                element.attributes[attrName] = attrVal;
             if (attrName == "style") parseStyle(attrVal, element);
         }
 
