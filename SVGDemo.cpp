@@ -16,8 +16,9 @@ using namespace Gdiplus;
 
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double minX = CW_USEDEFAULT, minY = CW_USEDEFAULT, maxX = CW_USEDEFAULT, maxY = CW_USEDEFAULT;
+
 float rotate_angle = 0.0f;
-string filename = "svg-02.svg";
+string filename = "sample.svg";
 
 VOID OnPaint(HDC hdc, float zoomFactor)
 {
@@ -165,56 +166,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
     return msg.wParam;
 }  // WinMain
 
-void HandleButtonClick(HWND hWnd, POINT point)
-{
-    RECT buttonRect;
-    GetClientRect(hWnd, &buttonRect);
-    buttonRect.left += 400;
-    buttonRect.top += 470;
-    buttonRect.right = 500;
-    buttonRect.bottom = 500;
-
-    // Check if the button is clicked
-    if (PtInRect(&buttonRect, point))
-    {
-        // Toggle the button state
-        isButtonClicked = !isButtonClicked;
-        // Toggle the scrollbar visibility
-        isScrollBarVisible = !isScrollBarVisible;
-        // Show or hide the scrollbar
-        ShowWindow(g_hScrollBar, isScrollBarVisible ? SW_SHOWNORMAL : SW_HIDE);
-
-        // Invalidate the entire window to redraw both button and scrollbar
-        InvalidateRect(hWnd, NULL, TRUE);
-    }
-}
-
-void DrawButton(HDC hdc)
-{
-    RECT rect;
-    rect.left = 400;    // Specify the left coordinate of the button
-    rect.top = 470;     // Specify the top coordinate of the button
-    rect.right = 500;   // Specify the right coordinate of the button
-    rect.bottom = 500;  // Specify the bottom coordinate of the button
-
-    // Draw the button
-    if (isButtonClicked)
-    {
-        // Button is clicked, draw it in a different color
-        HBRUSH hCustomBrush = CreateSolidBrush(RGB(255, 0, 255));
-        // Button is not clicked, draw it in a different color
-        FillRect(hdc, &rect, hCustomBrush);
-        DeleteObject(hCustomBrush);
-    }
-    else
-    {
-        HBRUSH hCustomBrush = CreateSolidBrush(RGB(0, 0, 255));
-        // Button is not clicked, draw it in a different color
-        FillRect(hdc, &rect, hCustomBrush);
-        DeleteObject(hCustomBrush);
-    }
-
-}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     static float zoomFactor = 1.0f;
