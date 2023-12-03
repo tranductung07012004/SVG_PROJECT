@@ -2,7 +2,6 @@
 #include "classSVG.h"
 #include "DataRead.h"
 #include "FunctionRead.h"
-
 void parsetransformSVG(vector<transformSVG>& transformations, const string& input) {
     string result;
     for (char c : input) {
@@ -48,7 +47,7 @@ string remove_spaces(const string& input_string) {
     return result;
 }
 
-RGBSVG colorSVG(const string& s,bool &c) {
+RGBSVG colorSVG(const string& s, bool& c) {
     RGBSVG color;
     string s1 = s;
 
@@ -78,7 +77,7 @@ RGBSVG colorSVG(const string& s,bool &c) {
     }
     else {
         // Check for RGB color format like "rgb(255, 127, 0)"        
-        regex rgbPattern("rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)");
+        regex rgbPattern("rgb\\((-?\\d+),\\s*(-?\\d+),\\s*(-?\\d+)\\)");
         smatch rgbMatch;
         if (regex_search(s1, rgbMatch, rgbPattern) && rgbMatch.size() == 4) {
 
@@ -166,7 +165,7 @@ string formatSVGPath(string& path) {
         }
     }
     return result;
-}    
+}
 vector<PointPathSVG> parsePathData(const string& input) {
     string sPath = removeCommas(input);
     //transform(sPath.begin(), sPath.end(), sPath.begin(), ::towupper)
