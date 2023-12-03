@@ -9,7 +9,7 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs) {
         fillOpacity = stod(data);
     }
     else if (attribute == "stroke") {
-        stroke = colorSVG(data,cs);
+        stroke = colorSVG(data, cs);
     }
     else if (attribute == "stroke-opacity") {
         strokeOpacity = stod(data);
@@ -22,6 +22,12 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs) {
     }
     else if (attribute == "style") {
         style = data;
+    }
+    else if (attribute == "dx") {
+        dx = stod(data);
+    }
+    else if (attribute == "dy") {
+        dy = stod(data);
     }
 }
 
@@ -45,7 +51,7 @@ void RectSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
         else if (attr.first == "ry") {
             ry = stod(attr.second);
         }
-        else this->parseDataSVG(attr.first, attr.second,cFill, cStroke);
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
@@ -99,7 +105,7 @@ void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
             textTransform = attr.second;
             std::transform(textTransform.begin(), textTransform.end(), textTransform.begin(), ::tolower);
         }
-        else this->parseDataSVG(attr.first, attr.second,cFill, cStroke);
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
 
     }
     string s = element.textContent;
