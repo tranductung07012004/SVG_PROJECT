@@ -419,8 +419,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
         }
 
         else if (data.typePointPath == 'Z' || data.typePointPath == 'z') {
-            //start = start2;
-
+            start = start2;
             path.CloseFigure();            
 
         }
