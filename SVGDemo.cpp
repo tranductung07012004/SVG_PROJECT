@@ -229,58 +229,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     static HBITMAP hBitmap = nullptr;
 
     switch (message) {
-    case WM_CREATE:
-    {
-        // Create the scrollbar without showing it initially
-        g_hScrollBar = CreateWindowEx(0, L"SCROLLBAR", NULL, WS_CHILD | SBS_HORZ, 400, 440, 100, 20, hWnd, NULL, g_hInstance, NULL);
-
-        // Set the scrollbar range and position
-        SetScrollRange(g_hScrollBar, SB_CTL, 0, 360, TRUE);
-        SetScrollPos(g_hScrollBar, SB_CTL, g_nScrollPos, TRUE);
-
-        break;
-    }
-    case WM_LBUTTONDOWN:
-    {
-        POINT pt;
-        pt.x = LOWORD(lParam);
-        pt.y = HIWORD(lParam);
-        HandleButtonClick(hWnd, pt);
-        break;
-    }
-    case WM_HSCROLL:
-    {
-        int nScrollCode = LOWORD(wParam);  // Scroll code
-        int nPos = HIWORD(wParam);         // New scroll position
-
-        switch (nScrollCode)
-        {
-        case SB_LINELEFT: {
-            g_nScrollPos -= 5;
+    case WM_KEYDOWN: {
+        if (GetKeyState(VK_LEFT) & 0x8000) {
             rotate_angle -= 5;
             if (rotate_angle < 0) {
                 rotate_angle = 0;
             }
-            break;
         }
-        case SB_LINERIGHT: {
-            g_nScrollPos += 5;
+        else if (GetKeyState(VK_RIGHT) & 0x8000) {
             rotate_angle += 5;
             if (rotate_angle > 360) {
                 rotate_angle = 360;
             }
-            break;
         }
-        }
-        // Update the scroll position of the scrollbar control
-        SetScrollPos(g_hScrollBar, SB_CTL, g_nScrollPos, TRUE);
-
-        // Redraw the window
         InvalidateRect(hWnd, NULL, TRUE);
-        //UpdateWindow(hWnd);
-
+        UpdateWindow(hWnd);
         break;
+
     }
+
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
@@ -306,7 +273,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         graphicsBuffer.Clear(Color(255, 255, 255, 255)); // Set the background to white
         DrawSVGContent(graphicsBuffer);
         OnPaint(hdcBuffer, zoomFactor);
-        DrawButton(hdcBuffer);
         BitBlt(hdc, 0, 0, clientWidth, clientHeight, hdcBuffer, 0, 0, SRCCOPY);
 
         EndPaint(hWnd, &ps);
