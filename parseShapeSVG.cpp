@@ -1,6 +1,17 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
+struct ReverseComparator {
+    bool operator()(const string& a, const string& b) const {
+        return a > b;
+    }
+};
+
+map<string, string, ReverseComparator> reverseAttributes(const map<string, string>& attributes) {
+    map<string, string, ReverseComparator> reversedAttributes(attributes.begin(), attributes.end());
+    return reversedAttributes;
+}
+
 void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs) {
     if (attribute == "fill") {
         fill = colorSVG(data, cf);
@@ -32,7 +43,8 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs) {
 }
 
 void RectSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "x") {
             p.X = stod(attr.second);
         }
@@ -58,7 +70,8 @@ void RectSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
 
 }
 void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "x") {
             p.X = stod(attr.second);
         }
@@ -121,7 +134,8 @@ void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
 
 }
 void CircleSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "stroke-width") {
             strokeWidth = stod(attr.second);
         }
@@ -141,7 +155,8 @@ void CircleSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStrok
     if (cFill == 0) fillOpacity = 0;
 }
 void EllipseSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "cx") {
             c.X = stod(attr.second);
         }
@@ -161,7 +176,8 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStro
 
 }
 void LineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "x1") {
             p1.X = stod(attr.second);
         }
@@ -180,7 +196,8 @@ void LineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
     if (cFill == 0) fillOpacity = 0;
 }
 void PolygonSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "points") {
             points = parsePointString(attr.second);
         }
@@ -190,7 +207,8 @@ void PolygonSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStro
     if (cFill == 0) fillOpacity = 0;
 }
 void PolylineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "points") {
             points = parsePointString(attr.second);
         }
@@ -202,7 +220,8 @@ void PolylineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStr
 }
 fstream fo("input.txt");
 void PathSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
-    for (const auto& attr : element.attributes) {
+    map<string, string, ReverseComparator> reversedAttributes = reverseAttributes(element.attributes);
+    for (const auto& attr : reversedAttributes) {
         if (attr.first == "d") {
             PathData = parsePathData(attr.second);
             for (const auto& path : PathData) {
