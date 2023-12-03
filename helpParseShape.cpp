@@ -166,6 +166,7 @@ string formatSVGPath(string& path) {
     }
     return result;
 }
+
 vector<PointPathSVG> parsePathData(const string& input) {
     string sPath = removeCommas(input);
     //transform(sPath.begin(), sPath.end(), sPath.begin(), ::towupper)
@@ -185,12 +186,13 @@ vector<PointPathSVG> parsePathData(const string& input) {
 
         // Use && instead of ||
         if (type != 'H' && type != 'V' && type != 'A' && type != 'h' && type != 'v' && type != 'a') {
-            while (iss >> x >> y) {
+            while (iss >> x ) {
                 PointF point;
                 point.X = x;
+                y = -3.4e38;
+                iss >> y;
                 point.Y = y;
                 path.points.push_back(point);
-
             }
         }
         else if (type == 'H' || type == 'V' || type == 'h' || type == 'v') {
