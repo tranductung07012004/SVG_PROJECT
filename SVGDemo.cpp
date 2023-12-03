@@ -22,7 +22,7 @@ bool isScrollBarVisible = false;
 HWND g_hScrollBar = NULL;
 int g_nScrollPos = 0;
 float rotate_angle = 0.0f;
-string filename = "svg-18.svg";
+string filename = "svg-02.svg";
 
 VOID OnPaint(HDC hdc, float zoomFactor)
 {
@@ -96,6 +96,19 @@ VOID OnPaint(HDC hdc, float zoomFactor)
 
 }
 
+void DrawSVGContent(Graphics& graphics) {
+    int widthOnScreen = static_cast<int>((maxX - minX) * width / 322.0f);
+    int heightOnScreen = static_cast<int>((maxY - minY) * height / 626.0f);
+
+  
+    RectF viewBoxRect(minX, minY, maxX - minX, maxY - minY);
+    RectF screenRect(0, 0, static_cast<float>(widthOnScreen), static_cast<float>(heightOnScreen));
+
+  
+    SolidBrush brush(Color(255, 255, 255, 255));
+    graphics.FillRectangle(&brush, screenRect);
+
+}
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -291,6 +304,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
         Graphics graphicsBuffer(hdcBuffer);
         graphicsBuffer.Clear(Color(255, 255, 255, 255)); // Set the background to white
+        DrawSVGContent(graphicsBuffer);
         OnPaint(hdcBuffer, zoomFactor);
         DrawButton(hdcBuffer);
         BitBlt(hdc, 0, 0, clientWidth, clientHeight, hdcBuffer, 0, 0, SRCCOPY);
