@@ -9,6 +9,7 @@
 #include <fstream>
 #include <gdiplusgraphics.h>
 #include <gdiplusheaders.h>
+#include <wingdi.h>
 using namespace std;
 using namespace rapidxml;
 using namespace Gdiplus;
@@ -18,7 +19,7 @@ double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double minX = CW_USEDEFAULT, minY = CW_USEDEFAULT, maxX = CW_USEDEFAULT, maxY = CW_USEDEFAULT;
 
 float rotate_angle = 0.0f;
-string filename = "svg-01.svg";
+string filename = "svg-04.svg";
 
 VOID OnPaint(HDC hdc, float zoomFactor)
 {
@@ -26,6 +27,7 @@ VOID OnPaint(HDC hdc, float zoomFactor)
     vector<SVGElement> elements = parseSVG(filename, width, height, minX, minY, maxX, maxY);
     pointMinMax ptMM;
 
+    
     // Initialize zoom and rotation transformations
     Matrix zoomTransform(zoomFactor, 0.0f, 0.0f, zoomFactor, 0.0f, 0.0f);
     Matrix rotationTransform;
@@ -34,6 +36,9 @@ VOID OnPaint(HDC hdc, float zoomFactor)
     graphics.SetTransform(&zoomTransform);
 
     vector<unique_ptr<ShapeSVG>> shapes;
+
+    RectF viewboxRect(static_cast<float>(minX), static_cast<float>(minY), static_cast<float>(maxX - minX), static_cast<float>(maxY - minY));
+    graphics.SetClip(viewboxRect);
 
     for (const SVGElement& element : elements) {
         unique_ptr<ShapeSVG> shapeElement;
@@ -92,20 +97,6 @@ VOID OnPaint(HDC hdc, float zoomFactor)
 
 }
 
-void DrawSVGContent(Graphics& graphics) {
-    int widthOnScreen = static_cast<int>((maxX - minX) * width / 322.0f);
-    int heightOnScreen = static_cast<int>((maxY - minY) * height / 626.0f);
-
-
-    RectF viewBoxRect(minX, minY, maxX - minX, maxY - minY);
-    RectF screenRect(0, 0, static_cast<float>(widthOnScreen), static_cast<float>(heightOnScreen));
-
-
-    SolidBrush brush(Color(255, 255, 255, 255));
-    graphics.FillRectangle(&brush, screenRect);
-
-}
-
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
@@ -137,10 +128,10 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
     wndClass.lpszClassName = TEXT("GettingStarted");
 
     RegisterClass(&wndClass);
-    if (width != CW_USEDEFAULT)
+    /*if (width != CW_USEDEFAULT)
         width += 17;
     if (height != CW_USEDEFAULT)
-        height += 20;
+        height += 20;*/
 
     hWnd = CreateWindow(
         TEXT("GettingStarted"),   // window class name
@@ -148,10 +139,10 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
         WS_OVERLAPPEDWINDOW,      // window style
         CW_USEDEFAULT,            // initial x position
         CW_USEDEFAULT,            // initial y position
-        // CW_USEDEFAULT,            // initial x size
-         //CW_USEDEFAULT,            // initial y size
-        width,
-        height,
+        CW_USEDEFAULT,            // initial x size
+        CW_USEDEFAULT,            // initial y size
+        //width,
+        //height,
         NULL,                     // parent window handle
         NULL,                     // window menu handle
         hInstance,                // program instance handle
@@ -222,7 +213,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
         Graphics graphicsBuffer(hdcBuffer);
         graphicsBuffer.Clear(Color(255, 255, 255, 255)); // Set the background to white
-        DrawSVGContent(graphicsBuffer);
         OnPaint(hdcBuffer, zoomFactor);
         BitBlt(hdc, 0, 0, clientWidth, clientHeight, hdcBuffer, 0, 0, SRCCOPY);
 
