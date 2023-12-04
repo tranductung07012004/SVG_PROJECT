@@ -105,11 +105,10 @@ RGBSVG colorSVG(const string& s, bool& c) {
     c = 1;
     return color;
 }
-
 string removeCommas(const std::string& input) {
     std::string result;
     for (char c : input) {
-        if (c == ',' || c == '\n') {
+        if (c == ',' || c == '\n' || c == '\t' || c == '\v' || c == '\r') {
             result += ' ';
         }
         else {
@@ -118,6 +117,18 @@ string removeCommas(const std::string& input) {
     }
     return result;
 }
+//string removeCommas(const std::string& input) {
+//    std::string result;
+//    for (char c : input) {
+//        if (c == ',' || c == '\n' || c == '\t' || c == '\v' || c == '\r') {
+//            result += ' ';
+//        }
+//        else {
+//            result += c;
+//        }
+//    }
+//    return result;
+//}
 
 vector<PointF> parsePointString(const string& input) {
     std::vector<PointF> points;
@@ -137,6 +148,7 @@ bool isDigit(char c) {
 }
 
 bool isChar(char c) {
+    if (c == 'E' || c == 'e') return false;
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
 
@@ -146,7 +158,7 @@ string formatSVGPath(string& path) {
     bool previousIsDigit = false;
 
     for (char c : path) {
-        if (isDigit(c) || c == '-' || c == '.') {
+        if (isDigit(c) || c == '-' || c == '.'|| c == 'E' || c == 'e') {
             if (!previousIsDigit) {
                 result += ' ';
             }
@@ -157,9 +169,7 @@ string formatSVGPath(string& path) {
             result += c;
         }
         else {
-
             result += '\n';
-
             result += c;
             previousIsDigit = false;
         }
@@ -167,10 +177,12 @@ string formatSVGPath(string& path) {
     return result;
 }
 
+fstream fi("Text.txt");
 vector<PointPathSVG> parsePathData(const string& input) {
     string sPath = removeCommas(input);
     //transform(sPath.begin(), sPath.end(), sPath.begin(), ::towupper)
     sPath = formatSVGPath(sPath);
+    fi << sPath;
     vector<PointPathSVG> DataPath;
     istringstream ss(sPath);
 
@@ -186,13 +198,12 @@ vector<PointPathSVG> parsePathData(const string& input) {
 
         // Use && instead of ||
         if (type != 'H' && type != 'V' && type != 'A' && type != 'h' && type != 'v' && type != 'a') {
-            while (iss >> x) {
+            while (iss >> x >> y) {
                 PointF point;
                 point.X = x;
-                y = -FLT_MAX;
-                iss >> y;
                 point.Y = y;
                 path.points.push_back(point);
+
             }
         }
         else if (type == 'H' || type == 'V' || type == 'h' || type == 'v') {
