@@ -18,7 +18,7 @@ double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double minX = CW_USEDEFAULT, minY = CW_USEDEFAULT, maxX = CW_USEDEFAULT, maxY = CW_USEDEFAULT;
 
 float rotate_angle = 0.0f;
-string filename = "sample.svg";
+string filename = "svg-01.svg";
 
 VOID OnPaint(HDC hdc, float zoomFactor)
 {
@@ -96,11 +96,11 @@ void DrawSVGContent(Graphics& graphics) {
     int widthOnScreen = static_cast<int>((maxX - minX) * width / 322.0f);
     int heightOnScreen = static_cast<int>((maxY - minY) * height / 626.0f);
 
-  
+
     RectF viewBoxRect(minX, minY, maxX - minX, maxY - minY);
     RectF screenRect(0, 0, static_cast<float>(widthOnScreen), static_cast<float>(heightOnScreen));
 
-  
+
     SolidBrush brush(Color(255, 255, 255, 255));
     graphics.FillRectangle(&brush, screenRect);
 
@@ -108,8 +108,13 @@ void DrawSVGContent(Graphics& graphics) {
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow)
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
 {
+    if (CmdLine && CmdLine[0] != '\0')
+    {
+        filename = CmdLine;
+    }
+
     HWND                hWnd;
     MSG                 msg;
     WNDCLASS            wndClass;
