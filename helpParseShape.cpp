@@ -186,10 +186,10 @@ vector<PointPathSVG> parsePathData(const string& input) {
 
         // Use && instead of ||
         if (type != 'H' && type != 'V' && type != 'A' && type != 'h' && type != 'v' && type != 'a') {
-            while (iss >> x ) {
+            while (iss >> x) {
                 PointF point;
                 point.X = x;
-                y = -3.4e38;
+                y = -FLT_MAX;
                 iss >> y;
                 point.Y = y;
                 path.points.push_back(point);
