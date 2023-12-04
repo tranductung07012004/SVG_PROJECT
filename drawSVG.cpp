@@ -269,12 +269,12 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 else break;
             }
             else {
-               
+
                 // Move to the starting point
                 path.StartFigure();
                 PointF startPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                 start = startPoint;
-                
+
                 for (const auto& point : data.points) {
                     if (point.Y != -FLT_MAX) {
                         PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
@@ -307,7 +307,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 }
             }
             if (check == 0) break;
-            
+
         }
 
         else if (data.typePointPath == 'C') {
@@ -351,10 +351,10 @@ void PathSVG::drawSVG(Graphics& graphics) {
 
         else if (data.typePointPath == 'V') {
             for (const auto& point : data.points) {
-                
-                    PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y));
-                    path.AddLine(start, endPoint);
-                    start = endPoint;               
+
+                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y));
+                path.AddLine(start, endPoint);
+                start = endPoint;
             }
         }
 
@@ -363,7 +363,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             for (const auto& point : data.points) {
                 PointF endPoint(static_cast<float>(point.X), static_cast<float>(start.Y));
                 path.AddLine(start, endPoint);
-                start = endPoint;               
+                start = endPoint;
             }
         }
 
@@ -387,7 +387,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 path.StartFigure();
                 PointF startPoint(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
                 start = startPoint;
-                
+
                 for (int i = 1; i < data.points.size(); i++) {
                     if (data.points[i].Y != -FLT_MAX) {
                         PointF endPoint(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
@@ -450,7 +450,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     }
                 }
                 if (check == 0) break;
-                if (data.points.size() % 3 != 0) break;
+                //if (data.points.size() % 3 != 0) break;
             }
         }
         else if (data.typePointPath == 'v') {
@@ -458,7 +458,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y) + start.Y);
                 path.AddLine(start, endPoint);
                 start = endPoint;
-                
+
             }
         }
         else if (data.typePointPath == 'h') {
@@ -466,7 +466,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 PointF endPoint(static_cast<float>(point.X) + start.X, static_cast<float>(start.Y));
                 path.AddLine(start, endPoint);
                 start = endPoint;
-               
+
             }
         }
 
