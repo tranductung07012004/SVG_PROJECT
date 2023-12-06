@@ -76,7 +76,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
     FontFamily fontFamily1(ws.c_str());
 
 
-    Gdiplus::PointF origin(p.X - 0.15 * fontSize, p.Y - 0.9 * fontSize);
+    Gdiplus::PointF origin(p.X - 0.09 * fontSize, p.Y - 0.9 * fontSize);
     origin.X += offset_map[textAnchor];
     Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericDefault());
     format.SetAlignment(text_anchor_map[textAnchor]);
@@ -194,7 +194,7 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
     this->TranslatePolygon(graphics, dx, dy);
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    graphics.FillPolygon(&brush, point, size);
+    graphics.FillPolygon(&brush, point, size, FillModeWinding);
     graphics.DrawPolygon(&pen, point, size);
     delete[] point;
     graphics.Restore(state);
@@ -291,10 +291,8 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
-
         else if (data.typePointPath == 'L') {
             // Draw a line
-
             for (const auto& point : data.points) {
                 if (point.Y != -FLT_MAX) {
                     PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
@@ -450,7 +448,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     }
                 }
                 if (check == 0) break;
-                //if (data.points.size() % 3 != 0) break;
+                if (data.points.size() % 3 != 0) break;
             }
         }
         else if (data.typePointPath == 'v') {
@@ -473,7 +471,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
         else if (data.typePointPath == 'Z' || data.typePointPath == 'z') {
             start = start2;
             path.CloseFigure();
-
+          
         }
     }
 
