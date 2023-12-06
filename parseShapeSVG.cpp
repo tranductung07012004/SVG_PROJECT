@@ -59,6 +59,16 @@ void RectSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
     if (cFill == 0) fillOpacity = 0;
 
 }
+
+string removeLeadingSpaces(const string& inputString) {
+    size_t index = 0;
+    while (index < inputString.length() && isspace(inputString[index])) {
+        index++;
+    }
+
+    return inputString.substr(index);
+}
+
 void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "x") {
@@ -117,6 +127,7 @@ void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
             result += c;
         }
     }
+    result = removeLeadingSpaces(result);
     textContent = result;
     if (cFill == 0) fillOpacity = 0;
     if (cStroke == 0) strokeOpacity = 0;
