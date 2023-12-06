@@ -16,18 +16,18 @@ using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
 
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
-double minX = CW_USEDEFAULT, minY = CW_USEDEFAULT, maxX = CW_USEDEFAULT, maxY = CW_USEDEFAULT;
+double viewBoxX = CW_USEDEFAULT, viewBoxY = CW_USEDEFAULT, viewBoxWidth = CW_USEDEFAULT, viewBoxHeight = CW_USEDEFAULT;
 
 float rotate_angle = 0.0f;
-string filename = "svg-04.svg";
+string filename = "svg-39.svg";
 
-VOID OnPaint(HDC hdc, float zoomFactor)
+VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps)
 {
     Graphics graphics(hdc);
-    vector<SVGElement> elements = parseSVG(filename, width, height, minX, minY, maxX, maxY);
+    vector<SVGElement> elements = parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
     pointMinMax ptMM;
 
-    
+
     // Initialize zoom and rotation transformations
     Matrix zoomTransform(zoomFactor, 0.0f, 0.0f, zoomFactor, 0.0f, 0.0f);
     Matrix rotationTransform;
@@ -36,9 +36,6 @@ VOID OnPaint(HDC hdc, float zoomFactor)
     graphics.SetTransform(&zoomTransform);
 
     vector<unique_ptr<ShapeSVG>> shapes;
-
-    RectF viewboxRect(static_cast<float>(minX), static_cast<float>(minY), static_cast<float>(maxX - minX), static_cast<float>(maxY - minY));
-    graphics.SetClip(viewboxRect);
 
     for (const SVGElement& element : elements) {
         unique_ptr<ShapeSVG> shapeElement;
@@ -89,6 +86,11 @@ VOID OnPaint(HDC hdc, float zoomFactor)
 
     graphics.TranslateTransform(-p.X, -p.Y);
 
+    if (viewBoxX != CW_USEDEFAULT) {
+        graphics.ScaleTransform(static_cast<float>(ps.rcPaint.bottom) / viewBoxHeight, static_cast<float>(ps.rcPaint.bottom) / viewBoxHeight);
+        graphics.TranslateTransform(-viewBoxX, -viewBoxY);
+    }
+
     for (const auto& shape : shapes) {
         shape->drawSVG(graphics);
     }
@@ -114,7 +116,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
 
     // Initialize GDI+.
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-    vector<SVGElement> elements = parseSVG(filename, width, height, minX, minY, maxX, maxY);
+    vector<SVGElement> elements = parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 
     wndClass.style = CS_HREDRAW | CS_VREDRAW;
     wndClass.lpfnWndProc = WndProc;
@@ -128,10 +130,11 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
     wndClass.lpszClassName = TEXT("GettingStarted");
 
     RegisterClass(&wndClass);
-    /*if (width != CW_USEDEFAULT)
-        width += 17;
-    if (height != CW_USEDEFAULT)
-        height += 20;*/
+    RECT desktop;
+    const HWND hDesktop = GetDesktopWindow();
+    GetWindowRect(hDesktop, &desktop);
+    int horizontal = desktop.right;
+    int vertical = desktop.bottom;
 
     hWnd = CreateWindow(
         TEXT("GettingStarted"),   // window class name
@@ -139,10 +142,10 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
         WS_OVERLAPPEDWINDOW,      // window style
         CW_USEDEFAULT,            // initial x position
         CW_USEDEFAULT,            // initial y position
-        CW_USEDEFAULT,            // initial x size
-        CW_USEDEFAULT,            // initial y size
-        //width,
-        //height,
+        //CW_USEDEFAULT,            // initial x size
+        //CW_USEDEFAULT,            // initial y size
+        horizontal,
+        vertical,
         NULL,                     // parent window handle
         NULL,                     // window menu handle
         hInstance,                // program instance handle
@@ -169,7 +172,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
     static HDC hdcBuffer = nullptr;
     static HBITMAP hBitmap = nullptr;
-
+    PAINTSTRUCT ps;
     switch (message) {
     case WM_KEYDOWN: {
         if (GetKeyState(VK_LEFT) & 0x8000) {
@@ -213,7 +216,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
         Graphics graphicsBuffer(hdcBuffer);
         graphicsBuffer.Clear(Color(255, 255, 255, 255)); // Set the background to white
-        OnPaint(hdcBuffer, zoomFactor);
+        OnPaint(hdcBuffer, zoomFactor, ps);
         BitBlt(hdc, 0, 0, clientWidth, clientHeight, hdcBuffer, 0, 0, SRCCOPY);
 
         EndPaint(hWnd, &ps);
