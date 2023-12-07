@@ -10,6 +10,7 @@
 #include <gdiplusgraphics.h>
 #include <gdiplusheaders.h>
 #include <wingdi.h>
+#include <shellapi.h>
 using namespace std;
 using namespace rapidxml;
 using namespace Gdiplus;
@@ -18,25 +19,18 @@ using namespace Gdiplus;
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double viewBoxX = CW_USEDEFAULT, viewBoxY = CW_USEDEFAULT, viewBoxWidth = CW_USEDEFAULT, viewBoxHeight = CW_USEDEFAULT;
 
-float rotate_angle = 0.0f;
-string filename = "svg-39.svg";
 
-VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps)
+float rotate_angle = 0.0f;
+string filename = "svg-01.svg";
+
+vector<SVGElement> elements; //= parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
+
+VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int clientHeight)
 {
     Graphics graphics(hdc);
-    vector<SVGElement> elements = parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
-    pointMinMax ptMM;
-
-
-    // Initialize zoom and rotation transformations
-    Matrix zoomTransform(zoomFactor, 0.0f, 0.0f, zoomFactor, 0.0f, 0.0f);
-    Matrix rotationTransform;
-
-    // Apply zoom transformation
-    graphics.SetTransform(&zoomTransform);
-
     vector<unique_ptr<ShapeSVG>> shapes;
 
+    pointMinMax ptMM;
     for (const SVGElement& element : elements) {
         unique_ptr<ShapeSVG> shapeElement;
 
@@ -74,6 +68,12 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps)
         }
     }
 
+    // Initialize zoom and rotation transformations
+    Matrix zoomTransform(zoomFactor, 0.0f, 0.0f, zoomFactor, 0.0f, 0.0f);
+    Matrix rotationTransform;
+
+    // Apply zoom transformation
+    graphics.SetTransform(&zoomTransform);
 
     PointF p;
     p.X = (ptMM.pointMin.X + ptMM.pointMax.X) / 2 + 10;
@@ -95,18 +95,20 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps)
         shape->drawSVG(graphics);
     }
     graphics.ResetTransform();
-
-
 }
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
 {
+    
     if (CmdLine && CmdLine[0] != '\0')
     {
         filename = CmdLine;
     }
+    elements = parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
+
+    
 
     HWND                hWnd;
     MSG                 msg;
@@ -116,7 +118,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
 
     // Initialize GDI+.
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-    vector<SVGElement> elements = parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 
     wndClass.style = CS_HREDRAW | CS_VREDRAW;
     wndClass.lpfnWndProc = WndProc;
@@ -136,6 +137,8 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
     int horizontal = desktop.right;
     int vertical = desktop.bottom;
 
+
+    HMENU hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDC_SVGDEMO));
     hWnd = CreateWindow(
         TEXT("GettingStarted"),   // window class name
         TEXT("SVG Demo"),  // window caption
@@ -147,7 +150,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
         horizontal,
         vertical,
         NULL,                     // parent window handle
-        NULL,                     // window menu handle
+        hMenu,                     // window menu handle
         hInstance,                // program instance handle
         NULL);                    // creation parameters
 
@@ -174,25 +177,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     static HBITMAP hBitmap = nullptr;
     PAINTSTRUCT ps;
     switch (message) {
-    case WM_KEYDOWN: {
-        if (GetKeyState(VK_LEFT) & 0x8000) {
-            rotate_angle -= 5;
-            if (rotate_angle < 0) {
-                rotate_angle = 0;
+        case WM_COMMAND: {
+            switch (LOWORD(wParam)) {
+            case IDM_ABOUT: {
+                LPCWSTR content = L"A PRODUCT FROM TEAM1.CORP";
+                LPCWSTR exWindowName = L"ABOUT US";
+                MessageBox(hWnd, content, exWindowName, MB_OK | MB_ICONINFORMATION);
+                break;
             }
-        }
-        else if (GetKeyState(VK_RIGHT) & 0x8000) {
-            rotate_angle += 5;
-            if (rotate_angle > 360) {
-                rotate_angle = 360;
+                case IDM_EXIT:
+                    SendMessage(hWnd, WM_CLOSE, 0, 0);
+                    break;
+                case ID_ZOOM_ZOOMIN:
+                    zoomFactor *= 1.5f;
+                    break;
+
+                case ID_ZOOM_ZOOMOUT:
+                    zoomFactor /= 1.5f;
+                    break;
+
+                case ID_ROTATE_ROTATERIGHT32775:
+                    rotate_angle += 5;
+                    if (rotate_angle > 360) {
+                        rotate_angle = 360;
+                    }
+                    break;
+
+                case ID_ROTATE_ROTATELEFT:
+                    rotate_angle -= 5;
+                    if (rotate_angle < 0) {
+                        rotate_angle = 0;
+                    }
+                    break;
+
+                default:
+                    return DefWindowProc(hWnd, message, wParam, lParam);
             }
+            InvalidateRect(hWnd, NULL, TRUE);
+            UpdateWindow(hWnd);
+            break;
         }
-        InvalidateRect(hWnd, NULL, TRUE);
-        UpdateWindow(hWnd);
-        break;
-
-    }
-
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
@@ -216,33 +240,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
         Graphics graphicsBuffer(hdcBuffer);
         graphicsBuffer.Clear(Color(255, 255, 255, 255)); // Set the background to white
-        OnPaint(hdcBuffer, zoomFactor, ps);
+        OnPaint(hdcBuffer, zoomFactor, ps, clientWidth, clientHeight);
         BitBlt(hdc, 0, 0, clientWidth, clientHeight, hdcBuffer, 0, 0, SRCCOPY);
 
         EndPaint(hWnd, &ps);
         break;
     }
-    case WM_MOUSEWHEEL:
-    {
-        int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+    //case WM_MOUSEWHEEL:
+    //{
+    //    int delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
-        if (delta > 0)
-            zoomFactor *= 1.1f;  // Increase the zoom factor by 10%
-        else
-            zoomFactor /= 1.1f;  // Decrease the zoom factor by 10%
+    //    if (delta > 0)
+    //        zoomFactor *= 1.1f;  // Increase the zoom factor by 10%
+    //    else
+    //        zoomFactor /= 1.1f;  // Decrease the zoom factor by 10%
 
-        // Clear the buffer for next paint
-        if (hdcBuffer) {
-            Graphics graphicsBuffer(hdcBuffer);
-            graphicsBuffer.Clear(Color(255, 255, 255, 255));  // Set the background to white
-        }
+    //    // Clear the buffer for next paint
+    //    if (hdcBuffer) {
+    //        Graphics graphicsBuffer(hdcBuffer);
+    //        graphicsBuffer.Clear(Color(255, 255, 255, 255));  // Set the background to white
+    //    }
 
-        // Redraw the window
-        InvalidateRect(hWnd, NULL, TRUE);
-        UpdateWindow(hWnd);
+    //    // Redraw the window
+    //    InvalidateRect(hWnd, NULL, TRUE);
+    //    UpdateWindow(hWnd);
+    ///*    RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);*/
 
-        break;
-    }
+    //    break;
+    //}
     case WM_DESTROY:
     {
         if (hdcBuffer) {
