@@ -33,3 +33,5 @@ vector<SVGElement> parseSVG(const string& filename, double& width, double& heigh
 void parseStyle(const string& s, SVGElement& element);
 void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements);
 void parseGroupNode(xml_node<>* node, SVGElement& groupElement);
+void parseGradientNode(xml_node<>* node, SVGElement& gradientElement);
+void parseDefsNode(xml_node<>* node, SVGElement& defsElement);
