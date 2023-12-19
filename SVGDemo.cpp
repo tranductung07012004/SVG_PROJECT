@@ -11,6 +11,11 @@
 #include <gdiplusheaders.h>
 #include <wingdi.h>
 #include <shellapi.h>
+#include <d2d1.h>
+#include <d2d1svg.h>
+#include <wincodec.h>
+#include <wincodecsdk.h>
+
 using namespace std;
 using namespace rapidxml;
 using namespace Gdiplus;
@@ -19,7 +24,14 @@ using namespace Gdiplus;
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double viewBoxX = CW_USEDEFAULT, viewBoxY = CW_USEDEFAULT, viewBoxWidth = CW_USEDEFAULT, viewBoxHeight = CW_USEDEFAULT;
 
-
+//typedef struct viewBox_SVG {
+//    FLOAT x;
+//    FLOAT y;
+//    FLOAT width;
+//    FLOAT height;
+//
+//} viewBox_d2d1;
+D2D1_SVG_VIEWBOX viewBox;
 float rotate_angle = 0.0f;
 string filename = "svg-01.svg";
 
@@ -29,11 +41,21 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
 {
     Graphics graphics(hdc);
     vector<unique_ptr<ShapeSVG>> shapes;
-
+    vector<Gradient> Gradients;
+    for (const SVGElement& element : elements) {
+        if (element.type == "lineargradient" || element.type == "radialgradient") {
+            parseGradientSVG(Gradients, element);
+        }
+        if (element.type == "defs") {
+            for (const SVGElement& childElement : element.children)
+            parseGradientSVG(Gradients, childElement);
+        }
+    }
+    printGradientSVG(Gradients);
     pointMinMax ptMM;
     for (const SVGElement& element : elements) {
         unique_ptr<ShapeSVG> shapeElement;
-
+        printSVGElement(element);
         if (element.type == "rect") {
             shapeElement = make_unique<RectSVG>();
         }
@@ -62,9 +84,10 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
             shapeElement = make_unique<GroupSVG>();
         }
         if (shapeElement) {
-            shapeElement->parseShapeSVG(element, 1, 0);
+            shapeElement->parseShapeSVG(element, 1, 0, Gradients);
             shapes.push_back(move(shapeElement));
             shapes.back()->getPointMINMAX(ptMM);
+
         }
     }
 
@@ -108,8 +131,12 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
     }
     elements = parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 
-    
-
+    viewBox.x = viewBoxX;
+    viewBox.y = viewBoxY;
+    viewBox.width = viewBoxWidth;
+    viewBox.height = viewBoxHeight;
+    ID2D1SvgElement* pRootElement;
+    //pRootElement->SetViewBox(viewBox);
     HWND                hWnd;
     MSG                 msg;
     WNDCLASS            wndClass;
@@ -145,8 +172,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
         WS_OVERLAPPEDWINDOW,      // window style
         CW_USEDEFAULT,            // initial x position
         CW_USEDEFAULT,            // initial y position
-        //CW_USEDEFAULT,            // initial x size
-        //CW_USEDEFAULT,            // initial y size
         horizontal,
         vertical,
         NULL,                     // parent window handle
@@ -237,7 +262,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             hBitmap = CreateCompatibleBitmap(hdc, clientWidth, clientHeight);
             SelectObject(hdcBuffer, hBitmap);
         }
-
         Graphics graphicsBuffer(hdcBuffer);
         graphicsBuffer.Clear(Color(255, 255, 255, 255)); // Set the background to white
         OnPaint(hdcBuffer, zoomFactor, ps, clientWidth, clientHeight);
