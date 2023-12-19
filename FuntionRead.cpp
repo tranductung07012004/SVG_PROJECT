@@ -27,10 +27,72 @@ void parseStyle(const string& s, SVGElement& element) {
         }
     }
 }
+
+
+
+void parseGradientNode(xml_node<>* node, SVGElement& gradientElement) {
+    for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
+        SVGElement element;
+        string s = child->name();
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+        element.type = s;
+
+        if (element.type == "stop") {
+            for (xml_attribute<>* attr = child->first_attribute(); attr; attr = attr->next_attribute()) {
+                string attrName = attr->name();
+                transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
+                string attrVal = attr->value();
+                if (element.attributes[attrName] == "")
+                    element.attributes[attrName] = attrVal;
+                if (attrName == "style") parseStyle(attrVal, element);
+            }
+            gradientElement.children.push_back(element);
+        }
+    }
+}
+
+void parseDefsNode(xml_node<>* node, SVGElement& defsElement) {
+    for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
+        SVGElement element;
+        string s = child->name();
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+        element.type = s;
+
+
+        // Parse attributes of the child element
+        for (xml_attribute<>* attr = child->first_attribute(); attr; attr = attr->next_attribute()) {
+            string attrName = attr->name();
+            transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
+            string attrVal = attr->value();
+            if (element.attributes[attrName] == "")
+                element.attributes[attrName] = attrVal;
+            if (attrName == "style") parseStyle(attrVal, element);
+        }
+
+        // Check if the child element is of type "text" and extract its content
+        if (element.type == "text") {
+            element.textContent = child->value();
+        }
+
+        // Recursively handle nested elements
+        if (element.type == "radialgradient" || element.type == "lineargradient" || element.type == "linearGradient" || element.type == "radialGradient") {
+            parseGradientNode(child, element);
+        }
+        if (element.type == "g") {
+            parseGroupNode(child, element);
+        }
+
+        // Add the parsed element to the list of children of the defsElement
+        defsElement.children.push_back(element);
+    }
+}
+
 void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
     for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
         SVGElement element;
-        element.type = child->name();
+        string s= child->name();
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+        element.type =s;
 
         for (xml_attribute<>* attr = child->first_attribute(); attr; attr = attr->next_attribute()) {
             string attrName = attr->name();
@@ -50,15 +112,25 @@ void parseSVGNode(xml_node<>* node, vector<SVGElement>& elements) {
         if (element.type == "g") {
             parseGroupNode(child, element);
         }
-
+        if (element.type == "radialgradient" || element.type == "lineargradient" || element.type == "linearGradient" || element.type == "radialGradient") {
+            parseGradientNode(child, element);
+        }
+        if (element.type == "defs") {
+            parseDefsNode(child, element);
+        }
         elements.push_back(element);
     }
 }
+
+
+
+
 void parseGroupNode(xml_node<>* node, SVGElement& groupElement) {
     for (xml_node<>* child = node->first_node(); child; child = child->next_sibling()) {
         SVGElement element;
-        element.type = child->name();
-
+        string s = child->name();
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+        element.type = s;
         for (xml_attribute<>* attr = child->first_attribute(); attr; attr = attr->next_attribute()) {
             string attrName = attr->name();
             transform(attrName.begin(), attrName.end(), attrName.begin(), ::tolower);
@@ -72,8 +144,14 @@ void parseGroupNode(xml_node<>* node, SVGElement& groupElement) {
         if (element.type == "text") {
             element.textContent = child->value();
         }
+        if (element.type == "radialgradient" || element.type == "lineargradient" || element.type == "linearGradient" || element.type == "radialGradient") {
+            parseGradientNode(child, element);
+        }
         if (element.type == "g") {
             parseGroupNode(child, element);
+        }
+        if (element.type == "defs") {
+            parseDefsNode(child, element);
         }
         groupElement.children.push_back(element);
     }
