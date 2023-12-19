@@ -1,17 +1,188 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
+fstream fop1("Text2.txt");
 
+void printSVGElement(const SVGElement& element) {
+    fop1 << "Type: " << element.type << endl;
+    fop1 << "Attributes:" << endl;
+    for (const auto& pair : element.attributes) {
+        fop1 << "  " << pair.first << ": " << pair.second << endl;
+    }
+    fop1 << "Text Content: " << element.textContent << endl;
+    fop1 << "Children:" << endl;
+    for (const auto& child : element.children) {
+        printSVGElement(child);
+    }
+    fop1 << "end Children" << endl<<endl;
 
-void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs) {
+}
+
+void parseStopSVG(vector<Stop>& stops, const SVGElement& input) {
+    Stop stop;
+    for (const auto& pair : input.attributes) {
+        if (pair.first == "offset") {
+            stop.offset = stod(pair.second);
+        }
+        else if (pair.first == "stop-color") {
+            bool cf;
+            stop.stopColor = colorSVG(pair.second, cf);
+        }
+        else if (pair.first == "stop-opacity") {
+            stop.stopOpacity = stod(pair.second);
+        }
+    }
+    stops.push_back(stop);
+}
+fstream fio("1.txt");
+void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
+    // Check if the id already exists
+    const string id = "url(#"+ input.attributes.at("id") + ")";
+    auto existingGradient = std::find_if(gradients.begin(), gradients.end(),
+        [&](const Gradient& g) { return g.id == id; });
+
+    if (existingGradient != gradients.end()) {
+        return;
+    }
+
+    Gradient gradient;
+    gradient.id = id;
+    string s = input.type;
+    
+    fio << s;
+    gradient.typeGradient =s;
+
+    if (gradient.typeGradient == "lineargradient" || gradient.typeGradient == "linearGradient") {
+        for (const auto& attr : input.attributes)
+        if (attr.first == "x1") {
+            gradient.x1 = stod(attr.second);
+        }
+        else if (attr.first == "y1") {
+            gradient.y1 = stod(attr.second);
+        }
+        else if (attr.first == "x2") {
+            gradient.x2 = stod(attr.second);
+        }
+        else if (attr.first == "y2") {
+            gradient.y2 = stod(attr.second);
+        }
+    }
+    else if (gradient.typeGradient == "radialgradient" || gradient.typeGradient == "radialGradient") {
+        for (const auto& attr : input.attributes)
+            if (attr.first == "cx") {
+                gradient.cx = stod(attr.second);
+            }
+            else if (attr.first == "cy") {
+                gradient.cy = stod(attr.second);
+            }
+            else if (attr.first == "r") {
+                gradient.r = stod(attr.second);
+            }
+            else if (attr.first == "fx") {
+                gradient.fx = stod(attr.second);
+            }
+            else if (attr.first == "fy") {
+                gradient.fy = stod(attr.second);
+            }
+    }
+
+    for (const SVGElement& child : input.children) {
+        if (child.type == "stop") {
+            Stop stop;
+            parseStopSVG(gradient.stops, child);
+        }
+    }
+
+    gradients.push_back(gradient);
+}
+
+fstream fop("Text1.txt");
+void printGradientSVG(const vector<Gradient>& gradients) {
+    for (const auto& gradient : gradients) {
+        fop << "Gradient ID: " << gradient.id << endl;
+        fop << "Gradient Type: " << gradient.typeGradient << endl;
+        if (gradient.typeGradient == "lineargradient" || gradient.typeGradient == "linearGradient") {
+            fop << "x1: " << gradient.x1 << ", y1: " << gradient.y1 << endl;
+            fop << "x2: " << gradient.x2 << ", y2: " << gradient.y2 << endl;
+        }
+        else if (gradient.typeGradient == "radialgradient" || gradient.typeGradient == "radialGradient") {
+            fop << "cx: " << gradient.cx << ", cy: " << gradient.cy << endl;
+            fop << "r: " << gradient.r << ", fx: " << gradient.fx<< ", fy: " << gradient.fy << endl;
+        }
+        fop << "Stops:" << endl;
+        for (const auto& stop : gradient.stops) {
+            fop << "  Offset: " << stop.offset << ", Color: " << stop.stopColor.R << " " << stop.stopColor.G << " " << stop.stopColor.B << ", Opacity: " << stop.stopOpacity << endl;
+        }
+        fop << endl;
+    }
+}
+
+string trim(const string& str) {
+    size_t first = str.find_first_not_of(' ');
+    if (first == std::string::npos) {
+        return "";
+    }
+    size_t last = str.find_last_not_of(' ');
+    return str.substr(first, last - first + 1);
+}
+
+bool isUrl(const std::string& str) {
+    std::regex pattern("^url\\(#[^)]+\\)$");
+    return std::regex_match(str, pattern);
+}
+void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, vector<Gradient>& Gradients)  {
     if (attribute == "fill") {
-        fill = colorSVG(data, cf);
+        string s = trim(data);
+        string result;
+        for (char c : s) {
+            if (c != '\n' || c != '\t' || c!=' ') {
+                result += c;
+            }
+        }
+        s = result;
+        if (isUrl(s)) {
+            hasGradientFill = 1;
+            bool found = false;
+            for (const auto& gradient : Gradients) {
+                if (gradient.id == s) {
+                    found = true;
+                    cf = 1;
+                    fill = { 255,1,0 };
+                    Gfill = gradient;
+                    break;
+                }
+            }
+        }
+        else
+            fill = colorSVG(s, cf);
     }
     else if (attribute == "fill-opacity") {
         fillOpacity = stod(data);
     }
     else if (attribute == "stroke") {
-        stroke = colorSVG(data, cs);
+        string s = trim(data);
+        string result;
+        for (char c : s) {
+            if (c != '\n' || c != '\t' || c != ' ') {
+                result += c;
+            }
+        }
+        s = result;
+        if (isUrl(s)) {
+            hasGradientStroke = 1;
+            bool found = false;
+            for (const auto& gradient : Gradients) {
+                if (gradient.id == s) {
+                    found = true;
+                    cs = 1;
+                    Gstroke = gradient;
+                    stroke = { 255,0,0 };
+                    break;
+                }
+            }
+        }
+        else
+            stroke = colorSVG(s, cs);
     }
     else if (attribute == "stroke-opacity") {
         strokeOpacity = stod(data);
@@ -33,7 +204,7 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs) {
     }
 }
 
-void RectSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void RectSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "x") {
             p.X = stod(attr.second);
@@ -53,11 +224,10 @@ void RectSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
         else if (attr.first == "ry") {
             ry = stod(attr.second);
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
-
 }
 
 string removeLeadingSpaces(const string& inputString) {
@@ -69,7 +239,7 @@ string removeLeadingSpaces(const string& inputString) {
     return inputString.substr(index);
 }
 
-void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "x") {
             p.X = stod(attr.second);
@@ -117,13 +287,13 @@ void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
             textTransform = attr.second;
             std::transform(textTransform.begin(), textTransform.end(), textTransform.begin(), ::tolower);
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);
 
     }
     string s = element.textContent;
     string result;
     for (char c : s) {
-        if (c != '\n') {
+        if (c != '\n' || c != '\t') {
             result += c;
         }
     }
@@ -133,7 +303,7 @@ void TextSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
     if (cStroke == 0) strokeOpacity = 0;
 
 }
-void CircleSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void CircleSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "stroke-width") {
             strokeWidth = stod(attr.second);
@@ -147,13 +317,13 @@ void CircleSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStrok
         else if (attr.first == "r") {
             r = stod(attr.second);
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);;
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);;
 
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
 }
-void EllipseSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void EllipseSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "cx") {
             c.X = stod(attr.second);
@@ -167,13 +337,13 @@ void EllipseSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStro
         else if (attr.first == "ry") {
             ry = stod(attr.second);
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);;
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);;
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
 
 }
-void LineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void LineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "x1") {
             p1.X = stod(attr.second);
@@ -187,34 +357,34 @@ void LineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
         else if (attr.first == "y2") {
             p2.Y = stod(attr.second);
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);;
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);;
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
 }
-void PolygonSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void PolygonSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "points") {
             points = parsePointString(attr.second);
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);;
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);;
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
 }
-void PolylineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void PolylineSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "points") {
             points = parsePointString(attr.second);
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);
 
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
 }
 fstream fo("input.txt");
-void PathSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void PathSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) {
     for (const auto& attr : element.attributes) {
         if (attr.first == "d") {
             PathData = parsePathData(attr.second);
@@ -226,7 +396,7 @@ void PathSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke)
                 fo << std::endl;
             }
         }
-        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke);;
+        else this->parseDataSVG(attr.first, attr.second, cFill, cStroke, Gradients);;
     }
     if (cStroke == 0) strokeOpacity = 0;
     if (cFill == 0) fillOpacity = 0;
@@ -277,7 +447,7 @@ SVGElement addSVGElement(const SVGElement& e1, const SVGElement& e2) {
     return result;
 }
 
-//void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+//void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradient) {
 //    for (const auto& attr : element.attributes) {
 //        this->parseDataSVG(attr.first, attr.second, cFill, cStroke);
 //    }
@@ -330,14 +500,14 @@ SVGElement addSVGElement(const SVGElement& e1, const SVGElement& e2) {
 //}
 
 
-void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) {
+void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradient) {
     for (const SVGElement& childElement : element.children) {
         GroupOrShape elementToAdd;
         if (childElement.type == "g") {
             elementToAdd.type = GroupOrShape::GROUP;
             elementToAdd.group = make_unique<GroupSVG>();
             SVGElement childElement1 = addSVGElement(element, childElement);
-            elementToAdd.group->parseShapeSVG(childElement1, 1, 0);
+            elementToAdd.group->parseShapeSVG(childElement1, 1, 0, Gradient);
         }
         else {
             elementToAdd.type = GroupOrShape::SHAPE;
@@ -370,7 +540,7 @@ void GroupSVG::parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke
             }
             elementToAdd.shape->CheckinGroup();
             SVGElement childElement1 = addSVGElement(element, childElement);
-            elementToAdd.shape->parseShapeSVG(childElement1, 1, 0);
+            elementToAdd.shape->parseShapeSVG(childElement1, 1, 0, Gradient);
         }
 
         elements.push_back(std::move(elementToAdd));
