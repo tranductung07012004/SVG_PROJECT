@@ -53,6 +53,13 @@ RGBSVG colorSVG(const string& s, bool& c) {
 
     transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
     s1 = remove_spaces(s1);
+    string result;
+    for (char c : s1) {
+        if (c != '\n' || c != '\t') {
+            result += c;
+        }
+    }
+    s1 = result;
     if (s1 == "none" || s1 == "transparent") {
         c = 0;
         return color;
@@ -117,18 +124,6 @@ string removeCommas(const std::string& input) {
     }
     return result;
 }
-//string removeCommas(const std::string& input) {
-//    std::string result;
-//    for (char c : input) {
-//        if (c == ',' || c == '\n' || c == '\t' || c == '\v' || c == '\r') {
-//            result += ' ';
-//        }
-//        else {
-//            result += c;
-//        }
-//    }
-//    return result;
-//}
 
 vector<PointF> parsePointString(const string& input) {
     std::vector<PointF> points;
@@ -228,3 +223,6 @@ vector<PointPathSVG> parsePathData(const string& input) {
     }
     return DataPath;
 }
+
+
+
