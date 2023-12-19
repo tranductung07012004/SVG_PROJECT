@@ -22,8 +22,7 @@ using namespace rapidxml;
 using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
 
-
-
+void printSVGElement(const SVGElement& element);
 struct transformSVG {
     float translateX, translateY;
     float rotateAngle;
@@ -42,7 +41,23 @@ struct pointMinMax {
     PointF pointMin = { DBL_MAX,DBL_MAX }, pointMax = { -DBL_MAX,-DBL_MAX };
 };
 
+struct Stop {
+    double offset;
+    RGBSVG stopColor = { 0,0,0 };
+    double stopOpacity = 1;
+};
 
+struct Gradient {
+    string typeGradient = "";
+    string id;
+    double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    double  cx = 0, cy = 0, r = 0, fx = 0, fy = 0;
+    vector<Stop> stops;
+};
+
+void parseStopSVG(vector<Stop>& stops, const SVGElement& input);
+void parseGradientSVG(vector<Gradient>& Gradient, const SVGElement& input);
+void printGradientSVG(const vector<Gradient>& gradients);
 class ShapeSVG {
 protected:    
     RGBSVG fill;
@@ -54,9 +69,11 @@ protected:
     string style = "";
     bool inGroup = 0;
     double dx = 0, dy = 0;
+    bool hasGradientStroke = 0, hasGradientFill = 0;
+    Gradient Gstroke, Gfill;
 public:
-    virtual void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) = 0;
-    void parseDataSVG(string attribute, string data, bool& cf, bool& cs);
+    virtual void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) = 0;
+    void parseDataSVG(string attribute, string data, bool& cf, bool& cs, vector<Gradient>& Gradients);
     virtual void getPointMINMAX(pointMinMax& ptMM) = 0;
     virtual void drawSVG(Graphics& graphics) = 0;
     void copyAttributes(const ShapeSVG& other);
@@ -75,7 +92,7 @@ private:
     double ry = 0;
 
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
 
     void TranslateRectangle(Graphics& graphics, float dx, float dy) {
@@ -107,7 +124,7 @@ private:
     string textTransform = "";
     string textContent = "";
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
 
     void TranslateText(Graphics& graphics, float dx, float dy) {
@@ -132,7 +149,7 @@ private:
     PointF c = { 0,0 };
     double r = 0;
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
 
     void TranslateCircle(Graphics& graphics, float dx, float dy) {
@@ -157,7 +174,7 @@ private:
     PointF c = { 0,0 };
     double rx = 0, ry = 0;
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
 
     void TranslateEllipse(Graphics& graphics, float dx, float dy) {
@@ -181,7 +198,7 @@ class LineSVG : public ShapeSVG {
 private:
     PointF p1 = { 0,0 }, p2 = { 0,0 };
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
     void TranslateLine(Graphics& graphics, float dx, float dy) {
         graphics.TranslateTransform(dx, dy);
@@ -204,7 +221,7 @@ class PolygonSVG : public ShapeSVG {
 private:
     vector<PointF> points;
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
 
     void TranslatePolygon(Graphics& graphics, float dx, float dy) {
@@ -227,7 +244,7 @@ private:
 
     vector<PointF> points;
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
 
     void TranslatePolyline(Graphics& graphics, float dx, float dy) {
@@ -258,7 +275,7 @@ class PathSVG : public ShapeSVG {
 private:
     vector<PointPathSVG> PathData;
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
 
     void TranslatePath(Graphics& graphics, float dx, float dy) {
@@ -298,7 +315,10 @@ private:
     };
     vector<GroupOrShape> elements;
 public:
-    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke) override;
+    void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
     void drawSVG(Graphics& graphics) override;
     void getPointMINMAX(pointMinMax& ptMM) override;
 };
+
+
+
