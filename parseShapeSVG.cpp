@@ -22,7 +22,12 @@ void parseStopSVG(vector<Stop>& stops, const SVGElement& input) {
     Stop stop;
     for (const auto& pair : input.attributes) {
         if (pair.first == "offset") {
+            
             stop.offset = stod(pair.second);
+            size_t found = pair.second.find('%');
+            if (found != std::string::npos) {
+                stop.offset /= 100;
+            }
         }
         else if (pair.first == "stop-color") {
             bool cf;
@@ -56,33 +61,69 @@ void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
         for (const auto& attr : input.attributes)
         if (attr.first == "x1") {
             gradient.x1 = stod(attr.second);
+            size_t found = attr.second.find('%');
+            if (found != std::string::npos) {
+                gradient.x1 /= 100;
+            }
         }
         else if (attr.first == "y1") {
             gradient.y1 = stod(attr.second);
+            size_t found = attr.second.find('%');
+            if (found != std::string::npos) {
+                gradient.y1 /= 100;
+            }
         }
         else if (attr.first == "x2") {
             gradient.x2 = stod(attr.second);
+            size_t found = attr.second.find('%');
+            if (found != std::string::npos) {
+                gradient.x1 /= 100;
+            }
         }
         else if (attr.first == "y2") {
             gradient.y2 = stod(attr.second);
+            size_t found = attr.second.find('%');
+            if (found != std::string::npos) {
+                gradient.y2 /= 100;
+            }
         }
     }
     else if (gradient.typeGradient == "radialgradient" || gradient.typeGradient == "radialGradient") {
         for (const auto& attr : input.attributes)
             if (attr.first == "cx") {
                 gradient.cx = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.cx /= 100;
+                }
             }
             else if (attr.first == "cy") {
                 gradient.cy = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.cy /= 100;
+                }
             }
             else if (attr.first == "r") {
                 gradient.r = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.r /= 100;
+                }
             }
             else if (attr.first == "fx") {
                 gradient.fx = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.fx /= 100;
+                }
             }
             else if (attr.first == "fy") {
                 gradient.fy = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.fy /= 100;
+                }
             }
     }
 
