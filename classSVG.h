@@ -50,6 +50,7 @@ struct Stop {
 struct Gradient {
     string typeGradient = "";
     string id;
+    string xlink;
     double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
     double  cx = 0, cy = 0, r = 0, fx = 0, fy = 0;
     vector<Stop> stops;
