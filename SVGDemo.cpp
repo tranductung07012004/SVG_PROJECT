@@ -33,7 +33,7 @@ double viewBoxX = CW_USEDEFAULT, viewBoxY = CW_USEDEFAULT, viewBoxWidth = CW_USE
 //} viewBox_d2d1;
 D2D1_SVG_VIEWBOX viewBox;
 float rotate_angle = 0.0f;
-string filename = "svg-01.svg";
+string filename = "svg-203.svg";
 
 vector<SVGElement> elements; //= parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 
@@ -49,6 +49,15 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
         if (element.type == "defs") {
             for (const SVGElement& childElement : element.children)
             parseGradientSVG(Gradients, childElement);
+        }
+    }
+    for (const SVGElement& element : elements) {
+        if (element.type == "lineargradient" || element.type == "radialgradient") {
+            parseGradientSVG(Gradients, element);
+        }
+        if (element.type == "defs") {
+            for (const SVGElement& childElement : element.children)
+                parseGradientSVG(Gradients, childElement);
         }
     }
     printGradientSVG(Gradients);
