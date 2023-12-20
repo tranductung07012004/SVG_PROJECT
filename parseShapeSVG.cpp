@@ -126,7 +126,18 @@ void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
                 }
             }
     }
+    for (const auto& attr : input.attributes)
+    {
+        if (attr.first == "xlink:href")
+        {
+            gradient.xlink = "url(" + attr.second + ")";
+        }
 
+    }
+    for (const auto& gradientc : gradients) {
+        if (gradient.xlink == gradientc.id)
+            gradient.stops = gradientc.stops;
+    }
     for (const SVGElement& child : input.children) {
         if (child.type == "stop") {
             Stop stop;
@@ -188,8 +199,8 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, v
                 if (gradient.id == s) {
                     found = true;
                     cf = 1;
-                    fill = { 255,1,0 };
                     Gfill = gradient;
+                    fill = Gfill.stops[0].stopColor;
                     break;
                 }
             }
@@ -217,7 +228,7 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, v
                     found = true;
                     cs = 1;
                     Gstroke = gradient;
-                    stroke = { 255,0,0 };
+                    stroke = Gstroke.stops[0].stopColor;
                     break;
                 }
             }
