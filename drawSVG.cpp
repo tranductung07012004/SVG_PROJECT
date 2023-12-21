@@ -254,10 +254,11 @@ void PathSVG::drawSVG(Graphics& graphics) {
     PointF controlPoint;
     PointF control;
     GraphicsPath path;
+    GraphicsPath path1;
     char typeBefore = NULL;
     bool check = 1;
 
-    for ( auto& data : PathData) {
+    for (auto& data : PathData) {
         if (data.typePointPath == 'M') {
             if (data.points.size() == 1) {
                 if (data.points[0].Y != -FLT_MAX) {
@@ -758,9 +759,9 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 sweepAngle += 2 * (REAL)pi;
 
             // Vẽ đường cong elip
-            path.AddArc(sx2 - start.X, sy2 - 3 * start.Y, 2 * data.rx - 1/2 *start.X - 10, 2 * data.ry + start.Y, thetaStart * 180.0f / (REAL)pi, sweepAngle * 180.0f / (REAL)pi);
-            
-           
+            path.AddArc(sx2 - start.X, sy2 - 3 * start.Y, 2 * data.rx - 1 / 2 * start.X - 10, 2 * data.ry + start.Y, thetaStart * 180.0f / (REAL)pi, sweepAngle * 180.0f / (REAL)pi);
+
+
             start.X = data.x;
             start.Y = data.y;
             typeBefore = 'A';
@@ -815,20 +816,29 @@ void PathSVG::drawSVG(Graphics& graphics) {
             start.X = data.x;
             start.Y = data.y;
             typeBefore = 'a';
-            }
+        }
 
         else if (data.typePointPath == 'Z' || data.typePointPath == 'z') {
             start = start2;
             path.CloseFigure();
-          
+
         }
     }
-
+    /*PathGradientBrush pthGrBrush(&path);
+    LinearGradientBrush linGrBrush(
+        PointF(Gfill.x1, Gfill.y1),
+        PointF(Gfill.x2, Gfill.y2),
+        Color(Gfill.stops[0].stopOpacity * 255, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+        Color(Gfill.stops[1].stopOpacity * 255, Gfill.stops[1].stopColor.R, Gfill.stops[1].stopColor.G, Gfill.stops[1].stopColor.B);
+    )*/
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    /*if (hasGradientFill == 1) {
 
-    graphics.FillPath(&brush, &path);
+    }*/
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    Pen pen1(Color(0, 0, 0, 0));
     graphics.DrawPath(&pen, &path);
+    graphics.FillPath(&brush, &path);
 
     graphics.Restore(state);
 }
