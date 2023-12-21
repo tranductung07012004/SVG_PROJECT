@@ -51,13 +51,13 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
                 parseGradientSVG(Gradients, childElement);
         }
     }
-    for (const SVGElement& element : elements) {
+    for ( SVGElement& element : elements) {
         if (element.type == "lineargradient" || element.type == "radialgradient") {
-            parseGradientSVG(Gradients, element);
+            parseGradientSVG2(Gradients, element);
         }
         if (element.type == "defs") {
-            for (const SVGElement& childElement : element.children)
-                parseGradientSVG(Gradients, childElement);
+            for ( SVGElement& childElement : element.children)
+                parseGradientSVG2(Gradients, childElement);
         }
     }
     printGradientSVG(Gradients);
