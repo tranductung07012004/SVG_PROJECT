@@ -11,10 +11,6 @@
 #include <gdiplusheaders.h>
 #include <wingdi.h>
 #include <shellapi.h>
-#include <d2d1.h>
-#include <d2d1svg.h>
-#include <wincodec.h>
-#include <wincodecsdk.h>
 
 using namespace std;
 using namespace rapidxml;
@@ -24,16 +20,8 @@ using namespace Gdiplus;
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double viewBoxX = CW_USEDEFAULT, viewBoxY = CW_USEDEFAULT, viewBoxWidth = CW_USEDEFAULT, viewBoxHeight = CW_USEDEFAULT;
 
-//typedef struct viewBox_SVG {
-//    FLOAT x;
-//    FLOAT y;
-//    FLOAT width;
-//    FLOAT height;
-//
-//} viewBox_d2d1;
-D2D1_SVG_VIEWBOX viewBox;
 float rotate_angle = 0.0f;
-string filename = "svg-203.svg";
+string filename = "svg-05.svg";
 
 vector<SVGElement> elements; //= parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 
@@ -41,30 +29,11 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
 {
     Graphics graphics(hdc);
     vector<unique_ptr<ShapeSVG>> shapes;
-    vector<Gradient> Gradients;
-    for (const SVGElement& element : elements) {
-        if (element.type == "lineargradient" || element.type == "radialgradient") {
-            parseGradientSVG(Gradients, element);
-        }
-        if (element.type == "defs") {
-            for (const SVGElement& childElement : element.children)
-            parseGradientSVG(Gradients, childElement);
-        }
-    }
-    for (const SVGElement& element : elements) {
-        if (element.type == "lineargradient" || element.type == "radialgradient") {
-            parseGradientSVG(Gradients, element);
-        }
-        if (element.type == "defs") {
-            for (const SVGElement& childElement : element.children)
-                parseGradientSVG(Gradients, childElement);
-        }
-    }
-    printGradientSVG(Gradients);
+
     pointMinMax ptMM;
     for (const SVGElement& element : elements) {
         unique_ptr<ShapeSVG> shapeElement;
-        printSVGElement(element);
+
         if (element.type == "rect") {
             shapeElement = make_unique<RectSVG>();
         }
@@ -93,10 +62,9 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
             shapeElement = make_unique<GroupSVG>();
         }
         if (shapeElement) {
-            shapeElement->parseShapeSVG(element, 1, 0, Gradients);
+            shapeElement->parseShapeSVG(element, 1, 0);
             shapes.push_back(move(shapeElement));
             shapes.back()->getPointMINMAX(ptMM);
-
         }
     }
 
@@ -118,11 +86,28 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
 
     graphics.TranslateTransform(-p.X, -p.Y);
 
-    if (viewBoxX != CW_USEDEFAULT) {
-        graphics.ScaleTransform(static_cast<float>(ps.rcPaint.bottom) / viewBoxHeight, static_cast<float>(ps.rcPaint.bottom) / viewBoxHeight);
-        graphics.TranslateTransform(-viewBoxX, -viewBoxY);
-    }
+    //if (viewBoxX != CW_USEDEFAULT) {
+    //    graphics.ScaleTransform(static_cast<float>(ps.rcPaint.bottom) / viewBoxHeight, static_cast<float>(ps.rcPaint.bottom) / viewBoxHeight);
+    //    graphics.TranslateTransform(-viewBoxX, -viewBoxY);
+    //}
 
+    // this guy is for viewPort only
+    if (viewBoxX == CW_USEDEFAULT) {// which means there is only viewPort but no viewBox
+        Region viewBox(Rect(0, 0, width, height));
+        graphics.SetClip(&viewBox, CombineModeReplace);
+    }
+    // this is for viewBox only
+    else if (viewBoxX != CW_USEDEFAULT && width == CW_USEDEFAULT) {  // which means there is viewBox but no viewPort
+        //graphics.ScaleTransform(horizontal/ (viewBoxWidth* 1.0), vertical / (viewBoxHeight * 1.0));
+        graphics.ScaleTransform( width/ viewBoxWidth, height / viewBoxHeight);
+        //graphics.TranslateTransform(-viewBoxX, -viewBoxY);
+        //translateClip();
+    }
+    else { // which means there are viewPort and viewBox
+        graphics.ScaleTransform(width / viewBoxWidth, height / viewBoxHeight);
+        Region viewBox(Rect(viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight));
+        graphics.SetClip(&viewBox, CombineModeReplace);
+    }
     for (const auto& shape : shapes) {
         shape->drawSVG(graphics);
     }
@@ -139,13 +124,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
         filename = CmdLine;
     }
     elements = parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
-
-    viewBox.x = viewBoxX;
-    viewBox.y = viewBoxY;
-    viewBox.width = viewBoxWidth;
-    viewBox.height = viewBoxHeight;
-    ID2D1SvgElement* pRootElement;
-    //pRootElement->SetViewBox(viewBox);
     HWND                hWnd;
     MSG                 msg;
     WNDCLASS            wndClass;
@@ -165,8 +143,9 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
     wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     wndClass.lpszMenuName = NULL;
     wndClass.lpszClassName = TEXT("GettingStarted");
-
     RegisterClass(&wndClass);
+
+
     RECT desktop;
     const HWND hDesktop = GetDesktopWindow();
     GetWindowRect(hDesktop, &desktop);
