@@ -57,6 +57,7 @@ struct Gradient {
 };
 
 void parseStopSVG(vector<Stop>& stops, const SVGElement& input);
+void parseGradientSVG2(vector<Gradient>& gradients, SVGElement& input);
 void parseGradientSVG(vector<Gradient>& Gradient, const SVGElement& input);
 void printGradientSVG(const vector<Gradient>& gradients);
 class ShapeSVG {
@@ -274,6 +275,7 @@ struct PointPathSVG {
 
 class PathSVG : public ShapeSVG {
 private:
+    string d;
     vector<PointPathSVG> PathData;
 public:
     void parseShapeSVG(const SVGElement& element, bool cFill, bool cStroke, vector<Gradient>& Gradients) override;
