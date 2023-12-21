@@ -27,6 +27,7 @@ struct SVGElement {
     map<string, string> attributes;
     string textContent;
     vector<SVGElement> children;
+    bool parseYes = 0;
 };
 
 vector<SVGElement> parseSVG(const string& filename, double& width, double& height, double& minX, double& minY, double& maxX, double& maxY);
