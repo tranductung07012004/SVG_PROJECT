@@ -14,7 +14,7 @@ void printSVGElement(const SVGElement& element) {
     for (const auto& child : element.children) {
         printSVGElement(child);
     }
-    fop1 << "end Children" << endl<<endl;
+    fop1 << "end Children" << endl << endl;
 
 }
 
@@ -22,7 +22,7 @@ void parseStopSVG(vector<Stop>& stops, const SVGElement& input) {
     Stop stop;
     for (const auto& pair : input.attributes) {
         if (pair.first == "offset") {
-            
+
             stop.offset = stod(pair.second);
             size_t found = pair.second.find('%');
             if (found != std::string::npos) {
@@ -39,10 +39,9 @@ void parseStopSVG(vector<Stop>& stops, const SVGElement& input) {
     }
     stops.push_back(stop);
 }
-fstream fio("1.txt");
 void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
     // Check if the id already exists
-    const string id = "url(#"+ input.attributes.at("id") + ")";
+    const string id = "url(#" + input.attributes.at("id") + ")";
     auto existingGradient = std::find_if(gradients.begin(), gradients.end(),
         [&](const Gradient& g) { return g.id == id; });
 
@@ -53,40 +52,39 @@ void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
     Gradient gradient;
     gradient.id = id;
     string s = input.type;
-    
-    fio << s;
-    gradient.typeGradient =s;
+
+    gradient.typeGradient = s;
 
     if (gradient.typeGradient == "lineargradient" || gradient.typeGradient == "linearGradient") {
         for (const auto& attr : input.attributes)
-        if (attr.first == "x1") {
-            gradient.x1 = stod(attr.second);
-            size_t found = attr.second.find('%');
-            if (found != std::string::npos) {
-                gradient.x1 /= 100;
+            if (attr.first == "x1") {
+                gradient.x1 = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.x1 /= 100;
+                }
             }
-        }
-        else if (attr.first == "y1") {
-            gradient.y1 = stod(attr.second);
-            size_t found = attr.second.find('%');
-            if (found != std::string::npos) {
-                gradient.y1 /= 100;
+            else if (attr.first == "y1") {
+                gradient.y1 = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.y1 /= 100;
+                }
             }
-        }
-        else if (attr.first == "x2") {
-            gradient.x2 = stod(attr.second);
-            size_t found = attr.second.find('%');
-            if (found != std::string::npos) {
-                gradient.x1 /= 100;
+            else if (attr.first == "x2") {
+                gradient.x2 = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.x1 /= 100;
+                }
             }
-        }
-        else if (attr.first == "y2") {
-            gradient.y2 = stod(attr.second);
-            size_t found = attr.second.find('%');
-            if (found != std::string::npos) {
-                gradient.y2 /= 100;
+            else if (attr.first == "y2") {
+                gradient.y2 = stod(attr.second);
+                size_t found = attr.second.find('%');
+                if (found != std::string::npos) {
+                    gradient.y2 /= 100;
+                }
             }
-        }
     }
     else if (gradient.typeGradient == "radialgradient" || gradient.typeGradient == "radialGradient") {
         for (const auto& attr : input.attributes)
@@ -147,7 +145,41 @@ void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
 
     gradients.push_back(gradient);
 }
+void parseGradientSVG2(vector<Gradient>& gradients,  SVGElement& input) {
+    // Check if the id already exists
+    const string id = "url(#" + input.attributes.at("id") + ")";
+    Gradient gradient;
+    gradient.id = id;
+    string s = input.type;
 
+    gradient.typeGradient = s;
+
+    for (const auto& attr : input.attributes)
+    {
+        if (attr.first == "xlink:href")
+        {
+            gradient.xlink = "url(" + attr.second + ")";
+        }
+    }
+    for (const auto& gradientc : gradients) {
+        if (gradient.xlink == gradientc.id)
+            gradient.stops = gradientc.stops;
+    }
+    for (const SVGElement& child : input.children) {
+        if (child.type == "stop") {
+            Stop stop;
+            parseStopSVG(gradient.stops, child);
+        }
+    }
+    for ( auto& gradientc : gradients) {
+        if (gradient.id == gradientc.id && input.parseYes == 0) {
+            gradientc.stops = gradient.stops;
+            input.parseYes = 1;
+            break;
+        }
+            
+    }    
+}
 fstream fop("Text1.txt");
 void printGradientSVG(const vector<Gradient>& gradients) {
     for (const auto& gradient : gradients) {
@@ -159,7 +191,7 @@ void printGradientSVG(const vector<Gradient>& gradients) {
         }
         else if (gradient.typeGradient == "radialgradient" || gradient.typeGradient == "radialGradient") {
             fop << "cx: " << gradient.cx << ", cy: " << gradient.cy << endl;
-            fop << "r: " << gradient.r << ", fx: " << gradient.fx<< ", fy: " << gradient.fy << endl;
+            fop << "r: " << gradient.r << ", fx: " << gradient.fx << ", fy: " << gradient.fy << endl;
         }
         fop << "Stops:" << endl;
         for (const auto& stop : gradient.stops) {
@@ -182,12 +214,12 @@ bool isUrl(const std::string& str) {
     std::regex pattern("^url\\(#[^)]+\\)$");
     return std::regex_match(str, pattern);
 }
-void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, vector<Gradient>& Gradients)  {
+void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, vector<Gradient>& Gradients) {
     if (attribute == "fill") {
         string s = trim(data);
         string result;
         for (char c : s) {
-            if (c != '\n' || c != '\t' || c!=' ') {
+            if (c != '\n' || c != '\t' || c != ' ') {
                 result += c;
             }
         }
