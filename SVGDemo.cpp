@@ -123,13 +123,15 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
         graphics.SetClip(&viewBox, CombineModeReplace);
     }
     // this is for viewBox only
+        /*
     else if (viewBoxX != CW_USEDEFAULT && width == CW_USEDEFAULT) {  // which means there is viewBox but no viewPort
         //graphics.ScaleTransform(horizontal/ (viewBoxWidth* 1.0), vertical / (viewBoxHeight * 1.0));
         graphics.ScaleTransform(width / viewBoxWidth, height / viewBoxHeight);
         //graphics.TranslateTransform(-viewBoxX, -viewBoxY);
         //translateClip();
     }
-    else { // which means there are viewPort and viewBox
+    */
+    else if (viewBoxX != CW_USEDEFAULT && width != CW_USEDEFAULT) { // which means there are viewPort and viewBox
         graphics.ScaleTransform(width / viewBoxWidth, height / viewBoxHeight);
         Region viewBox(Rect(viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight));
         graphics.SetClip(&viewBox, CombineModeReplace);
