@@ -1,6 +1,56 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
+void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
+    double& rx, double& ry, double phi, bool large_arc_flag, bool sweep_flag,
+    double& cx, double& cy, double& theta1, double& theta2)
+{
+    double sin_phi = std::sin(phi);
+    double cos_phi = std::cos(phi);
+
+    double x1s, y1s;
+    {
+        
+        double dx2 = (x1 - x2) * 0.5;
+        double dy2 = (y1 - y2) * 0.5;
+
+        x1s = cos_phi * dx2 + sin_phi * dy2;
+        y1s = -sin_phi * dx2 + cos_phi * dy2;
+    }
+    double cxs, cys;
+    {
+
+        double rx2 = rx * rx;
+        double ry2 = ry * ry;
+        double x1s2 = x1s * x1s;
+        double y1s2 = y1s * y1s;
+        
+        double lambda = x1s2 / rx2 + y1s2 / ry2; 
+        if (lambda > 1)
+        {
+            double sqrt_lambda = std::sqrt(lambda);
+            rx *= sqrt_lambda;
+            ry *= sqrt_lambda;
+            rx2 = rx * rx;
+            ry2 = ry * ry;
+        }
+
+      
+        double coeff = std::sqrt(std::max<double>(0, (rx2 * ry2 - rx2 * y1s2 - ry2 * x1s2) / (rx2 * y1s2 + ry2 * x1s2)));
+        if (large_arc_flag == sweep_flag)
+            coeff = -coeff;
+        double rx_ry = rx / ry;
+        cxs = coeff * rx_ry * y1s;
+        cys = -coeff * x1s / rx_ry;
+    }
+    
+    cx = cxs * cos_phi - cys * sin_phi + (x1 + x2) * 0.5;
+    cy = cxs * sin_phi + cys * cos_phi + (y1 + y2) * 0.5;
+    theta1 = std::atan2((y1s - cys) / ry, (x1s - cxs) / rx);
+    theta2 = std::atan2((-y1s - cys) / ry, (-x1s - cxs) / rx);
+}
+
+
 void RectSVG::drawSVG(Graphics& graphics) {
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
@@ -256,12 +306,10 @@ void PathSVG::drawSVG(Graphics& graphics) {
     GraphicsPath path;
     GraphicsPath path1;
     GraphicsPath path2;
-    GraphicsPath path0;
     char typeBefore = NULL;
     bool check = 1;
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    PointF* point = new PointF[4];
     for (auto& data : PathData) {
         if (data.typePointPath == 'M') {
             if (data.points.size() == 1) {
@@ -771,190 +819,124 @@ void PathSVG::drawSVG(Graphics& graphics) {
         //    typeBefore = 'A';
         //}
 
+        //else if (data.typePointPath == 'A') {
+        //    REAL X = data.x;
+        //    REAL Y = data.y;
+        //    REAL angle = data.xAxisRotation * (REAL)pi / 180.0f;
+        //    REAL cosAngle = cos(angle);
+        //    REAL sinAngle = sin(angle);
+        //    REAL x1 = cosAngle * (start.X - data.x) / 2.0f + sinAngle * (start.Y - data.y) / 2.0f;
+        //    REAL y1 = -sinAngle * (start.X - data.x) / 2.0f + cosAngle * (start.Y - data.y) / 2.0f;
+
+        //    REAL rxSq = data.rx * data.rx;
+        //    REAL rySq = data.ry * data.ry;
+        //    REAL x1Sq = x1 * x1;
+        //    REAL y1Sq = y1 * y1;
+
+        //    // Tính toán các thông số của elip
+        //    REAL radiiCheck = x1Sq / rxSq + y1Sq / rySq;
+        //    if (radiiCheck > 1.0f)
+        //    {
+        //        data.rx *= sqrt(radiiCheck);
+        //        data.ry *= sqrt(radiiCheck);
+        //        rxSq = data.rx * data.rx;
+        //        rySq = data.ry * data.ry;
+        //    }
+
+        //    REAL denom = rxSq * y1Sq + rySq * x1Sq;
+        //    REAL sqrtDenom = sqrt((rxSq * rySq - denom) / denom);
+
+        //    REAL cx1 = sqrtDenom * data.rx * y1 / data.ry;
+        //    REAL cy1 = sqrtDenom * -data.ry * x1 / data.rx;
+
+        //    REAL sx2 = (start.X + data.x) / 2.0f + cosAngle * cx1 - sinAngle * cy1;
+        //    REAL sy2 = (start.Y + data.y) / 2.0f + sinAngle * cx1 + cosAngle * cy1;
+
+        //    REAL thetaStart = atan2((y1 - cy1) / data.ry, (x1 - cx1) / data.rx);
+        //    REAL thetaEnd = atan2((-y1 - cy1) / data.ry, (-x1 - cx1) / data.rx);
+
+        //    REAL sweepAngle = thetaEnd - thetaStart;
+        //    if (data.sweepFlag == 0 && sweepAngle > 0)
+        //        sweepAngle -= 2 * (REAL)pi;
+        //    else if (data.sweepFlag == 1 && sweepAngle < 0)
+        //        sweepAngle += 2 * (REAL)pi;
+
+        //    // Vẽ đường cong elip
+        //    REAL xStart = start.X - data.rx;
+        //    REAL yStart = start.Y - data.ry;
+        //    REAL xEnd = X - 1.5*data.rx;
+        //    REAL yEnd = Y - 1.2*data.ry;
+        //    path.AddEllipse(start.X, start.Y, 1.5* data.rx,1.5* data.ry);
+        //    path1.AddEllipse(xEnd, yEnd, 1.5*data.rx, 1.5*data.ry);
+        //    PointF* point = new PointF[4];
+        //    if (data.sweepFlag == 0) {
+        //        point[1] = { start.X - 10000, start.Y - 10000 };
+        //        point[2] = { X + 10000, Y + 10000 };
+        //        point[3] = { start.X - 10000, start.Y + Y };
+        //        point[4] = { start.X + X , Y + 10000 };
+        //        int count = 4;
+        //        path2.AddPolygon(point, count);
+        //    }
+        //    else {
+        //        point[1] = { start.X - 10000, start.Y - 10000 };
+        //        point[2] = { X + 10000, Y + 10000 };
+        //        point[3] = { start.X + X, start.Y - 10000 };
+        //        point[4] = { X + 10000 , start.Y + Y };
+        //        int count = 4;
+        //        path2.AddPolygon(point, count);
+        //    }
+
+        //    Region region1(&path);
+        //    Region region2(&path1);
+        //    Region region3(&path2);
+        //    region1.Intersect(&region3);
+        //    graphics.FillPath(&brush, &path1);
+
+        //    graphics.SetClip(&region1, CombineModeReplace);
+        //    //graphics.IntersectClip(&region1);
+        //    //graphics.FillRegion(&brush, &region1);
+        //    Rect rect1(-10000, -10000, 100000, 100000);
+        //    Region region4(rect1);
+        //    region4.Exclude(&region1);
+        //    graphics.SetClip(&region4, CombineModeIntersect);
+        //    
+        //    start.X = data.x;
+        //    start.Y = data.y;
+        //    typeBefore = 'A';
+        //    
+        //    }
+
         else if (data.typePointPath == 'A') {
-            REAL X = data.x;
-            REAL Y = data.y;
-            REAL angle = data.xAxisRotation * (REAL)pi / 180.0f;
-            REAL cosAngle = cos(angle);
-            REAL sinAngle = sin(angle);
-            REAL x1 = cosAngle * (start.X - data.x) / 2.0f + sinAngle * (start.Y - data.y) / 2.0f;
-            REAL y1 = -sinAngle * (start.X - data.x) / 2.0f + cosAngle * (start.Y - data.y) / 2.0f;
+            double cx, cy, theta1, theta2;
+            arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
+            theta1 = theta1 * (180.0f / pi);
+            theta2 = theta2 * (180.0f / pi);
 
-            REAL rxSq = data.rx * data.rx;
-            REAL rySq = data.ry * data.ry;
-            REAL x1Sq = x1 * x1;
-            REAL y1Sq = y1 * y1;
-
-            // Tính toán các thông số của elip
-            REAL radiiCheck = x1Sq / rxSq + y1Sq / rySq;
-            if (radiiCheck > 1.0f)
-            {
-                data.rx *= sqrt(radiiCheck);
-                data.ry *= sqrt(radiiCheck);
-                rxSq = data.rx * data.rx;
-                rySq = data.ry * data.ry;
-            }
-
-            REAL denom = rxSq * y1Sq + rySq * x1Sq;
-            REAL sqrtDenom = sqrt((rxSq * rySq - denom) / denom);
-
-            REAL cx1 = sqrtDenom * data.rx * y1 / data.ry;
-            REAL cy1 = sqrtDenom * -data.ry * x1 / data.rx;
-
-            REAL sx2 = (start.X + data.x) / 2.0f + cosAngle * cx1 - sinAngle * cy1;
-            REAL sy2 = (start.Y + data.y) / 2.0f + sinAngle * cx1 + cosAngle * cy1;
-
-            REAL thetaStart = atan2((y1 - cy1) / data.ry, (x1 - cx1) / data.rx);
-            REAL thetaEnd = atan2((-y1 - cy1) / data.ry, (-x1 - cx1) / data.rx);
-
-            REAL sweepAngle = thetaEnd - thetaStart;
-            if (data.sweepFlag == 0 && sweepAngle > 0)
-                sweepAngle -= 2 * (REAL)pi;
-            else if (data.sweepFlag == 1 && sweepAngle < 0)
-                sweepAngle += 2 * (REAL)pi;
-
-            // Vẽ đường cong elip
-            REAL xStart = start.X - data.rx;
-            REAL yStart = start.Y - data.ry;
-            REAL xEnd = X - 1.5 * data.rx;
-            REAL yEnd = Y - 1.2 * data.ry;
-            path0.AddEllipse(start.X, start.Y, 1.5 * data.rx, 1.5 * data.ry);
-            path1.AddEllipse(200, 200, 1.5 * data.rx, 1.5 * data.ry);
             
-            if (data.sweepFlag == 0) {
-                point[0] = { start.X - 10000, start.Y - 10000 };
-                point[1] = { X + 10000, Y + 10000 };
-                point[2] = { start.X - 10000, start.Y + Y };
-                point[3] = { start.X + X , Y + 10000 };
-                int count = 4;
-                path2.AddPolygon(point, count);
-            }
-            else {
-                point[0] = { start.X - 10000, start.Y - 10000 };
-                point[1] = { X + 10000, Y + 10000 };
-                point[2] = { start.X + X, start.Y - 10000 };
-                point[3] = { X + 10000 , start.Y + Y };
-                int count = 4;
-                path2.AddPolygon(point, count);
-            }
+            RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
-            Region region1(&path0);
-            Region region2(&path1);
-            Region region3(&path2);
-            //Region region5(&path);
-            
-            region1.Intersect(&region3);
-            //graphics.FillPath(&brush, &path1);
-            
-            //graphics.IntersectClip(&region1);
-            Region* region4 = region1.Clone();
-            //graphics.SetClip(&region3);
-            graphics.FillRegion(&brush, &region1);
-          
-            
-            
-            //graphics.FillRegion(&brush, region4);
-            //region4.Exclude(&region1);
-            //graphics.SetClip(region4, CombineModeIntersect);
-           // graphics.ExcludeClip(&region5);
-            
-            
-
+            // Vẽ đoạn cung
+            path.AddArc(bounds, theta1, theta2 - theta1);
             start.X = data.x;
             start.Y = data.y;
             typeBefore = 'A';
-
         }
 
         else if (data.typePointPath == 'a') {
             data.x += start.X;
             data.y += start.Y;
-            REAL angle = data.xAxisRotation * (REAL)pi / 180.0f;
-            REAL cosAngle = cos(angle);
-            REAL sinAngle = sin(angle);
-            REAL x1 = cosAngle * (start.X - data.x) / 2.0f + sinAngle * (start.Y - data.y) / 2.0f;
-            REAL y1 = -sinAngle * (start.X - data.x) / 2.0f + cosAngle * (start.Y - data.y) / 2.0f;
+            data.rx += start.X;
+            data.ry += start.Y;
+            double cx, cy, theta1, theta2;
+            arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
+            theta1 = theta1 * (180.0f / pi);
+            theta2 = theta2 * (180.0f / pi);
 
-            REAL rxSq = data.rx * data.rx;
-            REAL rySq = data.ry * data.ry;
-            REAL x1Sq = x1 * x1;
-            REAL y1Sq = y1 * y1;
-
-            // Tính toán các thông số của elip
-            REAL radiiCheck = x1Sq / rxSq + y1Sq / rySq;
-            if (radiiCheck > 1.0f)
-            {
-                data.rx *= sqrt(radiiCheck);
-                data.ry *= sqrt(radiiCheck);
-                rxSq = data.rx * data.rx;
-                rySq = data.ry * data.ry;
-            }
-
-            REAL denom = rxSq * y1Sq + rySq * x1Sq;
-            REAL sqrtDenom = sqrt((rxSq * rySq - denom) / denom);
-
-            REAL cx1 = sqrtDenom * data.rx * y1 / data.ry;
-            REAL cy1 = sqrtDenom * -data.ry * x1 / data.rx;
-
-            REAL sx2 = (start.X + data.x) / 2.0f + cosAngle * cx1 - sinAngle * cy1;
-            REAL sy2 = (start.Y + data.y) / 2.0f + sinAngle * cx1 + cosAngle * cy1;
-
-            REAL thetaStart = atan2((y1 - cy1) / data.ry, (x1 - cx1) / data.rx);
-            REAL thetaEnd = atan2((-y1 - cy1) / data.ry, (-x1 - cx1) / data.rx);
-
-            REAL sweepAngle = thetaEnd - thetaStart;
-            if (data.sweepFlag == 0 && sweepAngle > 0)
-                sweepAngle -= 2 * (REAL)pi;
-            else if (data.sweepFlag == 1 && sweepAngle < 0)
-                sweepAngle += 2 * (REAL)pi;
-
-            REAL X = data.x;
-            REAL Y = data.y;
-            REAL xStart = start.X - data.rx;
-            REAL yStart = start.Y - data.ry;
-            REAL xEnd = X - 1.5 * data.rx;
-            REAL yEnd = Y - 1.2 * data.ry;
-            path0.AddEllipse(start.X, start.Y, 1.5 * data.rx, 1.5 * data.ry);
-            path1.AddEllipse(200, 200, 1.5 * data.rx, 1.5 * data.ry);
             
-            if (data.sweepFlag == 0) {
-                point[0] = { start.X - 10000, start.Y - 10000 };
-                point[1] = { X + 10000, Y + 10000 };
-                point[2] = { start.X - 10000, start.Y + Y };
-                point[3] = { start.X + X , Y + 10000 };
-                int count = 4;
-                path2.AddPolygon(point, count);
-            }
-            else {
-                point[0] = { start.X - 10000, start.Y - 10000 };
-                point[1] = { X + 10000, Y + 10000 };
-                point[2] = { start.X + X, start.Y - 10000 };
-                point[3] = { X + 10000 , start.Y + Y };
-                int count = 4;
-                path2.AddPolygon(point, count);
-            }
+            RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
-            Region region1(&path0);
-            Region region2(&path1);
-            Region region3(&path2);
-            //Region region5(&path);
-
-            region1.Intersect(&region3);
-            //graphics.FillPath(&brush, &path1);
-
-            //graphics.IntersectClip(&region1);
-            Region* region4 = region1.Clone();
-            //graphics.SetClip(&region3);
-            graphics.FillRegion(&brush, &region1);
-
-
-            //graphics.FillRegion(&brush, region4);
-            //region4.Exclude(&region1);
-            //graphics.SetClip(region4, CombineModeIntersect);
-           // graphics.ExcludeClip(&region5);
-
-
-
+            // Vẽ đoạn cung
+            path.AddArc(bounds, theta1, theta2 - theta1);
             start.X = data.x;
             start.Y = data.y;
             typeBefore = 'a';
@@ -965,7 +947,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             path.CloseFigure();
 
         }
-
+        
     }
     /*PathGradientBrush pthGrBrush(&path);
     LinearGradientBrush linGrBrush(
@@ -974,19 +956,17 @@ void PathSVG::drawSVG(Graphics& graphics) {
         Color(Gfill.stops[0].stopOpacity * 255, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
         Color(Gfill.stops[1].stopOpacity * 255, Gfill.stops[1].stopColor.R, Gfill.stops[1].stopColor.G, Gfill.stops[1].stopColor.B);
     )*/
-
+    
     /*if (hasGradientFill == 1) {
 
     }*/
-
+    
     Pen pen1(Color(0, 0, 0, 0));
     graphics.DrawPath(&pen, &path);
     graphics.FillPath(&brush, &path);
     //graphics.DrawPath(&pen, &path1);
     //graphics.FillPath(&brush, &path1);
-    delete[] point;
     graphics.Restore(state);
-    
 }
 
 void GroupSVG::drawSVG(Graphics& graphics) {
