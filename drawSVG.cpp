@@ -255,9 +255,13 @@ void PathSVG::drawSVG(Graphics& graphics) {
     PointF control;
     GraphicsPath path;
     GraphicsPath path1;
+    GraphicsPath path2;
+    GraphicsPath path0;
     char typeBefore = NULL;
     bool check = 1;
-
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    PointF* point = new PointF[4];
     for (auto& data : PathData) {
         if (data.typePointPath == 'M') {
             if (data.points.size() == 1) {
@@ -718,7 +722,58 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
+        //else if (data.typePointPath == 'A') {
+        //    REAL angle = data.xAxisRotation * (REAL)pi / 180.0f;
+        //    REAL cosAngle = cos(angle);
+        //    REAL sinAngle = sin(angle);
+        //    REAL x1 = cosAngle * (start.X - data.x) / 2.0f + sinAngle * (start.Y - data.y) / 2.0f;
+        //    REAL y1 = -sinAngle * (start.X - data.x) / 2.0f + cosAngle * (start.Y - data.y) / 2.0f;
+
+        //    REAL rxSq = data.rx * data.rx;
+        //    REAL rySq = data.ry * data.ry;
+        //    REAL x1Sq = x1 * x1;
+        //    REAL y1Sq = y1 * y1;
+
+        //    // Tính toán các thông số của elip
+        //    REAL radiiCheck = x1Sq / rxSq + y1Sq / rySq;
+        //    if (radiiCheck > 1.0f)
+        //    {
+        //        data.rx *= sqrt(radiiCheck);
+        //        data.ry *= sqrt(radiiCheck);
+        //        rxSq = data.rx * data.rx;
+        //        rySq = data.ry * data.ry;
+        //    }
+
+        //    REAL denom = rxSq * y1Sq + rySq * x1Sq;
+        //    REAL sqrtDenom = sqrt((rxSq * rySq - denom) / denom);
+
+        //    REAL cx1 = sqrtDenom * data.rx * y1 / data.ry;
+        //    REAL cy1 = sqrtDenom * -data.ry * x1 / data.rx;
+
+        //    REAL sx2 = (start.X + data.x) / 2.0f + cosAngle * cx1 - sinAngle * cy1;
+        //    REAL sy2 = (start.Y + data.y) / 2.0f + sinAngle * cx1 + cosAngle * cy1;
+
+        //    REAL thetaStart = atan2((y1 - cy1) / data.ry, (x1 - cx1) / data.rx);
+        //    REAL thetaEnd = atan2((-y1 - cy1) / data.ry, (-x1 - cx1) / data.rx);
+
+        //    REAL sweepAngle = thetaEnd - thetaStart;
+        //    if (data.sweepFlag == 0 && sweepAngle > 0)
+        //        sweepAngle -= 2 * (REAL)pi;
+        //    else if (data.sweepFlag == 1 && sweepAngle < 0)
+        //        sweepAngle += 2 * (REAL)pi;
+
+        //    // Vẽ đường cong elip
+        //    path.AddArc(sx2 - start.X, sy2 - 3 * start.Y, 2 * data.rx - 1 / 2 * start.X - 10, 2 * data.ry + start.Y, thetaStart * 180.0f / (REAL)pi, sweepAngle * 180.0f / (REAL)pi);
+
+
+        //    start.X = data.x;
+        //    start.Y = data.y;
+        //    typeBefore = 'A';
+        //}
+
         else if (data.typePointPath == 'A') {
+            REAL X = data.x;
+            REAL Y = data.y;
             REAL angle = data.xAxisRotation * (REAL)pi / 180.0f;
             REAL cosAngle = cos(angle);
             REAL sinAngle = sin(angle);
@@ -759,12 +814,56 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 sweepAngle += 2 * (REAL)pi;
 
             // Vẽ đường cong elip
-            path.AddArc(sx2 - start.X, sy2 - 3 * start.Y, 2 * data.rx - 1 / 2 * start.X - 10, 2 * data.ry + start.Y, thetaStart * 180.0f / (REAL)pi, sweepAngle * 180.0f / (REAL)pi);
+            REAL xStart = start.X - data.rx;
+            REAL yStart = start.Y - data.ry;
+            REAL xEnd = X - 1.5 * data.rx;
+            REAL yEnd = Y - 1.2 * data.ry;
+            path0.AddEllipse(start.X, start.Y, 1.5 * data.rx, 1.5 * data.ry);
+            path1.AddEllipse(200, 200, 1.5 * data.rx, 1.5 * data.ry);
+            
+            if (data.sweepFlag == 0) {
+                point[0] = { start.X - 10000, start.Y - 10000 };
+                point[1] = { X + 10000, Y + 10000 };
+                point[2] = { start.X - 10000, start.Y + Y };
+                point[3] = { start.X + X , Y + 10000 };
+                int count = 4;
+                path2.AddPolygon(point, count);
+            }
+            else {
+                point[0] = { start.X - 10000, start.Y - 10000 };
+                point[1] = { X + 10000, Y + 10000 };
+                point[2] = { start.X + X, start.Y - 10000 };
+                point[3] = { X + 10000 , start.Y + Y };
+                int count = 4;
+                path2.AddPolygon(point, count);
+            }
 
+            Region region1(&path0);
+            Region region2(&path1);
+            Region region3(&path2);
+            //Region region5(&path);
+            
+            region1.Intersect(&region3);
+            //graphics.FillPath(&brush, &path1);
+            
+            //graphics.IntersectClip(&region1);
+            Region* region4 = region1.Clone();
+            //graphics.SetClip(&region3);
+            graphics.FillRegion(&brush, &region1);
+          
+            
+            
+            //graphics.FillRegion(&brush, region4);
+            //region4.Exclude(&region1);
+            //graphics.SetClip(region4, CombineModeIntersect);
+           // graphics.ExcludeClip(&region5);
+            
+            
 
             start.X = data.x;
             start.Y = data.y;
             typeBefore = 'A';
+
         }
 
         else if (data.typePointPath == 'a') {
@@ -809,8 +908,51 @@ void PathSVG::drawSVG(Graphics& graphics) {
             else if (data.sweepFlag == 1 && sweepAngle < 0)
                 sweepAngle += 2 * (REAL)pi;
 
-            // Vẽ đường cong elip
-            path.AddArc(sx2 - start.X, sy2 - 3 * start.Y, 2 * data.rx - 1 / 2 * start.X - 10, 2 * data.ry + start.Y, thetaStart * 180.0f / (REAL)pi, sweepAngle * 180.0f / (REAL)pi);
+            REAL X = data.x;
+            REAL Y = data.y;
+            REAL xStart = start.X - data.rx;
+            REAL yStart = start.Y - data.ry;
+            REAL xEnd = X - 1.5 * data.rx;
+            REAL yEnd = Y - 1.2 * data.ry;
+            path0.AddEllipse(start.X, start.Y, 1.5 * data.rx, 1.5 * data.ry);
+            path1.AddEllipse(200, 200, 1.5 * data.rx, 1.5 * data.ry);
+            
+            if (data.sweepFlag == 0) {
+                point[0] = { start.X - 10000, start.Y - 10000 };
+                point[1] = { X + 10000, Y + 10000 };
+                point[2] = { start.X - 10000, start.Y + Y };
+                point[3] = { start.X + X , Y + 10000 };
+                int count = 4;
+                path2.AddPolygon(point, count);
+            }
+            else {
+                point[0] = { start.X - 10000, start.Y - 10000 };
+                point[1] = { X + 10000, Y + 10000 };
+                point[2] = { start.X + X, start.Y - 10000 };
+                point[3] = { X + 10000 , start.Y + Y };
+                int count = 4;
+                path2.AddPolygon(point, count);
+            }
+
+            Region region1(&path0);
+            Region region2(&path1);
+            Region region3(&path2);
+            //Region region5(&path);
+
+            region1.Intersect(&region3);
+            //graphics.FillPath(&brush, &path1);
+
+            //graphics.IntersectClip(&region1);
+            Region* region4 = region1.Clone();
+            //graphics.SetClip(&region3);
+            graphics.FillRegion(&brush, &region1);
+
+
+            //graphics.FillRegion(&brush, region4);
+            //region4.Exclude(&region1);
+            //graphics.SetClip(region4, CombineModeIntersect);
+           // graphics.ExcludeClip(&region5);
+
 
 
             start.X = data.x;
@@ -823,6 +965,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             path.CloseFigure();
 
         }
+
     }
     /*PathGradientBrush pthGrBrush(&path);
     LinearGradientBrush linGrBrush(
@@ -831,16 +974,19 @@ void PathSVG::drawSVG(Graphics& graphics) {
         Color(Gfill.stops[0].stopOpacity * 255, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
         Color(Gfill.stops[1].stopOpacity * 255, Gfill.stops[1].stopColor.R, Gfill.stops[1].stopColor.G, Gfill.stops[1].stopColor.B);
     )*/
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+
     /*if (hasGradientFill == 1) {
 
     }*/
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+
     Pen pen1(Color(0, 0, 0, 0));
     graphics.DrawPath(&pen, &path);
     graphics.FillPath(&brush, &path);
-
+    //graphics.DrawPath(&pen, &path1);
+    //graphics.FillPath(&brush, &path1);
+    delete[] point;
     graphics.Restore(state);
+    
 }
 
 void GroupSVG::drawSVG(Graphics& graphics) {
