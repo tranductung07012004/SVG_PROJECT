@@ -82,7 +82,7 @@ void PathSVG::getPointMINMAX(pointMinMax& pMM) {
                 if (pMM.pointMax.X < point.X) pMM.pointMax.X = point.X;
                 if (pMM.pointMax.Y < point.Y) pMM.pointMax.Y = point.Y;
                 p.X = point.X;
-                p.Y = point.X;
+                p.Y = point.Y;
             }
         }
         else if (pointPath.typePointPath > 'a' && pointPath.typePointPath < 'z') {
