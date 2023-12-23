@@ -33,7 +33,7 @@ double viewBoxX = CW_USEDEFAULT, viewBoxY = CW_USEDEFAULT, viewBoxWidth = CW_USE
 //} viewBox_d2d1;
 D2D1_SVG_VIEWBOX viewBox;
 float rotate_angle = 0.0f;
-string filename = "svg-01.svg";
+string filename = "svg-203.svg";
 
 vector<SVGElement> elements; //= parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 
@@ -51,13 +51,19 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
                 parseGradientSVG(Gradients, childElement);
         }
     }
-    for ( SVGElement& element : elements) {
+    for (SVGElement& element : elements) {
         if (element.type == "lineargradient" || element.type == "radialgradient") {
             parseGradientSVG2(Gradients, element);
         }
         if (element.type == "defs") {
-            for ( SVGElement& childElement : element.children)
+            for (SVGElement& childElement : element.children)
                 parseGradientSVG2(Gradients, childElement);
+        }
+    }
+    Stop s;
+    for (auto& gradientc : Gradients) {
+        if (gradientc.stops.size() == 0) {
+            gradientc.stops.push_back(s);
         }
     }
     printGradientSVG(Gradients);
@@ -147,7 +153,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR CmdLine, INT iCmdShow)
 {
-    
+
     if (CmdLine && CmdLine[0] != '\0')
     {
         filename = CmdLine;
@@ -225,46 +231,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     static HBITMAP hBitmap = nullptr;
     PAINTSTRUCT ps;
     switch (message) {
-        case WM_COMMAND: {
-            switch (LOWORD(wParam)) {
-            case IDM_ABOUT: {
-                LPCWSTR content = L"A PRODUCT FROM TEAM1.CORP";
-                LPCWSTR exWindowName = L"ABOUT US";
-                MessageBox(hWnd, content, exWindowName, MB_OK | MB_ICONINFORMATION);
-                break;
-            }
-                case IDM_EXIT:
-                    SendMessage(hWnd, WM_CLOSE, 0, 0);
-                    break;
-                case ID_ZOOM_ZOOMIN:
-                    zoomFactor *= 1.5f;
-                    break;
-
-                case ID_ZOOM_ZOOMOUT:
-                    zoomFactor /= 1.5f;
-                    break;
-
-                case ID_ROTATE_ROTATERIGHT32775:
-                    rotate_angle += 5;
-                    if (rotate_angle > 360) {
-                        rotate_angle = 360;
-                    }
-                    break;
-
-                case ID_ROTATE_ROTATELEFT:
-                    rotate_angle -= 5;
-                    if (rotate_angle < 0) {
-                        rotate_angle = 0;
-                    }
-                    break;
-
-                default:
-                    return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-            InvalidateRect(hWnd, NULL, TRUE);
-            UpdateWindow(hWnd);
+    case WM_COMMAND: {
+        switch (LOWORD(wParam)) {
+        case IDM_ABOUT: {
+            LPCWSTR content = L"A PRODUCT FROM TEAM1.CORP";
+            LPCWSTR exWindowName = L"ABOUT US";
+            MessageBox(hWnd, content, exWindowName, MB_OK | MB_ICONINFORMATION);
             break;
         }
+        case IDM_EXIT:
+            SendMessage(hWnd, WM_CLOSE, 0, 0);
+            break;
+        case ID_ZOOM_ZOOMIN:
+            zoomFactor *= 1.5f;
+            break;
+
+        case ID_ZOOM_ZOOMOUT:
+            zoomFactor /= 1.5f;
+            break;
+
+        case ID_ROTATE_ROTATERIGHT32775:
+            rotate_angle += 5;
+            if (rotate_angle > 360) {
+                rotate_angle = 360;
+            }
+            break;
+
+        case ID_ROTATE_ROTATELEFT:
+            rotate_angle -= 5;
+            if (rotate_angle < 0) {
+                rotate_angle = 0;
+            }
+            break;
+
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
+        InvalidateRect(hWnd, NULL, TRUE);
+        UpdateWindow(hWnd);
+        break;
+    }
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
@@ -311,7 +317,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         // Redraw the window
         InvalidateRect(hWnd, NULL, TRUE);
         UpdateWindow(hWnd);
-    /*    RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);*/
+        /*    RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);*/
 
         break;
     }
