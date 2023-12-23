@@ -1,56 +1,6 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
-void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
-    double& rx, double& ry, double phi, bool large_arc_flag, bool sweep_flag,
-    double& cx, double& cy, double& theta1, double& theta2)
-{
-    double sin_phi = std::sin(phi);
-    double cos_phi = std::cos(phi);
-
-    double x1s, y1s;
-    {
-        
-        double dx2 = (x1 - x2) * 0.5;
-        double dy2 = (y1 - y2) * 0.5;
-
-        x1s = cos_phi * dx2 + sin_phi * dy2;
-        y1s = -sin_phi * dx2 + cos_phi * dy2;
-    }
-    double cxs, cys;
-    {
-
-        double rx2 = rx * rx;
-        double ry2 = ry * ry;
-        double x1s2 = x1s * x1s;
-        double y1s2 = y1s * y1s;
-        
-        double lambda = x1s2 / rx2 + y1s2 / ry2; 
-        if (lambda > 1)
-        {
-            double sqrt_lambda = std::sqrt(lambda);
-            rx *= sqrt_lambda;
-            ry *= sqrt_lambda;
-            rx2 = rx * rx;
-            ry2 = ry * ry;
-        }
-
-      
-        double coeff = std::sqrt(std::max<double>(0, (rx2 * ry2 - rx2 * y1s2 - ry2 * x1s2) / (rx2 * y1s2 + ry2 * x1s2)));
-        if (large_arc_flag == sweep_flag)
-            coeff = -coeff;
-        double rx_ry = rx / ry;
-        cxs = coeff * rx_ry * y1s;
-        cys = -coeff * x1s / rx_ry;
-    }
-    
-    cx = cxs * cos_phi - cys * sin_phi + (x1 + x2) * 0.5;
-    cy = cxs * sin_phi + cys * cos_phi + (y1 + y2) * 0.5;
-    theta1 = std::atan2((y1s - cys) / ry, (x1s - cxs) / rx);
-    theta2 = std::atan2((-y1s - cys) / ry, (-x1s - cxs) / rx);
-}
-
-
 void RectSVG::drawSVG(Graphics& graphics) {
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
@@ -65,10 +15,39 @@ void RectSVG::drawSVG(Graphics& graphics) {
         }
     }
     this->TranslateRectangle(graphics, dx, dy);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    graphics.FillRectangle(&brush, (int)p.X, (int)p.Y, width, height);
-    graphics.DrawRectangle(&pen, (int)p.X, (int)p.Y, width, height);
+    if (hasGradientFill) {
+
+        LinearGradientBrush fillBrush(
+            Point(p.X,  p.Y),      // Start point
+            Point( (p.X + width),  (p.Y + height)),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B) 
+        );
+        graphics.FillRectangle(&fillBrush, (int)p.X, (int)p.Y, width, height);
+    }
+    
+    else {
+ 
+        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        graphics.FillRectangle(&brush, (int)p.X, (int)p.Y, width, height);
+    }
+    if (hasGradientStroke) {
+        LinearGradientBrush strokeBrush(
+            Point(p.X, p.Y),      // Start point
+            Point((p.X + width), (p.Y + height)),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+
+        Pen strokePen(&strokeBrush, strokeWidth);
+
+        graphics.DrawRectangle(&strokePen, (int)p.X, (int)p.Y, width, height);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawRectangle(&pen, (int)p.X, (int)p.Y, width, height);
+    }
 
     graphics.Restore(state);
 }
@@ -134,37 +113,88 @@ void TextSVG::drawSVG(Graphics& graphics) {
     GraphicsPath path;
     path.AddString(wstr.c_str(), -1, &fontFamily1, font1, fontSize, origin, &format);
 
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    graphics.FillPath(&brush, &path);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    graphics.DrawPath(&pen, &path);
+
+    if (hasGradientFill) {
+        LinearGradientBrush fillBrush(
+            Point(p.X, this->p.Y - this->fontSize),      // Start point
+            Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        graphics.FillPath(&fillBrush, &path);
+    }
+    else {
+        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        graphics.FillPath(&brush, &path);
+    }
+    if (hasGradientStroke) {
+        LinearGradientBrush strokeBrush(
+            Point(p.X, this->p.Y - this->fontSize),      // Start point
+            Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+
+        Pen strokePen(&strokeBrush, strokeWidth);
+
+        graphics.DrawPath(&strokePen, &path);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawPath(&pen, &path);
+    }
     graphics.Restore(state);
 }
 
-void CircleSVG::drawSVG(Graphics& graphics) {
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+void CircleSVG::drawSVG(Graphics & graphics) {
+        graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
-    GraphicsState state = graphics.Save();
-    for (const auto& tf : tfSVG) {
-        if (tf.transformType == "translate") {
-            this->TranslateCircle(graphics, tf.translateX, tf.translateY);
+        GraphicsState state = graphics.Save();
+        for (const auto& tf : tfSVG) {
+            if (tf.transformType == "translate") {
+                this->TranslateCircle(graphics, tf.translateX, tf.translateY);
+            }
+            else if (tf.transformType == "scale") {
+                this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
+            }
+            else if (tf.transformType == "rotate") {
+                this->RotateCircle(graphics, tf.rotateAngle);
+            }
         }
-        else if (tf.transformType == "scale") {
-            this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateCircle(graphics, tf.rotateAngle);
-        }
-    }
-    this->TranslateCircle(graphics, dx, dy);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    RectF ellipseRect(c.X - r, c.Y - r, r * 2, r * 2);
+        this->TranslateCircle(graphics, dx, dy);
+        RectF ellipseRect(c.X - r, c.Y - r, r * 2, r * 2);
 
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        if (hasGradientFill) {
+            LinearGradientBrush fillBrush(
+                Point(this->c.X - this->r, this->c.Y - this->r),      // Start point
+                Point(this->c.X + this->r, this->c.Y + this->r),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
+            graphics.FillEllipse(&fillBrush, ellipseRect);
+        }
+        else {
+            SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+            graphics.FillEllipse(&brush, ellipseRect);
+        }
+        if (hasGradientStroke) {
+            LinearGradientBrush strokeBrush(
+                Point(this->c.X - this->r, this->c.Y - this->r),      // Start point
+                Point(this->c.X + this->r, this->c.Y + this->r),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
+            Pen strokePen(&strokeBrush, strokeWidth);
 
-    graphics.FillEllipse(&brush, ellipseRect);
-    graphics.DrawEllipse(&pen, ellipseRect);
-    graphics.Restore(state);
+            graphics.DrawEllipse(&strokePen, ellipseRect);
+        }
+
+        else {
+            Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+            graphics.DrawEllipse(&pen, ellipseRect);
+        }
+        graphics.Restore(state);
 }
 
 void EllipseSVG::drawSVG(Graphics& graphics) {
@@ -186,12 +216,36 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
         }
     }
     this->TranslateEllipse(graphics, dx, dy);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     RectF ellipseRect(c.X - rx, c.Y - ry, rx * 2, ry * 2);
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    graphics.FillEllipse(&brush, ellipseRect);
-    graphics.DrawEllipse(&pen, ellipseRect);
+    if (hasGradientFill) {
+        LinearGradientBrush fillBrush(
+            Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
+            Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        graphics.FillEllipse(&fillBrush, ellipseRect);
+    }
+    else {
+        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        graphics.FillEllipse(&brush, ellipseRect);
+    }
+    if (hasGradientStroke) {
+        LinearGradientBrush strokeBrush(
+            Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
+            Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        Pen strokePen(&strokeBrush, strokeWidth);
 
+        graphics.DrawEllipse(&strokePen, ellipseRect);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawEllipse(&pen, ellipseRect);
+    }
     graphics.Restore(state);
 }
 
@@ -212,10 +266,27 @@ void LineSVG::drawSVG(Graphics& graphics) {
         }
     }
     this->TranslateLine(graphics, dx, dy);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     PointF point1((REAL)p1.X, (REAL)p1.Y);
     PointF point2(p2.X, p2.Y);
-    graphics.DrawLine(&pen, point1, point2);
+    pointMinMax p;
+    this->getPointMINMAX(p);
+    if (hasGradientStroke) {
+        LinearGradientBrush strokeBrush(
+            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+            Point(p.pointMax.X, p.pointMax.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        Pen strokePen(&strokeBrush, strokeWidth);
+
+        graphics.DrawLine(&strokePen, point1, point2);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawLine(&pen, point1, point2);
+    }
+
     graphics.Restore(state);
 }
 
@@ -242,10 +313,39 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
         }
     }
     this->TranslatePolygon(graphics, dx, dy);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    graphics.FillPolygon(&brush, point, size, FillModeWinding);
-    graphics.DrawPolygon(&pen, point, size);
+
+    pointMinMax p;
+    this->getPointMINMAX(p);
+    if (hasGradientFill) {
+        LinearGradientBrush fillBrush(
+            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+            Point(p.pointMax.X, p.pointMax.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        graphics.FillPolygon(&fillBrush, point, size, FillModeWinding);
+    }
+    else {
+        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        graphics.FillPolygon(&brush, point, size, FillModeWinding);
+    }
+    if (hasGradientStroke) {
+        LinearGradientBrush strokeBrush(
+            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+            Point(p.pointMax.X, p.pointMax.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        Pen strokePen(&strokeBrush, strokeWidth);
+
+        graphics.DrawPolygon(&strokePen, point, size);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawPolygon(&pen, point, size);
+    }
+
     delete[] point;
     graphics.Restore(state);
 }
@@ -273,14 +373,91 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     }
     this->TranslatePolyline(graphics, dx, dy);
 
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-    graphics.FillPolygon(&brush, point, size);
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    graphics.DrawLines(&pen, point, size);
+   
+    pointMinMax p;
+    this->getPointMINMAX(p);
+    if (hasGradientFill) {
+        LinearGradientBrush fillBrush(
+            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+            Point(p.pointMax.X, p.pointMax.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        graphics.FillPolygon(&fillBrush, point, size);
+    }
+    else {
+        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        graphics.FillPolygon(&brush, point, size);
+    }
+    if (hasGradientStroke) {
+        LinearGradientBrush strokeBrush(
+            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+            Point(p.pointMax.X, p.pointMax.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        Pen strokePen(&strokeBrush, strokeWidth);
 
+        graphics.DrawLines(&strokePen, point, size);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawLines(&pen, point, size);
+    }
     delete[] point;
     graphics.Restore(state);
 }
+
+void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
+    double& rx, double& ry, double phi, bool large_arc_flag, bool sweep_flag,
+    double& cx, double& cy, double& theta1, double& theta2)
+{
+    double sin_phi = std::sin(phi);
+    double cos_phi = std::cos(phi);
+
+    double x1s, y1s;
+    {
+
+        double dx2 = (x1 - x2) * 0.5;
+        double dy2 = (y1 - y2) * 0.5;
+
+        x1s = cos_phi * dx2 + sin_phi * dy2;
+        y1s = -sin_phi * dx2 + cos_phi * dy2;
+    }
+    double cxs, cys;
+    {
+
+        double rx2 = rx * rx;
+        double ry2 = ry * ry;
+        double x1s2 = x1s * x1s;
+        double y1s2 = y1s * y1s;
+
+        double lambda = x1s2 / rx2 + y1s2 / ry2;
+        if (lambda > 1)
+        {
+            double sqrt_lambda = std::sqrt(lambda);
+            rx *= sqrt_lambda;
+            ry *= sqrt_lambda;
+            rx2 = rx * rx;
+            ry2 = ry * ry;
+        }
+
+
+        double coeff = std::sqrt(std::max<double>(0, (rx2 * ry2 - rx2 * y1s2 - ry2 * x1s2) / (rx2 * y1s2 + ry2 * x1s2)));
+        if (large_arc_flag == sweep_flag)
+            coeff = -coeff;
+        double rx_ry = rx / ry;
+        cxs = coeff * rx_ry * y1s;
+        cys = -coeff * x1s / rx_ry;
+    }
+
+    cx = cxs * cos_phi - cys * sin_phi + (x1 + x2) * 0.5;
+    cy = cxs * sin_phi + cys * cos_phi + (y1 + y2) * 0.5;
+    theta1 = std::atan2((y1s - cys) / ry, (x1s - cxs) / rx);
+    theta2 = std::atan2((-y1s - cys) / ry, (-x1s - cxs) / rx);
+}
+
 
 void PathSVG::drawSVG(Graphics& graphics) {
     double pi = atan(1) * 4;
@@ -308,8 +485,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     GraphicsPath path2;
     char typeBefore = NULL;
     bool check = 1;
-    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+
     for (auto& data : PathData) {
         if (data.typePointPath == 'M') {
             if (data.points.size() == 1) {
@@ -912,7 +1088,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             theta1 = theta1 * (180.0f / pi);
             theta2 = theta2 * (180.0f / pi);
 
-            
+
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
             // Vẽ đoạn cung
@@ -932,7 +1108,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             theta1 = theta1 * (180.0f / pi);
             theta2 = theta2 * (180.0f / pi);
 
-            
+
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
             // Vẽ đoạn cung
@@ -947,25 +1123,40 @@ void PathSVG::drawSVG(Graphics& graphics) {
             path.CloseFigure();
 
         }
-        
-    }
-    /*PathGradientBrush pthGrBrush(&path);
-    LinearGradientBrush linGrBrush(
-        PointF(Gfill.x1, Gfill.y1),
-        PointF(Gfill.x2, Gfill.y2),
-        Color(Gfill.stops[0].stopOpacity * 255, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-        Color(Gfill.stops[1].stopOpacity * 255, Gfill.stops[1].stopColor.R, Gfill.stops[1].stopColor.G, Gfill.stops[1].stopColor.B);
-    )*/
-    
-    /*if (hasGradientFill == 1) {
 
-    }*/
-    
-    Pen pen1(Color(0, 0, 0, 0));
-    graphics.DrawPath(&pen, &path);
-    graphics.FillPath(&brush, &path);
-    //graphics.DrawPath(&pen, &path1);
-    //graphics.FillPath(&brush, &path1);
+    }
+    pointMinMax p;
+    this->getPointMINMAX(p);
+    if (hasGradientFill) {
+        LinearGradientBrush fillBrush(
+            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+            Point(p.pointMax.X, p.pointMax.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        graphics.FillPath(&fillBrush, &path);
+    }
+    else {
+        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        graphics.FillPath(&brush, &path);
+    }
+    if (hasGradientStroke) {
+        LinearGradientBrush strokeBrush(
+            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+            Point(p.pointMax.X, p.pointMax.Y),    // End point
+            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+        );
+        Pen strokePen(&strokeBrush, strokeWidth);
+
+        graphics.DrawPath(&strokePen, &path);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawPath(&pen, &path);
+    }
+
     graphics.Restore(state);
 }
 
