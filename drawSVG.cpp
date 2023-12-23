@@ -1192,6 +1192,8 @@ void PathSVG::drawSVG(Graphics& graphics) {
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
             // Vẽ đoạn cung
+            start_angle = start_angle * (180.0f / pi);
+            sweep_angle = sweep_angle * (180.0f / pi);
             path.AddArc(bounds, start_angle, sweep_angle);
             start.X = data.x;
             start.Y = data.y;
@@ -1218,6 +1220,8 @@ void PathSVG::drawSVG(Graphics& graphics) {
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
             // Vẽ đoạn cung
+            start_angle = start_angle * (180.0f / pi);
+            sweep_angle = sweep_angle * (180.0f / pi);
             path.AddArc(bounds, start_angle, sweep_angle);
             start.X = data.x;
             start.Y = data.y;
