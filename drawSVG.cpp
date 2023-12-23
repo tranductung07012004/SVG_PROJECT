@@ -1,414 +1,6 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
-void RectSVG::drawSVG(Graphics& graphics) {
-    GraphicsState state = graphics.Save();
-    for (const auto& tf : tfSVG) {
-        if (tf.transformType == "translate") {
-            this->TranslateRectangle(graphics, tf.translateX, tf.translateY);
-        }
-        else if (tf.transformType == "scale") {
-            this->ScaleRectangle(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateRect(graphics, tf.rotateAngle);
-        }
-    }
-    this->TranslateRectangle(graphics, dx, dy);
-    if (hasGradientFill) {
-
-        LinearGradientBrush fillBrush(
-            Point(p.X,  p.Y),      // Start point
-            Point( (p.X + width),  (p.Y + height)),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B) 
-        );
-        graphics.FillRectangle(&fillBrush, (int)p.X, (int)p.Y, width, height);
-    }
-    
-    else {
- 
-        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-        graphics.FillRectangle(&brush, (int)p.X, (int)p.Y, width, height);
-    }
-    if (hasGradientStroke) {
-        LinearGradientBrush strokeBrush(
-            Point(p.X, p.Y),      // Start point
-            Point((p.X + width), (p.Y + height)),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-
-        Pen strokePen(&strokeBrush, strokeWidth);
-
-        graphics.DrawRectangle(&strokePen, (int)p.X, (int)p.Y, width, height);
-    }
-
-    else {
-        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-        graphics.DrawRectangle(&pen, (int)p.X, (int)p.Y, width, height);
-    }
-
-    graphics.Restore(state);
-}
-
-void TextSVG::drawSVG(Graphics& graphics) {
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-    GraphicsState state = graphics.Save();
-    bool checkScale = 0;
-    for (const auto& tf : tfSVG) {
-        if (tf.transformType == "translate") {
-            this->TranslateText(graphics, tf.translateX, tf.translateY);
-        }
-        else if (tf.transformType == "scale") {
-            this->ScaleText(graphics, tf.scaleX, tf.scaleY);
-            checkScale = 1;
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateText(graphics, tf.rotateAngle);
-        }
-    }
-    this->TranslateText(graphics, dx, dy);
-    int font1 = FontStyleRegular;
-    if (fontWeight2 == "bold" || fontWeight2 == "Bold" || fontWeight1 >= 550) {
-        font1 = FontStyleBold;
-    }
-    else if (fontStyle == "italic" || fontStyle == "Italic") {
-        font1 = FontStyleItalic;
-    }
-    else if ((fontWeight2 == "bold" || fontWeight2 == "Bold" || fontWeight1 >= 550) && (fontStyle == "italic" || fontStyle == "Italic")) {
-        font1 = FontStyleBoldItalic;
-    }
-    else if (textDecoration == "underline" || textDecoration == "Underline") {
-        font1 = FontStyleUnderline;
-    }
-    else if (textDecoration == "line-through") {
-        font1 = FontStyleStrikeout;
-    }
-
-
-    unordered_map <string, float>offset_map = {
-        {"start", -0.15 * fontSize},
-        {"middle", 0.0f},
-        {"end", 0.15 * fontSize}
-    };
-    unordered_map <string, Gdiplus::StringAlignment> text_anchor_map = {
-     { "start", Gdiplus::StringAlignment::StringAlignmentNear },
-     { "middle", Gdiplus::StringAlignment::StringAlignmentCenter },
-     { "end", Gdiplus::StringAlignment::StringAlignmentFar }
-    };
-
-
-    wstring wstr = wstring(textContent.begin(), textContent.end());
-    std::wstring ws = wstring(fontFamily.begin(), fontFamily.end());
-    FontFamily fontFamily1(ws.c_str());
-
-
-    Gdiplus::PointF origin(p.X - 0.09 * fontSize, p.Y - 0.9 * fontSize);
-    origin.X += offset_map[textAnchor];
-    Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericDefault());
-    format.SetAlignment(text_anchor_map[textAnchor]);
-
-    GraphicsPath path;
-    path.AddString(wstr.c_str(), -1, &fontFamily1, font1, fontSize, origin, &format);
-
-
-    if (hasGradientFill) {
-        LinearGradientBrush fillBrush(
-            Point(p.X, this->p.Y - this->fontSize),      // Start point
-            Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        graphics.FillPath(&fillBrush, &path);
-    }
-    else {
-        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-        graphics.FillPath(&brush, &path);
-    }
-    if (hasGradientStroke) {
-        LinearGradientBrush strokeBrush(
-            Point(p.X, this->p.Y - this->fontSize),      // Start point
-            Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-
-        Pen strokePen(&strokeBrush, strokeWidth);
-
-        graphics.DrawPath(&strokePen, &path);
-    }
-
-    else {
-        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-        graphics.DrawPath(&pen, &path);
-    }
-    graphics.Restore(state);
-}
-
-void CircleSVG::drawSVG(Graphics & graphics) {
-        graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-
-        GraphicsState state = graphics.Save();
-        for (const auto& tf : tfSVG) {
-            if (tf.transformType == "translate") {
-                this->TranslateCircle(graphics, tf.translateX, tf.translateY);
-            }
-            else if (tf.transformType == "scale") {
-                this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
-            }
-            else if (tf.transformType == "rotate") {
-                this->RotateCircle(graphics, tf.rotateAngle);
-            }
-        }
-        this->TranslateCircle(graphics, dx, dy);
-        RectF ellipseRect(c.X - r, c.Y - r, r * 2, r * 2);
-
-        if (hasGradientFill) {
-            LinearGradientBrush fillBrush(
-                Point(this->c.X - this->r, this->c.Y - this->r),      // Start point
-                Point(this->c.X + this->r, this->c.Y + this->r),    // End point
-                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-            );
-            graphics.FillEllipse(&fillBrush, ellipseRect);
-        }
-        else {
-            SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-            graphics.FillEllipse(&brush, ellipseRect);
-        }
-        if (hasGradientStroke) {
-            LinearGradientBrush strokeBrush(
-                Point(this->c.X - this->r, this->c.Y - this->r),      // Start point
-                Point(this->c.X + this->r, this->c.Y + this->r),    // End point
-                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-            );
-            Pen strokePen(&strokeBrush, strokeWidth);
-
-            graphics.DrawEllipse(&strokePen, ellipseRect);
-        }
-
-        else {
-            Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-            graphics.DrawEllipse(&pen, ellipseRect);
-        }
-        graphics.Restore(state);
-}
-
-void EllipseSVG::drawSVG(Graphics& graphics) {
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
-    for (const auto& tf : tfSVG) {
-        if (tf.transformType == "translate") {
-
-            this->TranslateEllipse(graphics, tf.translateX, tf.translateY);
-
-        }
-        else if (tf.transformType == "scale") {
-
-            this->ScaleEllipse(graphics, tf.scaleX, tf.scaleY);
-
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateEllipse(graphics, tf.rotateAngle);
-        }
-    }
-    this->TranslateEllipse(graphics, dx, dy);
-    RectF ellipseRect(c.X - rx, c.Y - ry, rx * 2, ry * 2);
-    if (hasGradientFill) {
-        LinearGradientBrush fillBrush(
-            Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
-            Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        graphics.FillEllipse(&fillBrush, ellipseRect);
-    }
-    else {
-        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-        graphics.FillEllipse(&brush, ellipseRect);
-    }
-    if (hasGradientStroke) {
-        LinearGradientBrush strokeBrush(
-            Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
-            Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        Pen strokePen(&strokeBrush, strokeWidth);
-
-        graphics.DrawEllipse(&strokePen, ellipseRect);
-    }
-
-    else {
-        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-        graphics.DrawEllipse(&pen, ellipseRect);
-    }
-    graphics.Restore(state);
-}
-
-void LineSVG::drawSVG(Graphics& graphics) {
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
-    for (const auto& tf : tfSVG) {
-        if (tf.transformType == "translate") {
-
-            this->TranslateLine(graphics, tf.translateX, tf.translateY);
-
-        }
-        else if (tf.transformType == "scale") {
-            this->ScaleLine(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotateLine(graphics, tf.rotateAngle);
-        }
-    }
-    this->TranslateLine(graphics, dx, dy);
-    PointF point1((REAL)p1.X, (REAL)p1.Y);
-    PointF point2(p2.X, p2.Y);
-    pointMinMax p;
-    this->getPointMINMAX(p);
-    if (hasGradientStroke) {
-        LinearGradientBrush strokeBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        Pen strokePen(&strokeBrush, strokeWidth);
-
-        graphics.DrawLine(&strokePen, point1, point2);
-    }
-
-    else {
-        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-        graphics.DrawLine(&pen, point1, point2);
-    }
-
-    graphics.Restore(state);
-}
-
-void PolygonSVG::drawSVG(Graphics& graphics) {
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
-    int size = points.size();
-    PointF* point = new PointF[size];
-
-    for (int i = 0; i < size; i++) {
-        point[i].X = points[i].X;
-        point[i].Y = points[i].Y;
-    }
-    for (const auto& tf : tfSVG) {
-        if (tf.transformType == "translate") {
-
-            this->TranslatePolygon(graphics, tf.translateX, tf.translateY);
-        }
-        else  if (tf.transformType == "scale") {
-            this->ScalePolygon(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotatePolygon(graphics, tf.rotateAngle);
-        }
-    }
-    this->TranslatePolygon(graphics, dx, dy);
-
-    pointMinMax p;
-    this->getPointMINMAX(p);
-    if (hasGradientFill) {
-        LinearGradientBrush fillBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        graphics.FillPolygon(&fillBrush, point, size, FillModeWinding);
-    }
-    else {
-        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-        graphics.FillPolygon(&brush, point, size, FillModeWinding);
-    }
-    if (hasGradientStroke) {
-        LinearGradientBrush strokeBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        Pen strokePen(&strokeBrush, strokeWidth);
-
-        graphics.DrawPolygon(&strokePen, point, size);
-    }
-
-    else {
-        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-        graphics.DrawPolygon(&pen, point, size);
-    }
-
-    delete[] point;
-    graphics.Restore(state);
-}
-
-void PolylineSVG::drawSVG(Graphics& graphics) {
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    GraphicsState state = graphics.Save();
-    int size = points.size();
-    PointF* point = new PointF[size];
-
-    for (int i = 0; i < size; i++) {
-        point[i].X = points[i].X;
-        point[i].Y = points[i].Y;
-    }
-    for (const auto& tf : tfSVG) {
-        if (tf.transformType == "translate") {
-            this->TranslatePolyline(graphics, tf.translateX, tf.translateY);
-        }
-        if (tf.transformType == "scale") {
-            this->ScalePolyline(graphics, tf.scaleX, tf.scaleY);
-        }
-        else if (tf.transformType == "rotate") {
-            this->RotatePolyline(graphics, tf.rotateAngle);
-        }
-    }
-    this->TranslatePolyline(graphics, dx, dy);
-
-   
-    pointMinMax p;
-    this->getPointMINMAX(p);
-    if (hasGradientFill) {
-        LinearGradientBrush fillBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        graphics.FillPolygon(&fillBrush, point, size);
-    }
-    else {
-        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-        graphics.FillPolygon(&brush, point, size);
-    }
-    if (hasGradientStroke) {
-        LinearGradientBrush strokeBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        Pen strokePen(&strokeBrush, strokeWidth);
-
-        graphics.DrawLines(&strokePen, point, size);
-    }
-
-    else {
-        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-        graphics.DrawLines(&pen, point, size);
-    }
-    delete[] point;
-    graphics.Restore(state);
-}
-
 void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
     double& rx, double& ry, double phi, bool large_arc_flag, bool sweep_flag,
     double& cx, double& cy, double& theta1, double& theta2)
@@ -418,7 +10,7 @@ void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
 
     double x1s, y1s;
     {
-
+        
         double dx2 = (x1 - x2) * 0.5;
         double dy2 = (y1 - y2) * 0.5;
 
@@ -432,8 +24,8 @@ void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
         double ry2 = ry * ry;
         double x1s2 = x1s * x1s;
         double y1s2 = y1s * y1s;
-
-        double lambda = x1s2 / rx2 + y1s2 / ry2;
+        
+        double lambda = x1s2 / rx2 + y1s2 / ry2; 
         if (lambda > 1)
         {
             double sqrt_lambda = std::sqrt(lambda);
@@ -443,7 +35,7 @@ void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
             ry2 = ry * ry;
         }
 
-
+      
         double coeff = std::sqrt(std::max<double>(0, (rx2 * ry2 - rx2 * y1s2 - ry2 * x1s2) / (rx2 * y1s2 + ry2 * x1s2)));
         if (large_arc_flag == sweep_flag)
             coeff = -coeff;
@@ -451,7 +43,7 @@ void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
         cxs = coeff * rx_ry * y1s;
         cys = -coeff * x1s / rx_ry;
     }
-
+    
     cx = cxs * cos_phi - cys * sin_phi + (x1 + x2) * 0.5;
     cy = cxs * sin_phi + cys * cos_phi + (y1 + y2) * 0.5;
     theta1 = std::atan2((y1s - cys) / ry, (x1s - cxs) / rx);
@@ -553,6 +145,237 @@ void bezier_arc_svg(double x0, double y0, double rx, double ry, double angle, bo
 }
 
 
+void RectSVG::drawSVG(Graphics& graphics) {
+    GraphicsState state = graphics.Save();
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+            this->TranslateRectangle(graphics, tf.translateX, tf.translateY);
+        }
+        else if (tf.transformType == "scale") {
+            this->ScaleRectangle(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateRect(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslateRectangle(graphics, dx, dy);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillRectangle(&brush, (int)p.X, (int)p.Y, width, height);
+    graphics.DrawRectangle(&pen, (int)p.X, (int)p.Y, width, height);
+
+    graphics.Restore(state);
+}
+
+void TextSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
+    GraphicsState state = graphics.Save();
+    bool checkScale = 0;
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+            this->TranslateText(graphics, tf.translateX, tf.translateY);
+        }
+        else if (tf.transformType == "scale") {
+            this->ScaleText(graphics, tf.scaleX, tf.scaleY);
+            checkScale = 1;
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateText(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslateText(graphics, dx, dy);
+    int font1 = FontStyleRegular;
+    if (fontWeight2 == "bold" || fontWeight2 == "Bold" || fontWeight1 >= 550) {
+        font1 = FontStyleBold;
+    }
+    else if (fontStyle == "italic" || fontStyle == "Italic") {
+        font1 = FontStyleItalic;
+    }
+    else if ((fontWeight2 == "bold" || fontWeight2 == "Bold" || fontWeight1 >= 550) && (fontStyle == "italic" || fontStyle == "Italic")) {
+        font1 = FontStyleBoldItalic;
+    }
+    else if (textDecoration == "underline" || textDecoration == "Underline") {
+        font1 = FontStyleUnderline;
+    }
+    else if (textDecoration == "line-through") {
+        font1 = FontStyleStrikeout;
+    }
+
+
+    unordered_map <string, float>offset_map = {
+        {"start", -0.15 * fontSize},
+        {"middle", 0.0f},
+        {"end", 0.15 * fontSize}
+    };
+    unordered_map <string, Gdiplus::StringAlignment> text_anchor_map = {
+     { "start", Gdiplus::StringAlignment::StringAlignmentNear },
+     { "middle", Gdiplus::StringAlignment::StringAlignmentCenter },
+     { "end", Gdiplus::StringAlignment::StringAlignmentFar }
+    };
+
+
+    wstring wstr = wstring(textContent.begin(), textContent.end());
+    std::wstring ws = wstring(fontFamily.begin(), fontFamily.end());
+    FontFamily fontFamily1(ws.c_str());
+
+
+    Gdiplus::PointF origin(p.X - 0.09 * fontSize, p.Y - 0.9 * fontSize);
+    origin.X += offset_map[textAnchor];
+    Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericDefault());
+    format.SetAlignment(text_anchor_map[textAnchor]);
+
+    GraphicsPath path;
+    path.AddString(wstr.c_str(), -1, &fontFamily1, font1, fontSize, origin, &format);
+
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillPath(&brush, &path);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    graphics.DrawPath(&pen, &path);
+    graphics.Restore(state);
+}
+
+void CircleSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+
+    GraphicsState state = graphics.Save();
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+            this->TranslateCircle(graphics, tf.translateX, tf.translateY);
+        }
+        else if (tf.transformType == "scale") {
+            this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateCircle(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslateCircle(graphics, dx, dy);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    RectF ellipseRect(c.X - r, c.Y - r, r * 2, r * 2);
+
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+
+    graphics.FillEllipse(&brush, ellipseRect);
+    graphics.DrawEllipse(&pen, ellipseRect);
+    graphics.Restore(state);
+}
+
+void EllipseSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslateEllipse(graphics, tf.translateX, tf.translateY);
+
+        }
+        else if (tf.transformType == "scale") {
+
+            this->ScaleEllipse(graphics, tf.scaleX, tf.scaleY);
+
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateEllipse(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslateEllipse(graphics, dx, dy);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    RectF ellipseRect(c.X - rx, c.Y - ry, rx * 2, ry * 2);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillEllipse(&brush, ellipseRect);
+    graphics.DrawEllipse(&pen, ellipseRect);
+
+    graphics.Restore(state);
+}
+
+void LineSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslateLine(graphics, tf.translateX, tf.translateY);
+
+        }
+        else if (tf.transformType == "scale") {
+            this->ScaleLine(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateLine(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslateLine(graphics, dx, dy);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    PointF point1((REAL)p1.X, (REAL)p1.Y);
+    PointF point2(p2.X, p2.Y);
+    graphics.DrawLine(&pen, point1, point2);
+    graphics.Restore(state);
+}
+
+void PolygonSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
+    int size = points.size();
+    PointF* point = new PointF[size];
+
+    for (int i = 0; i < size; i++) {
+        point[i].X = points[i].X;
+        point[i].Y = points[i].Y;
+    }
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+
+            this->TranslatePolygon(graphics, tf.translateX, tf.translateY);
+        }
+        else  if (tf.transformType == "scale") {
+            this->ScalePolygon(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotatePolygon(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslatePolygon(graphics, dx, dy);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillPolygon(&brush, point, size, FillModeWinding);
+    graphics.DrawPolygon(&pen, point, size);
+    delete[] point;
+    graphics.Restore(state);
+}
+
+void PolylineSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    GraphicsState state = graphics.Save();
+    int size = points.size();
+    PointF* point = new PointF[size];
+
+    for (int i = 0; i < size; i++) {
+        point[i].X = points[i].X;
+        point[i].Y = points[i].Y;
+    }
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+            this->TranslatePolyline(graphics, tf.translateX, tf.translateY);
+        }
+        if (tf.transformType == "scale") {
+            this->ScalePolyline(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotatePolyline(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslatePolyline(graphics, dx, dy);
+
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+    graphics.FillPolygon(&brush, point, size);
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    graphics.DrawLines(&pen, point, size);
+
+    delete[] point;
+    graphics.Restore(state);
+}
+
 void PathSVG::drawSVG(Graphics& graphics) {
     double pi = atan(1) * 4;
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
@@ -579,7 +402,8 @@ void PathSVG::drawSVG(Graphics& graphics) {
     GraphicsPath path2;
     char typeBefore = NULL;
     bool check = 1;
-
+    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
     for (auto& data : PathData) {
         if (data.typePointPath == 'M') {
             if (data.points.size() == 1) {
@@ -1040,141 +864,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
 
-        //else if (data.typePointPath == 'A') {
-        //    REAL angle = data.xAxisRotation * (REAL)pi / 180.0f;
-        //    REAL cosAngle = cos(angle);
-        //    REAL sinAngle = sin(angle);
-        //    REAL x1 = cosAngle * (start.X - data.x) / 2.0f + sinAngle * (start.Y - data.y) / 2.0f;
-        //    REAL y1 = -sinAngle * (start.X - data.x) / 2.0f + cosAngle * (start.Y - data.y) / 2.0f;
-
-        //    REAL rxSq = data.rx * data.rx;
-        //    REAL rySq = data.ry * data.ry;
-        //    REAL x1Sq = x1 * x1;
-        //    REAL y1Sq = y1 * y1;
-
-        //    // Tính toán các thông số của elip
-        //    REAL radiiCheck = x1Sq / rxSq + y1Sq / rySq;
-        //    if (radiiCheck > 1.0f)
-        //    {
-        //        data.rx *= sqrt(radiiCheck);
-        //        data.ry *= sqrt(radiiCheck);
-        //        rxSq = data.rx * data.rx;
-        //        rySq = data.ry * data.ry;
-        //    }
-
-        //    REAL denom = rxSq * y1Sq + rySq * x1Sq;
-        //    REAL sqrtDenom = sqrt((rxSq * rySq - denom) / denom);
-
-        //    REAL cx1 = sqrtDenom * data.rx * y1 / data.ry;
-        //    REAL cy1 = sqrtDenom * -data.ry * x1 / data.rx;
-
-        //    REAL sx2 = (start.X + data.x) / 2.0f + cosAngle * cx1 - sinAngle * cy1;
-        //    REAL sy2 = (start.Y + data.y) / 2.0f + sinAngle * cx1 + cosAngle * cy1;
-
-        //    REAL thetaStart = atan2((y1 - cy1) / data.ry, (x1 - cx1) / data.rx);
-        //    REAL thetaEnd = atan2((-y1 - cy1) / data.ry, (-x1 - cx1) / data.rx);
-
-        //    REAL sweepAngle = thetaEnd - thetaStart;
-        //    if (data.sweepFlag == 0 && sweepAngle > 0)
-        //        sweepAngle -= 2 * (REAL)pi;
-        //    else if (data.sweepFlag == 1 && sweepAngle < 0)
-        //        sweepAngle += 2 * (REAL)pi;
-
-        //    // Vẽ đường cong elip
-        //    path.AddArc(sx2 - start.X, sy2 - 3 * start.Y, 2 * data.rx - 1 / 2 * start.X - 10, 2 * data.ry + start.Y, thetaStart * 180.0f / (REAL)pi, sweepAngle * 180.0f / (REAL)pi);
-
-
-        //    start.X = data.x;
-        //    start.Y = data.y;
-        //    typeBefore = 'A';
-        //}
-
-        //else if (data.typePointPath == 'A') {
-        //    REAL X = data.x;
-        //    REAL Y = data.y;
-        //    REAL angle = data.xAxisRotation * (REAL)pi / 180.0f;
-        //    REAL cosAngle = cos(angle);
-        //    REAL sinAngle = sin(angle);
-        //    REAL x1 = cosAngle * (start.X - data.x) / 2.0f + sinAngle * (start.Y - data.y) / 2.0f;
-        //    REAL y1 = -sinAngle * (start.X - data.x) / 2.0f + cosAngle * (start.Y - data.y) / 2.0f;
-
-        //    REAL rxSq = data.rx * data.rx;
-        //    REAL rySq = data.ry * data.ry;
-        //    REAL x1Sq = x1 * x1;
-        //    REAL y1Sq = y1 * y1;
-
-        //    // Tính toán các thông số của elip
-        //    REAL radiiCheck = x1Sq / rxSq + y1Sq / rySq;
-        //    if (radiiCheck > 1.0f)
-        //    {
-        //        data.rx *= sqrt(radiiCheck);
-        //        data.ry *= sqrt(radiiCheck);
-        //        rxSq = data.rx * data.rx;
-        //        rySq = data.ry * data.ry;
-        //    }
-
-        //    REAL denom = rxSq * y1Sq + rySq * x1Sq;
-        //    REAL sqrtDenom = sqrt((rxSq * rySq - denom) / denom);
-
-        //    REAL cx1 = sqrtDenom * data.rx * y1 / data.ry;
-        //    REAL cy1 = sqrtDenom * -data.ry * x1 / data.rx;
-
-        //    REAL sx2 = (start.X + data.x) / 2.0f + cosAngle * cx1 - sinAngle * cy1;
-        //    REAL sy2 = (start.Y + data.y) / 2.0f + sinAngle * cx1 + cosAngle * cy1;
-
-        //    REAL thetaStart = atan2((y1 - cy1) / data.ry, (x1 - cx1) / data.rx);
-        //    REAL thetaEnd = atan2((-y1 - cy1) / data.ry, (-x1 - cx1) / data.rx);
-
-        //    REAL sweepAngle = thetaEnd - thetaStart;
-        //    if (data.sweepFlag == 0 && sweepAngle > 0)
-        //        sweepAngle -= 2 * (REAL)pi;
-        //    else if (data.sweepFlag == 1 && sweepAngle < 0)
-        //        sweepAngle += 2 * (REAL)pi;
-
-        //    // Vẽ đường cong elip
-        //    REAL xStart = start.X - data.rx;
-        //    REAL yStart = start.Y - data.ry;
-        //    REAL xEnd = X - 1.5*data.rx;
-        //    REAL yEnd = Y - 1.2*data.ry;
-        //    path.AddEllipse(start.X, start.Y, 1.5* data.rx,1.5* data.ry);
-        //    path1.AddEllipse(xEnd, yEnd, 1.5*data.rx, 1.5*data.ry);
-        //    PointF* point = new PointF[4];
-        //    if (data.sweepFlag == 0) {
-        //        point[1] = { start.X - 10000, start.Y - 10000 };
-        //        point[2] = { X + 10000, Y + 10000 };
-        //        point[3] = { start.X - 10000, start.Y + Y };
-        //        point[4] = { start.X + X , Y + 10000 };
-        //        int count = 4;
-        //        path2.AddPolygon(point, count);
-        //    }
-        //    else {
-        //        point[1] = { start.X - 10000, start.Y - 10000 };
-        //        point[2] = { X + 10000, Y + 10000 };
-        //        point[3] = { start.X + X, start.Y - 10000 };
-        //        point[4] = { X + 10000 , start.Y + Y };
-        //        int count = 4;
-        //        path2.AddPolygon(point, count);
-        //    }
-
-        //    Region region1(&path);
-        //    Region region2(&path1);
-        //    Region region3(&path2);
-        //    region1.Intersect(&region3);
-        //    graphics.FillPath(&brush, &path1);
-
-        //    graphics.SetClip(&region1, CombineModeReplace);
-        //    //graphics.IntersectClip(&region1);
-        //    //graphics.FillRegion(&brush, &region1);
-        //    Rect rect1(-10000, -10000, 100000, 100000);
-        //    Region region4(rect1);
-        //    region4.Exclude(&region1);
-        //    graphics.SetClip(&region4, CombineModeIntersect);
-        //    
-        //    start.X = data.x;
-        //    start.Y = data.y;
-        //    typeBefore = 'A';
-        //    
-        //    }
+        
 
         else if (data.typePointPath == 'A') {
             //double cx, cy, theta1, theta2;
@@ -1233,8 +923,9 @@ void PathSVG::drawSVG(Graphics& graphics) {
             path.CloseFigure();
 
         }
-
+        
     }
+    
     pointMinMax p;
     this->getPointMINMAX(p);
     if (hasGradientFill) {
