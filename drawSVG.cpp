@@ -458,6 +458,100 @@ void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
     theta2 = std::atan2((-y1s - cys) / ry, (-x1s - cxs) / rx);
 }
 
+void bezier_arc_svg(double x0, double y0, double rx, double ry, double angle, bool large_arc_flag,
+    bool sweep_flag, double x2, double y2, double& start_angle, double& sweep_angle, double& cx, double& cy)
+{
+    double pi = atan(1) * 4;
+    bool m_radii_ok = true;
+
+    if (rx < 0.0) rx = -rx;
+    if (ry < 0.0) ry = -rx;
+
+    // Calculate the middle point between the current and the final points
+    
+    double dx2 = (x0 - x2) / 2.0;
+    double dy2 = (y0 - y2) / 2.0;
+
+    double cos_a = std::cos(angle);
+    double sin_a = std::sin(angle);
+
+    // Calculate (x1, y1)
+    
+    double x1 = cos_a * dx2 + sin_a * dy2;
+    double y1 = -sin_a * dx2 + cos_a * dy2;
+
+    // Ensure radii are large enough
+    
+    double prx = rx * rx;
+    double pry = ry * ry;
+    double px1 = x1 * x1;
+    double py1 = y1 * y1;
+
+    // Check that radii are large enough
+    
+    double radii_check = px1 / prx + py1 / pry;
+    if (radii_check > 1.0)
+    {
+        rx = std::sqrt(radii_check) * rx;
+        ry = std::sqrt(radii_check) * ry;
+        prx = rx * rx;
+        pry = ry * ry;
+        if (radii_check > 10.0) m_radii_ok = false;
+    }
+
+    // Calculate (cx1, cy1)
+    
+    double sign = (large_arc_flag == sweep_flag) ? -1.0 : 1.0;
+    double sq = (prx * pry - prx * py1 - pry * px1) / (prx * py1 + pry * px1);
+    double coef = sign * std::sqrt((sq < 0) ? 0 : sq);
+    double cx1 = coef * ((rx * y1) / ry);
+    double cy1 = coef * -((ry * x1) / rx);
+
+    // Calculate (cx, cy) from (cx1, cy1)
+    
+    double sx2 = (x0 + x2) / 2.0;
+    double sy2 = (y0 + y2) / 2.0;
+    cx = sx2 + (cos_a * cx1 - sin_a * cy1);
+    cy = sy2 + (sin_a * cx1 + cos_a * cy1);
+
+    // Calculate the start_angle (angle1) and the sweep_angle (dangle)
+    
+    double ux = (x1 - cx1) / rx;
+    double uy = (y1 - cy1) / ry;
+    double vx = (-x1 - cx1) / rx;
+    double vy = (-y1 - cy1) / ry;
+    double p, n;
+
+    // Calculate the angle start
+    
+    n = std::sqrt(ux * ux + uy * uy);
+    p = ux; // (1 * ux) + (0 * uy)
+    sign = (uy < 0) ? -1.0 : 1.0;
+    double v = p / n;
+    if (v < -1.0) v = -1.0;
+    if (v > 1.0) v = 1.0;
+    start_angle = sign * std::acos(v);
+
+    // Calculate the sweep angle
+    
+    n = std::sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+    p = ux * vx + uy * vy;
+    sign = (ux * vy - uy * vx < 0) ? -1.0 : 1.0;
+    v = p / n;
+    if (v < -1.0) v = -1.0;
+    if (v > 1.0) v = 1.0;
+    sweep_angle = sign * std::acos(v);
+    if (!sweep_flag && sweep_angle > 0)
+    {
+        sweep_angle -= pi * 2.0;
+    }
+    else
+        if (sweep_flag && sweep_angle < 0)
+        {
+            sweep_angle += pi * 2.0;
+        }
+}
+
 
 void PathSVG::drawSVG(Graphics& graphics) {
     double pi = atan(1) * 4;
@@ -1083,16 +1177,22 @@ void PathSVG::drawSVG(Graphics& graphics) {
         //    }
 
         else if (data.typePointPath == 'A') {
-            double cx, cy, theta1, theta2;
-            arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
-            theta1 = theta1 * (180.0f / pi);
-            theta2 = theta2 * (180.0f / pi);
+            //double cx, cy, theta1, theta2;
+            //arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
+            //theta1 = theta1 * (180.0f / pi);
+            //theta2 = theta2 * (180.0f / pi);
+            double cx, cy;
+            double start_angle, sweep_angle;
 
+            bezier_arc_svg(start.X, start.Y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag,
+                data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
 
+            
+            //RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
             // Vẽ đoạn cung
-            path.AddArc(bounds, theta1, theta2 - theta1);
+            path.AddArc(bounds, start_angle, sweep_angle);
             start.X = data.x;
             start.Y = data.y;
             typeBefore = 'A';
@@ -1101,18 +1201,24 @@ void PathSVG::drawSVG(Graphics& graphics) {
         else if (data.typePointPath == 'a') {
             data.x += start.X;
             data.y += start.Y;
-            data.rx += start.X;
-            data.ry += start.Y;
-            double cx, cy, theta1, theta2;
-            arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
-            theta1 = theta1 * (180.0f / pi);
-            theta2 = theta2 * (180.0f / pi);
+            
+            
+            //double cx, cy, theta1, theta2;
+            //arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
+            //theta1 = theta1 * (180.0f / pi);
+            //theta2 = theta2 * (180.0f / pi);
+            double cx, cy;
+            double start_angle, sweep_angle;
+
+            bezier_arc_svg(start.X, start.Y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag,
+                data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
 
 
+            //RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
             // Vẽ đoạn cung
-            path.AddArc(bounds, theta1, theta2 - theta1);
+            path.AddArc(bounds, start_angle, sweep_angle);
             start.X = data.x;
             start.Y = data.y;
             typeBefore = 'a';
