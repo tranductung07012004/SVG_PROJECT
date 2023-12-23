@@ -56,19 +56,46 @@ void PolylineSVG::getPointMINMAX(pointMinMax& pMM) {
 void PathSVG::getPointMINMAX(pointMinMax& pMM) {
     for (const auto& pointPath : PathData)
     {
-        if (pointPath.typePointPath != 'A')
+        Point p(0, 0);
+        if (pointPath.typePointPath == 'A')
+        {
+            if (pMM.pointMin.X > pointPath.x - pointPath.rx) pMM.pointMin.X = pointPath.x - pointPath.rx;
+            if (pMM.pointMin.Y > pointPath.y - pointPath.ry) pMM.pointMin.Y = pointPath.y - pointPath.ry;
+            if (pMM.pointMax.X < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.X = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
+            if (pMM.pointMax.Y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.Y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
+            p.X = pointPath.x;
+            p.Y = pointPath.y;
+        }
+        else if (pointPath.typePointPath == 'a')
+        {
+            if (pMM.pointMin.X > pointPath.x - pointPath.rx) pMM.pointMin.X = pointPath.x - pointPath.rx;
+            if (pMM.pointMin.Y > pointPath.y - pointPath.ry) pMM.pointMin.Y = pointPath.y - pointPath.ry;
+            if (pMM.pointMax.X < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.X = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
+            if (pMM.pointMax.Y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.Y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
+            p.X = p.X + pointPath.x;
+            p.Y = p.Y + pointPath.y;
+        }
+        else if(pointPath.typePointPath > 'A' && pointPath.typePointPath < 'Z'){
             for (const auto& point : pointPath.points) {
                 if (pMM.pointMin.X > point.X) pMM.pointMin.X = point.X;
                 if (pMM.pointMin.Y > point.Y) pMM.pointMin.Y = point.Y;
                 if (pMM.pointMax.X < point.X) pMM.pointMax.X = point.X;
                 if (pMM.pointMax.Y < point.Y) pMM.pointMax.Y = point.Y;
+                p.X = point.X;
+                p.Y = point.X;
             }
-        else {
-            if (pMM.pointMin.X > pointPath.x - pointPath.rx) pMM.pointMin.X = pointPath.x - pointPath.rx;
-            if (pMM.pointMin.Y > pointPath.y - pointPath.ry) pMM.pointMin.Y = pointPath.y - pointPath.ry;
-            if (pMM.pointMax.X < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.X = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
-            if (pMM.pointMax.Y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.Y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
         }
+        else if (pointPath.typePointPath > 'a' && pointPath.typePointPath < 'z') {
+            for (const auto& point : pointPath.points) {
+                if (pMM.pointMin.X > p.X + point.X) pMM.pointMin.X = p.X + point.X;
+                if (pMM.pointMin.Y > p.Y + point.Y) pMM.pointMin.Y = p.Y + point.Y;
+                if (pMM.pointMax.X < p.X + point.X) pMM.pointMax.X = p.X + point.X;
+                if (pMM.pointMax.Y < p.Y + point.Y) pMM.pointMax.Y = p.Y + point.Y;
+                p.X = p.X + point.X;
+                p.Y = p.Y + point.Y;
+            }
+        }
+
     }
 }
 void GroupSVG::getPointMINMAX(pointMinMax& ptMM) {
