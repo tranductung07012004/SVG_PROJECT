@@ -1,54 +1,6 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
-void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
-    double& rx, double& ry, double phi, bool large_arc_flag, bool sweep_flag,
-    double& cx, double& cy, double& theta1, double& theta2)
-{
-    double sin_phi = std::sin(phi);
-    double cos_phi = std::cos(phi);
-
-    double x1s, y1s;
-    {
-
-        double dx2 = (x1 - x2) * 0.5;
-        double dy2 = (y1 - y2) * 0.5;
-
-        x1s = cos_phi * dx2 + sin_phi * dy2;
-        y1s = -sin_phi * dx2 + cos_phi * dy2;
-    }
-    double cxs, cys;
-    {
-
-        double rx2 = rx * rx;
-        double ry2 = ry * ry;
-        double x1s2 = x1s * x1s;
-        double y1s2 = y1s * y1s;
-
-        double lambda = x1s2 / rx2 + y1s2 / ry2;
-        if (lambda > 1)
-        {
-            double sqrt_lambda = std::sqrt(lambda);
-            rx *= sqrt_lambda;
-            ry *= sqrt_lambda;
-            rx2 = rx * rx;
-            ry2 = ry * ry;
-        }
-
-
-        double coeff = std::sqrt(std::max<double>(0, (rx2 * ry2 - rx2 * y1s2 - ry2 * x1s2) / (rx2 * y1s2 + ry2 * x1s2)));
-        if (large_arc_flag == sweep_flag)
-            coeff = -coeff;
-        double rx_ry = rx / ry;
-        cxs = coeff * rx_ry * y1s;
-        cys = -coeff * x1s / rx_ry;
-    }
-
-    cx = cxs * cos_phi - cys * sin_phi + (x1 + x2) * 0.5;
-    cy = cxs * sin_phi + cys * cos_phi + (y1 + y2) * 0.5;
-    theta1 = std::atan2((y1s - cys) / ry, (x1s - cxs) / rx);
-    theta2 = std::atan2((-y1s - cys) / ry, (-x1s - cxs) / rx);
-}
 
 void bezier_arc_svg(double x0, double y0, double rx, double ry, double angle, bool large_arc_flag,
     bool sweep_flag, double x2, double y2, double& start_angle, double& sweep_angle, double& cx, double& cy)
