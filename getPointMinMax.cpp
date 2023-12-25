@@ -59,21 +59,26 @@ void PathSVG::getPointMINMAX(pointMinMax& pMM) {
         Point p(0, 0);
         if (pointPath.typePointPath == 'A')
         {
-            if (pMM.pointMin.X > pointPath.x - pointPath.rx) pMM.pointMin.X = pointPath.x - pointPath.rx;
-            if (pMM.pointMin.Y > pointPath.y - pointPath.ry) pMM.pointMin.Y = pointPath.y - pointPath.ry;
-            if (pMM.pointMax.X < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.X = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
-            if (pMM.pointMax.Y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.Y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
-            p.X = pointPath.x;
-            p.Y = pointPath.y;
+            for (const auto& Ash : pointPath.As) {
+                if (pMM.pointMin.X > Ash.x - Ash.rx) pMM.pointMin.X = Ash.x - Ash.rx;
+                if (pMM.pointMin.Y > Ash.y - Ash.ry) pMM.pointMin.Y = Ash.y - Ash.ry;
+                if (pMM.pointMax.X < (Ash.x - Ash.rx) + 2 * Ash.rx) pMM.pointMax.X = (Ash.x - Ash.rx) + 2 * Ash.rx;
+                if (pMM.pointMax.Y < (Ash.y - Ash.ry) + 2 * Ash.ry) pMM.pointMax.Y = (Ash.y - Ash.ry) + 2 * Ash.ry;
+                p.X = Ash.x;
+                p.Y = Ash.y;
+            }
         }
         else if (pointPath.typePointPath == 'a')
         {
-            if (pMM.pointMin.X > pointPath.x - pointPath.rx) pMM.pointMin.X = pointPath.x - pointPath.rx;
-            if (pMM.pointMin.Y > pointPath.y - pointPath.ry) pMM.pointMin.Y = pointPath.y - pointPath.ry;
-            if (pMM.pointMax.X < (pointPath.x - pointPath.rx) + 2 * pointPath.rx) pMM.pointMax.X = (pointPath.x - pointPath.rx) + 2 * pointPath.rx;
-            if (pMM.pointMax.Y < (pointPath.y - pointPath.ry) + 2 * pointPath.ry) pMM.pointMax.Y = (pointPath.y - pointPath.ry) + 2 * pointPath.ry;
-            p.X = p.X + pointPath.x;
-            p.Y = p.Y + pointPath.y;
+            for (const auto& Ash : pointPath.As)
+            {
+                if (pMM.pointMin.X > Ash.x - Ash.rx) pMM.pointMin.X = Ash.x - Ash.rx;
+                if (pMM.pointMin.Y > Ash.y - Ash.ry) pMM.pointMin.Y = Ash.y - Ash.ry;
+                if (pMM.pointMax.X < (Ash.x - Ash.rx) + 2 * Ash.rx) pMM.pointMax.X = (Ash.x - Ash.rx) + 2 * Ash.rx;
+                if (pMM.pointMax.Y < (Ash.y - Ash.ry) + 2 * Ash.ry) pMM.pointMax.Y = (Ash.y - Ash.ry) + 2 * Ash.ry;
+                p.X = p.X + Ash.x;
+                p.Y = p.Y + Ash.y;
+            }
         }
         else if(pointPath.typePointPath > 'A' && pointPath.typePointPath < 'Z'){
             for (const auto& point : pointPath.points) {
