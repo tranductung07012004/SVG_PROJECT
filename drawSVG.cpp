@@ -1218,47 +1218,48 @@ void PathSVG::drawSVG(Graphics& graphics) {
             if (data.points.size() % 2 != 0) break;
         }
         else if (data.typePointPath == 'A') {
-            double cx, cy;
-            double start_angle, sweep_angle;
+            for (const auto& Ash : data.As) {
+                double cx, cy;
+                double start_angle, sweep_angle;
 
-            bezier_arc_svg(start.X, start.Y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag,
-                data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
+                bezier_arc_svg(start.X, start.Y, Ash.rx, Ash.ry, Ash.xAxisRotation, Ash.largeArcFlag,
+                    Ash.sweepFlag, Ash.x, Ash.y, start_angle, sweep_angle, cx, cy);
 
 
-            RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
+                RectF bounds(cx - Ash.rx, cy - Ash.ry, 2 * Ash.rx, 2 * Ash.ry);
 
-            // Vẽ đoạn cung
-            start_angle = start_angle * (180.0f / pi);
-            sweep_angle = sweep_angle * (180.0f / pi);
-            path.AddArc(bounds, start_angle, sweep_angle);
-            start.X = data.x;
-            start.Y = data.y;
-            isCurve = 0;
+                // Vẽ đoạn cung
+                start_angle = start_angle * (180.0f / pi);
+                sweep_angle = sweep_angle * (180.0f / pi);
+                path.AddArc(bounds, start_angle, sweep_angle);
+                start.X = Ash.x;
+                start.Y = Ash.y;
+                isCurve = 0;
+            }
         }
 
         else if (data.typePointPath == 'a') {
-            data.x += start.X;
-            data.y += start.Y;
+            for ( auto& Ash : data.As) {
+                Ash.x += start.X;
+                Ash.y += start.Y;
+                double cx, cy;
+                double start_angle, sweep_angle;
+
+                bezier_arc_svg(start.X, start.Y, Ash.rx, Ash.ry, Ash.xAxisRotation, Ash.largeArcFlag,
+                    Ash.sweepFlag, Ash.x, Ash.y, start_angle, sweep_angle, cx, cy);
 
 
+                RectF bounds(cx - Ash.rx, cy - Ash.ry, 2 * Ash.rx, 2 * Ash.ry);
 
-            double cx, cy;
-            double start_angle, sweep_angle;
-
-            bezier_arc_svg(start.X, start.Y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag,
-                data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
-
-
-            RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
-            // Vẽ đoạn cung
-            start_angle = start_angle * (180.0f / pi);
-            sweep_angle = sweep_angle * (180.0f / pi);
-            path.AddArc(bounds, start_angle, sweep_angle);
-            start.X = data.x;
-            start.Y = data.y;
-            isCurve = 0;
+                // Vẽ đoạn cung
+                start_angle = start_angle * (180.0f / pi);
+                sweep_angle = sweep_angle * (180.0f / pi);
+                path.AddArc(bounds, start_angle, sweep_angle);
+                start.X = Ash.x;
+                start.Y = Ash.y;
+                isCurve = 0;
+            }
         }
-
         else if (data.typePointPath == 'Z' || data.typePointPath == 'z') {
             start = start2;
             path.CloseFigure();
