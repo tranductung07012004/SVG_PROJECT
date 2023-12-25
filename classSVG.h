@@ -35,7 +35,7 @@ void parsetransformSVG(vector<transformSVG>& transformations, const string& inpu
 struct RGBSVG {
     double R = 0, G = 0, B = 0;
 };
-RGBSVG colorSVG(const string& s, bool& c);
+RGBSVG colorSVG(const string& s, bool &c);
 
 struct pointMinMax {
     PointF pointMin = { DBL_MAX,DBL_MAX }, pointMax = { -DBL_MAX,-DBL_MAX };
@@ -61,10 +61,10 @@ void parseGradientSVG2(vector<Gradient>& gradients, SVGElement& input);
 void parseGradientSVG(vector<Gradient>& Gradient, const SVGElement& input);
 void printGradientSVG(const vector<Gradient>& gradients);
 class ShapeSVG {
-protected:
+protected:    
     RGBSVG fill;
     double fillOpacity = 1;
-    RGBSVG stroke;
+    RGBSVG stroke;    
     double strokeOpacity = 1;
     double strokeWidth = 1;
     vector<transformSVG> tfSVG;
@@ -264,13 +264,15 @@ public:
     void getPointMINMAX(pointMinMax&) override;
 };
 
-
-struct PointPathSVG {
-    char typePointPath;
-    vector<PointF> points;
+struct Apath {
     double rx = 0, ry = 0, x = 0, y = 0;
     double xAxisRotation = 0;
     bool largeArcFlag = 0, sweepFlag = 0;
+};
+struct PointPathSVG {
+    char typePointPath;
+    vector<PointF> points;
+    vector <Apath> As;
 };
 
 class PathSVG : public ShapeSVG {
@@ -324,8 +326,4 @@ public:
 };
 
 
-void arc_endpoint_to_center(double x1, double y1, double x2, double y2,
-    double& rx, double& ry, double phi, bool large_arc_flag, bool sweep_flag,
-    double& cx, double& cy, double& theta1, double& theta2);
-void bezier_arc_svg(double x0, double y0, double rx, double ry, double angle, bool large_arc_flag,
-    bool sweep_flag, double x2, double y2, double& start_angle, double& sweep_angle, double& cx, double& cy);
+
