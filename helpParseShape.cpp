@@ -172,7 +172,7 @@ string formatSVGPath(string& path) {
     return result;
 }
 
-fstream fi("Text.txt");
+fstream fi("1.txt");
 vector<PointPathSVG> parsePathData(const string& input) {
     string sPath = removeCommas(input);
     //transform(sPath.begin(), sPath.end(), sPath.begin(), ::towupper)
@@ -216,7 +216,10 @@ vector<PointPathSVG> parsePathData(const string& input) {
             }
         }
         else if (type == 'A' || type == 'a') {
-            iss >> path.rx >> path.ry >> path.xAxisRotation >> path.largeArcFlag >> path.sweepFlag >> path.x >> path.y;
+            Apath ash;
+            while (iss >> ash.rx >> ash.ry >> ash.xAxisRotation >> ash.largeArcFlag >> ash.sweepFlag >> ash.x >> ash.y) {
+                path.As.push_back(ash);
+            }
         }
 
         DataPath.push_back(path);
