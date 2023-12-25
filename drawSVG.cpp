@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "classSVG.h"
 
-
 void bezier_arc_svg(double x0, double y0, double rx, double ry, double angle, bool large_arc_flag,
     bool sweep_flag, double x2, double y2, double& start_angle, double& sweep_angle, double& cx, double& cy)
 {
@@ -504,6 +503,348 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 
+//void PathSVG::drawSVG(Graphics& graphics) {
+//    double pi = atan(1) * 4;
+//    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+//    GraphicsState state = graphics.Save();
+//    for (const auto& tf : tfSVG) {
+//        if (tf.transformType == "translate") {
+//            this->TranslatePath(graphics, tf.translateX, tf.translateY);
+//        }
+//        if (tf.transformType == "scale") {
+//            this->ScalePath(graphics, tf.scaleX, tf.scaleY);
+//        }
+//        else if (tf.transformType == "rotate") {
+//            this->RotatePath(graphics, tf.rotateAngle);
+//        }
+//    }
+//    this->TranslatePath(graphics, dx, dy);
+//    PointF start = { -FLT_MAX, -FLT_MAX };
+//    PointF start1 = start;
+//    PointF start2 = { 0,0 };
+//    PointF controlPoint;
+//    PointF control;
+//    GraphicsPath path;
+//    GraphicsPath path1;
+//    GraphicsPath path2;
+//    char typeBefore = NULL;
+//    bool check = 1;
+//    Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+//    SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+//    for (auto& data : PathData) {
+//        if (data.typePointPath == 'M') {
+//            if (data.points.size() == 1) {
+//                if (data.points[0].Y != -FLT_MAX) {
+//                    // Move to the starting point
+//                    path.StartFigure();
+//                    PointF startPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
+//                    start = startPoint;
+//                    start2 = startPoint;
+//                }
+//                else break;
+//            }
+//            else {
+//
+//                // Move to the starting point
+//                path.StartFigure();
+//                PointF startPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
+//                start = startPoint;
+//
+//                for (const auto& point : data.points) {
+//                    if (point.Y != -FLT_MAX) {
+//                        PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
+//                        path.AddLine(start, endPoint);
+//                        start = endPoint;
+//                        start2 = startPoint;
+//                    }
+//                    else {
+//                        check = 0;
+//                        break;
+//                    }
+//                }
+//                if (check == 0) break;
+//            }
+//        }
+//
+//        else if (data.typePointPath == 'L') {
+//            // Draw a line
+//            for (const auto& point : data.points) {
+//                if (point.Y != -FLT_MAX) {
+//                    PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
+//                    path.AddLine(start, endPoint);
+//                    start = endPoint;
+//                }
+//                else {
+//                    check = 0;
+//                    break;
+//                }
+//            }
+//            if (check == 0) break;
+//
+//        }
+//
+//        else if (data.typePointPath == 'C') {
+//            // Draw a Bezier curve
+//            if (data.points.size() < 3) break;
+//            if (data.points.size() == 3) {
+//                if (data.points[2].Y != -FLT_MAX) {
+//                    PointF controlPoint1(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
+//                    PointF controlPoint2(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
+//                    PointF endPoint(static_cast<float>(data.points[2].X), static_cast<float>(data.points[2].Y));
+//                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+//                    start = endPoint;
+//                    controlPoint = controlPoint2;
+//                    typeBefore = 'C';
+//                }
+//                else {
+//                    check = 0;
+//                    break;
+//                }
+//            }
+//            else if (data.points.size() > 3) {
+//                for (int i = 0; i < (data.points.size()) / 3 * 3; i += 3) {
+//                    if (data.points[i + 2].Y != -FLT_MAX) {
+//                        PointF controlPoint1(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
+//                        PointF controlPoint2(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
+//                        PointF endPoint(static_cast<float>(data.points[i + 2].X), static_cast<float>(data.points[i + 2].Y));
+//                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+//                        start = endPoint;
+//                        controlPoint = controlPoint2;
+//                        typeBefore = 'C';
+//                    }
+//                    else {
+//                        check = 0;
+//                        break;
+//                    }
+//                }
+//                if (check == 0) break;
+//                if (data.points.size() % 3 != 0) break;
+//            }
+//        }
+//
+//        else if (data.typePointPath == 'V') {
+//            for (const auto& point : data.points) {
+//
+//                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y));
+//                path.AddLine(start, endPoint);
+//                start = endPoint;
+//            }
+//        }
+//
+//
+//        else if (data.typePointPath == 'H') {
+//            for (const auto& point : data.points) {
+//                PointF endPoint(static_cast<float>(point.X), static_cast<float>(start.Y));
+//                path.AddLine(start, endPoint);
+//                start = endPoint;
+//            }
+//        }
+//
+//        else if (data.typePointPath == 'm') {
+//            if (start.X == start1.X && start.Y == start1.Y) {
+//                start = { 0,0 };
+//
+//            }
+//            if (data.points.size() == 1) {
+//                if (data.points[0].Y != -FLT_MAX) {
+//                    // Move to the starting point
+//                    path.StartFigure();
+//                    PointF startPoint(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
+//                    start = startPoint;
+//                    start2 = startPoint;
+//                }
+//                else break;
+//            }
+//            else {
+//                // Move to the starting point
+//                path.StartFigure();
+//                PointF startPoint(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
+//                start = startPoint;
+//
+//                for (int i = 1; i < data.points.size(); i++) {
+//                    if (data.points[i].Y != -FLT_MAX) {
+//                        PointF endPoint(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
+//                        path.AddLine(start, endPoint);
+//                        start = endPoint;
+//                        start2 = startPoint;
+//                    }
+//                    else {
+//                        check = 0;
+//                        break;
+//                    }
+//                }
+//                if (check == 0) break;
+//            }
+//        }
+//
+//        else if (data.typePointPath == 'l') {
+//            for (const auto& point : data.points) {
+//                if (point.Y != -FLT_MAX) {
+//                    PointF endPoint(static_cast<float>(point.X) + start.X, static_cast<float>(point.Y) + start.Y);
+//                    path.AddLine(start, endPoint);
+//                    start = endPoint;
+//                }
+//                else {
+//                    check = 0;
+//                    break;
+//                }
+//            }
+//            if (check == 0) break;
+//        }
+//
+//        else if (data.typePointPath == 'c') {
+//            if (data.points.size() < 3) break;
+//            if (data.points.size() == 3) {
+//                if (data.points[2].Y != -FLT_MAX) {
+//                    PointF controlPoint1(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
+//                    PointF controlPoint2(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
+//                    PointF endPoint(static_cast<float>(data.points[2].X) + start.X, static_cast<float>(data.points[2].Y) + start.Y);
+//                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+//                    start = endPoint;
+//                    controlPoint = controlPoint2;
+//                    typeBefore = 'c';
+//                }
+//                else break;
+//            }
+//            else if (data.points.size() > 3) {
+//                for (int i = 0; i < (data.points.size()) / 3 * 3; i += 3) {
+//                    if (data.points[i + 2].Y != -FLT_MAX) {
+//                        PointF controlPoint1(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
+//                        PointF controlPoint2(static_cast<float>(data.points[i + 1].X) + start.X, static_cast<float>(data.points[i + 1].Y) + start.Y);
+//                        PointF endPoint(static_cast<float>(data.points[i + 2].X) + start.X, static_cast<float>(data.points[i + 2].Y) + start.Y);
+//                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+//                        start = endPoint;
+//                        controlPoint = controlPoint2;
+//                        typeBefore = 'c';
+//                    }
+//                    else {
+//                        check = 0;
+//                        break;
+//                    }
+//                }
+//                if (check == 0) break;
+//                if (data.points.size() % 3 != 0) break;
+//            }
+//        }
+//        else if (data.typePointPath == 'v') {
+//            for (const auto& point : data.points) {
+//                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y) + start.Y);
+//                path.AddLine(start, endPoint);
+//                start = endPoint;
+//
+//            }
+//        }
+//        else if (data.typePointPath == 'h') {
+//            for (const auto& point : data.points) {
+//                PointF endPoint(static_cast<float>(point.X) + start.X, static_cast<float>(start.Y));
+//                path.AddLine(start, endPoint);
+//                start = endPoint;
+//
+//            }
+//        }
+//
+//       
+//       
+
+//
+//
+//
+//        else if (data.typePointPath == 'A') {
+//            //double cx, cy, theta1, theta2;
+//            //arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
+//            //theta1 = theta1 * (180.0f / pi);
+//            //theta2 = theta2 * (180.0f / pi);
+//            double cx, cy;
+//            double start_angle, sweep_angle;
+//
+//            bezier_arc_svg(start.X, start.Y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag,
+//                data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
+//
+//
+//            //RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
+//            RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
+//
+//            // Vẽ đoạn cung
+//            start_angle = start_angle * (180.0f / pi);
+//            sweep_angle = sweep_angle * (180.0f / pi);
+//            path.AddArc(bounds, start_angle, sweep_angle);
+//            start.X = data.x;
+//            start.Y = data.y;
+//            typeBefore = 'A';
+//        }
+//
+//        else if (data.typePointPath == 'a') {
+//            data.x += start.X;
+//            data.y += start.Y;
+//
+//
+//            //double cx, cy, theta1, theta2;
+//            //arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
+//            //theta1 = theta1 * (180.0f / pi);
+//            //theta2 = theta2 * (180.0f / pi);
+//            double cx, cy;
+//            double start_angle, sweep_angle;
+//
+//            bezier_arc_svg(start.X, start.Y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag,
+//                data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
+//
+//
+//            //RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
+//            RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
+//
+//            // Vẽ đoạn cung
+//            start_angle = start_angle * (180.0f / pi);
+//            sweep_angle = sweep_angle * (180.0f / pi);
+//            path.AddArc(bounds, start_angle, sweep_angle);
+//            start.X = data.x;
+//            start.Y = data.y;
+//            typeBefore = 'a';
+//        }
+//
+//        else if (data.typePointPath == 'Z' || data.typePointPath == 'z') {
+//            start = start2;
+//            path.CloseFigure();
+//
+//        }
+//
+//    }
+//
+//    pointMinMax p;
+//    this->getPointMINMAX(p);
+//    if (hasGradientFill) {
+//        LinearGradientBrush fillBrush(
+//            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+//            Point(p.pointMax.X, p.pointMax.Y),    // End point
+//            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+//            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+//        );
+//        graphics.FillPath(&fillBrush, &path);
+//    }
+//    else {
+//        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+//        graphics.FillPath(&brush, &path);
+//    }
+//    if (hasGradientStroke) {
+//        LinearGradientBrush strokeBrush(
+//            Point(p.pointMin.X, p.pointMin.Y),      // Start point
+//            Point(p.pointMax.X, p.pointMax.Y),    // End point
+//            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+//            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+//        );
+//        Pen strokePen(&strokeBrush, strokeWidth);
+//
+//        graphics.DrawPath(&strokePen, &path);
+//    }
+//
+//    else {
+//        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+//        graphics.DrawPath(&pen, &path);
+//    }
+//
+//    graphics.Restore(state);
+//}
+
+
 void PathSVG::drawSVG(Graphics& graphics) {
     double pi = atan(1) * 4;
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
@@ -529,6 +870,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     GraphicsPath path1;
     GraphicsPath path2;
     char typeBefore = NULL;
+    bool isCurve = 0;
     bool check = 1;
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
@@ -536,7 +878,6 @@ void PathSVG::drawSVG(Graphics& graphics) {
         if (data.typePointPath == 'M') {
             if (data.points.size() == 1) {
                 if (data.points[0].Y != -FLT_MAX) {
-                    // Move to the starting point
                     path.StartFigure();
                     PointF startPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                     start = startPoint;
@@ -545,8 +886,6 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 else break;
             }
             else {
-
-                // Move to the starting point
                 path.StartFigure();
                 PointF startPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                 start = startPoint;
@@ -565,82 +904,8 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 }
                 if (check == 0) break;
             }
+            isCurve = 0;
         }
-
-        else if (data.typePointPath == 'L') {
-            // Draw a line
-            for (const auto& point : data.points) {
-                if (point.Y != -FLT_MAX) {
-                    PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
-                    path.AddLine(start, endPoint);
-                    start = endPoint;
-                }
-                else {
-                    check = 0;
-                    break;
-                }
-            }
-            if (check == 0) break;
-
-        }
-
-        else if (data.typePointPath == 'C') {
-            // Draw a Bezier curve
-            if (data.points.size() < 3) break;
-            if (data.points.size() == 3) {
-                if (data.points[2].Y != -FLT_MAX) {
-                    PointF controlPoint1(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
-                    PointF controlPoint2(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
-                    PointF endPoint(static_cast<float>(data.points[2].X), static_cast<float>(data.points[2].Y));
-                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                    typeBefore = 'C';
-                }
-                else {
-                    check = 0;
-                    break;
-                }
-            }
-            else if (data.points.size() > 3) {
-                for (int i = 0; i < (data.points.size()) / 3 * 3; i += 3) {
-                    if (data.points[i + 2].Y != -FLT_MAX) {
-                        PointF controlPoint1(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
-                        PointF controlPoint2(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
-                        PointF endPoint(static_cast<float>(data.points[i + 2].X), static_cast<float>(data.points[i + 2].Y));
-                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                        start = endPoint;
-                        controlPoint = controlPoint2;
-                        typeBefore = 'C';
-                    }
-                    else {
-                        check = 0;
-                        break;
-                    }
-                }
-                if (check == 0) break;
-                if (data.points.size() % 3 != 0) break;
-            }
-        }
-
-        else if (data.typePointPath == 'V') {
-            for (const auto& point : data.points) {
-
-                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y));
-                path.AddLine(start, endPoint);
-                start = endPoint;
-            }
-        }
-
-
-        else if (data.typePointPath == 'H') {
-            for (const auto& point : data.points) {
-                PointF endPoint(static_cast<float>(point.X), static_cast<float>(start.Y));
-                path.AddLine(start, endPoint);
-                start = endPoint;
-            }
-        }
-
         else if (data.typePointPath == 'm') {
             if (start.X == start1.X && start.Y == start1.Y) {
                 start = { 0,0 };
@@ -676,8 +941,24 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 }
                 if (check == 0) break;
             }
+            isCurve = 0;
         }
-
+        else if (data.typePointPath == 'L') {
+            // Draw a line
+            for (const auto& point : data.points) {
+                if (point.Y != -FLT_MAX) {
+                    PointF endPoint(static_cast<float>(point.X), static_cast<float>(point.Y));
+                    path.AddLine(start, endPoint);
+                    start = endPoint;
+                }
+                else {
+                    check = 0;
+                    break;
+                }
+            }
+            if (check == 0) break;
+            isCurve = 0;
+        }
         else if (data.typePointPath == 'l') {
             for (const auto& point : data.points) {
                 if (point.Y != -FLT_MAX) {
@@ -691,8 +972,77 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 }
             }
             if (check == 0) break;
+            isCurve = 0;
         }
-
+        else if (data.typePointPath == 'H') {
+            for (const auto& point : data.points) {
+                PointF endPoint(static_cast<float>(point.X), static_cast<float>(start.Y));
+                path.AddLine(start, endPoint);
+                start = endPoint;
+            }
+            isCurve = 0;
+        }
+        else if (data.typePointPath == 'h') {
+            for (const auto& point : data.points) {
+                PointF endPoint(static_cast<float>(point.X) + start.X, static_cast<float>(start.Y));
+                path.AddLine(start, endPoint);
+                start = endPoint;
+            }
+            isCurve = 0;
+        }
+        else if (data.typePointPath == 'V') {
+            for (const auto& point : data.points) {
+                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y));
+                path.AddLine(start, endPoint);
+                start = endPoint;
+            }
+            isCurve = 0;
+        }
+        else if (data.typePointPath == 'v') {
+            for (const auto& point : data.points) {
+                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y) + start.Y);
+                path.AddLine(start, endPoint);
+                start = endPoint;
+            }
+            isCurve = 0;
+        }
+        else if (data.typePointPath == 'C') {
+            // Draw a Bezier curve
+            if (data.points.size() < 3) break;
+            if (data.points.size() == 3) {
+                if (data.points[2].Y != -FLT_MAX) {
+                    PointF controlPoint1(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
+                    PointF controlPoint2(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
+                    PointF endPoint(static_cast<float>(data.points[2].X), static_cast<float>(data.points[2].Y));
+                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                    start = endPoint;
+                    controlPoint = controlPoint2;
+                }
+                else {
+                    check = 0;
+                    break;
+                }
+            }
+            else if (data.points.size() > 3) {
+                for (int i = 0; i < (data.points.size()) / 3 * 3; i += 3) {
+                    if (data.points[i + 2].Y != -FLT_MAX) {
+                        PointF controlPoint1(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
+                        PointF controlPoint2(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
+                        PointF endPoint(static_cast<float>(data.points[i + 2].X), static_cast<float>(data.points[i + 2].Y));
+                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                        start = endPoint;
+                        controlPoint = controlPoint2;
+                    }
+                    else {
+                        check = 0;
+                        break;
+                    }
+                }
+                if (check == 0) break;
+                if (data.points.size() % 3 != 0) break;
+            }
+            isCurve = 1;
+        }
         else if (data.typePointPath == 'c') {
             if (data.points.size() < 3) break;
             if (data.points.size() == 3) {
@@ -703,7 +1053,6 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
-                    typeBefore = 'c';
                 }
                 else break;
             }
@@ -716,7 +1065,6 @@ void PathSVG::drawSVG(Graphics& graphics) {
                         path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                         start = endPoint;
                         controlPoint = controlPoint2;
-                        typeBefore = 'c';
                     }
                     else {
                         check = 0;
@@ -726,279 +1074,150 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 if (check == 0) break;
                 if (data.points.size() % 3 != 0) break;
             }
+            isCurve = 1;
         }
-        else if (data.typePointPath == 'v') {
-            for (const auto& point : data.points) {
-                PointF endPoint(static_cast<float>(start.X), static_cast<float>(point.Y) + start.Y);
-                path.AddLine(start, endPoint);
-                start = endPoint;
-
-            }
-        }
-        else if (data.typePointPath == 'h') {
-            for (const auto& point : data.points) {
-                PointF endPoint(static_cast<float>(point.X) + start.X, static_cast<float>(start.Y));
-                path.AddLine(start, endPoint);
-                start = endPoint;
-
-            }
-        }
-
         else if (data.typePointPath == 'S') {
             // Draw a smooth cubic Bezier curve
-            // C + S
-            if (data.points.size() >= 2) {
-                if (typeBefore == 'C' || typeBefore == 'c') {
+            if (data.points.size() < 2) break;
+            if (data.points.size() == 2) {
+                if (isCurve == 1) {
                     PointF controlPoint2(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                     PointF endPoint(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
                     PointF controlPoint1;
-                    controlPoint1.Y = controlPoint2.Y;
+                    controlPoint1.Y = start.Y * 2 - controlPoint.Y;
                     controlPoint1.X = start.X * 2 - controlPoint.X;
                     int count = path.GetPointCount();
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
+                    isCurve = 1;
                 }
-                // Q + S
-                else if (typeBefore == 'Q' || typeBefore == 'q') {
-                    PointF controlPoint2(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
-                    PointF endPoint(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
-                    PointF controlPoint1;
-                    controlPoint1.Y = controlPoint2.Y;
-                    controlPoint1.X = start.X * 2 - controlPoint.X;
-                    controlPoint2.Y = (endPoint.Y + controlPoint2.Y) / 2;
-                    controlPoint1.Y = (endPoint.Y + controlPoint1.Y) / 2;
-
-                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                    //path.AddLine(endPoint, controlPoint2);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                }
-
-                //T+S
-                else if (typeBefore == 'T' || typeBefore == 't') {
-                    PointF controlPoint2(static_cast<float>(data.points[0].X) + 10, static_cast<float>(data.points[0].Y) + 10);
-                    PointF endPoint(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
-                    PointF controlPoint1;
-                    controlPoint1.X = controlPoint2.X + 10;
-                    controlPoint1.Y = (endPoint.Y + controlPoint2.Y) / 2 + 8;
-
-                    path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                }
-
-                // S 
                 else {
                     PointF controlPoint2(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y) + 10);
                     PointF endPoint(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
                     PointF controlPoint1;
-                    controlPoint1.X = controlPoint2.X;
-                    controlPoint1.Y = (endPoint.Y + controlPoint2.Y) / 2 + 8;
+                    controlPoint1.X = start.X;
+                    controlPoint1.Y = start.Y;
 
-                    path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                }
-                typeBefore = 'S';
-            }
-        }
-        else if (data.typePointPath == 'Q') {
-            //Draw a quadratic Bezier curve
-            if (data.points.size() >= 2) {
-                PointF controlPoint2(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
-                PointF controlPoint1 = { (controlPoint2.X + start.X) / 2, (controlPoint2.Y + start.Y) / 2 };
-                PointF endPoint(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
-                PointF controlPoint3 = { controlPoint2.X ,(controlPoint2.Y * 4) };
-                path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                // path.AddLine(start, controlPoint1);
-                 //path.AddLine(endPoint, controlPoint2);
-
-                start = endPoint;
-                controlPoint = controlPoint2;
-                control = controlPoint1;
-                typeBefore = 'Q';
-            }
-        }
-        else if (data.typePointPath == 'T') {
-            // Draw a smooth quadratic Bezier curve
-
-            if (data.points.size() >= 1) {
-                // Q + T
-                if (typeBefore == 'Q' || typeBefore == 'q') {
-                    PointF endPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
-                    PointF controlPoint1;
-                    PointF controlPoint2;
-                    controlPoint1.X = start.X * 2 - controlPoint.X;
-                    controlPoint1.Y = start.Y * 2 - controlPoint.Y;
-                    controlPoint2.X = start.X * 2 - control.X;
-                    controlPoint2.Y = start.Y * 2 - control.Y;
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
-                    control = controlPoint1;
-                    //typeBefore = 'T';
+                    isCurve = 1;
                 }
-
-                else if (typeBefore == 'C' || typeBefore == 'c') {
-                    //wrong
-                    PointF endPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
-                    PointF controlPoint1;
-                    PointF controlPoint2;
-                    controlPoint1.X = start.X * 2 - controlPoint.X;
-                    controlPoint1.Y = start.Y * 2 - controlPoint.Y;
-                    controlPoint2.X = start.X * 2 - control.X;
-                    controlPoint2.Y = start.Y * 2 - control.Y;
-                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                    control = controlPoint1;
-                }
-
-                // T
-                else {
-                    PointF endPoint(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
-                    path.AddBezier(start, start, start, endPoint);
-                    start = endPoint;
-                    controlPoint = endPoint;
-                    control = endPoint;
-                    //typeBefore = 'T';
-                }
-                typeBefore = 'T';
+            }
+            else if (data.points.size() > 2) {
+                for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2)
+                    if (isCurve == 1) {
+                        PointF controlPoint2(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
+                        PointF endPoint(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
+                        PointF controlPoint1;
+                        controlPoint1.X = start.X * 2 - controlPoint.X;
+                        controlPoint1.Y = start.Y * 2 - controlPoint.Y;
+                        int count = path.GetPointCount();
+                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                        start = endPoint;
+                        controlPoint = controlPoint2;
+                        isCurve = 1;
+                    }
+                    else {
+                        PointF controlPoint2(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y) + 10);
+                        PointF endPoint(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
+                        PointF controlPoint1;
+                        controlPoint1.X = start.X;
+                        controlPoint1.Y = start.Y;
+                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                        start = endPoint;
+                        controlPoint = controlPoint2;
+                        isCurve = 1;
+                    }
+                if (data.points.size() % 2 != 0) break;
             }
         }
-
         else if (data.typePointPath == 's') {
             // Draw a smooth cubic Bezier curve
-            // C + S
-            if (data.points.size() >= 2) {
-                if (typeBefore == 'C' || typeBefore == 'c') {
+            if (data.points.size() < 2) break;
+            if (data.points.size() == 2) {
+                if (isCurve == 1) {
                     PointF controlPoint2(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
                     PointF endPoint(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
                     PointF controlPoint1;
-                    controlPoint1.Y = controlPoint2.Y;
+                    controlPoint1.Y = start.Y * 2 - controlPoint.Y;
                     controlPoint1.X = start.X * 2 - controlPoint.X;
                     int count = path.GetPointCount();
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
+                    isCurve = 1;
                 }
-                // Q + S
-                else if (typeBefore == 'Q' || typeBefore == 'q') {
+                else {
                     PointF controlPoint2(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
                     PointF endPoint(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
                     PointF controlPoint1;
-                    controlPoint1.Y = controlPoint2.Y;
-                    controlPoint1.X = start.X * 2 - controlPoint.X;
-                    controlPoint2.Y = (endPoint.Y + controlPoint2.Y) / 2;
-                    controlPoint1.Y = (endPoint.Y + controlPoint1.Y) / 2;
-
+                    controlPoint1.X = start.X;
+                    controlPoint1.Y = start.Y;
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                    //path.AddLine(endPoint, controlPoint2);
                     start = endPoint;
                     controlPoint = controlPoint2;
+                    isCurve = 1;
                 }
-
-                //T+S
-                else if (typeBefore == 'T' || typeBefore == 't') {
-                    PointF controlPoint2(static_cast<float>(data.points[0].X) + 10 + start.X, static_cast<float>(data.points[0].Y) + 10 + start.Y);
-                    PointF endPoint(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
-                    PointF controlPoint1;
-                    controlPoint1.X = controlPoint2.X + 10;
-                    controlPoint1.Y = (endPoint.Y + controlPoint2.Y) / 2 + 8;
-
-                    path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                }
-
-                // S 
-                else {
-                    PointF controlPoint2(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + 10 + start.Y);
-                    PointF endPoint(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
-                    PointF controlPoint1;
-                    controlPoint1.X = controlPoint2.X;
-                    controlPoint1.Y = (endPoint.Y + controlPoint2.Y) / 2 + 8;
-
-                    path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                }
-                typeBefore = 's';
             }
+            else if (data.points.size() > 2) {
+                for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2)
+                    if (isCurve == 1) {
+                        PointF controlPoint2(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
+                        PointF endPoint(static_cast<float>(data.points[i + 1].X) + start.X, static_cast<float>(data.points[i + 1].Y) + start.Y);
+                        PointF controlPoint1;
+                        controlPoint1.X = start.X * 2 - controlPoint.X;
+                        controlPoint1.Y = start.Y * 2 - controlPoint.Y;
+                        int count = path.GetPointCount();
+                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                        start = endPoint;
+                        controlPoint = controlPoint2;
+                        isCurve = 1;
+                    }
+                    else {
+                        PointF controlPoint2(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
+                        PointF endPoint(static_cast<float>(data.points[i + 1].X) + start.X, static_cast<float>(data.points[i + 1].Y) + start.Y);
+                        PointF controlPoint1;
+                        controlPoint1.X = start.X;
+                        controlPoint1.Y = start.Y;
+                        path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+                        start = endPoint;
+                        controlPoint = controlPoint2;
+                        isCurve = 1;
+                    }
+                if (data.points.size() % 2 != 0) break;
+            }
+        }
+        else if (data.typePointPath == 'Q') {
+            if (data.points.size() < 2) break;
+            else if (data.points.size() >= 2) {
+                for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2) {
+                    PointF controlPoint2(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
+                    PointF endPoint(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
+                    path.AddBezier(start, controlPoint2, controlPoint2, endPoint);
+                    start = endPoint;
+                    controlPoint = controlPoint2;
+                    isCurve = 1;
+                }
+            }
+            if (data.points.size() % 2 != 0) break;
         }
         else if (data.typePointPath == 'q') {
-            //Draw a quadratic Bezier curve
-            if (data.points.size() >= 2) {
-                PointF controlPoint2(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
-                PointF controlPoint1 = { (controlPoint2.X + start.X) / 2 + start.X, (controlPoint2.Y + start.Y) / 2 + start.Y };
-                PointF endPoint(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
-                //PointF controlPoint3 = { controlPoint2.X ,(controlPoint2.Y * 4) };
-                path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                // path.AddLine(start, controlPoint1);
-                 //path.AddLine(endPoint, controlPoint2);
-
-                start = endPoint;
-                controlPoint = controlPoint2;
-                control = controlPoint1;
-                typeBefore = 'q';
-            }
-        }
-        else if (data.typePointPath == 't') {
-            // Draw a smooth quadratic Bezier curve
-
-            if (data.points.size() >= 1) {
-                // Q + T
-                if (typeBefore == 'Q' || typeBefore == 'q') {
-                    PointF endPoint(static_cast<float>(data.points[0].X + start.X), static_cast<float>(data.points[0].Y) + start.Y);
-                    PointF controlPoint1;
-                    PointF controlPoint2;
-                    controlPoint1.X = start.X * 2 - controlPoint.X + start.X;
-                    controlPoint1.Y = start.Y * 2 - controlPoint.Y + start.Y;
-                    controlPoint2.X = start.X * 2 - control.X + start.X;
-                    controlPoint2.Y = start.Y * 2 - control.Y + start.Y;
-                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
+            if (data.points.size() < 2) break;
+            else if (data.points.size() >= 2) {
+                for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2) {
+                    PointF controlPoint2(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
+                    PointF endPoint(static_cast<float>(data.points[i + 1].X) + start.X, static_cast<float>(data.points[i + 1].Y) + start.Y);
+                    path.AddBezier(start, controlPoint2, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
-                    control = controlPoint1;
-                    //typeBefore = 'T';
+                    isCurve = 1;
                 }
-
-                else if (typeBefore == 'C' || typeBefore == 'c') {
-                    //wrong
-                    PointF endPoint(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
-                    PointF controlPoint1;
-                    PointF controlPoint2;
-                    controlPoint1.X = start.X * 2 - controlPoint.X + start.X;
-                    controlPoint1.Y = start.Y * 2 - controlPoint.Y + start.Y;
-                    controlPoint2.X = start.X * 2 - control.X + start.X;
-                    controlPoint2.Y = start.Y * 2 - control.Y + start.Y;
-                    path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
-                    start = endPoint;
-                    controlPoint = controlPoint2;
-                    control = controlPoint1;
-                }
-
-                // T
-                else {
-                    PointF endPoint(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
-                    path.AddBezier(start, start, start, endPoint);
-                    start = endPoint;
-                    controlPoint = endPoint;
-                    control = endPoint;
-                    //typeBefore = 'T';
-                }
-                typeBefore = 't';
             }
+            if (data.points.size() % 2 != 0) break;
         }
-
-
-
         else if (data.typePointPath == 'A') {
-            //double cx, cy, theta1, theta2;
-            //arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
-            //theta1 = theta1 * (180.0f / pi);
-            //theta2 = theta2 * (180.0f / pi);
             double cx, cy;
             double start_angle, sweep_angle;
 
@@ -1006,7 +1225,6 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
 
 
-            //RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
 
             // Vẽ đoạn cung
@@ -1015,7 +1233,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             path.AddArc(bounds, start_angle, sweep_angle);
             start.X = data.x;
             start.Y = data.y;
-            typeBefore = 'A';
+            isCurve = 0;
         }
 
         else if (data.typePointPath == 'a') {
@@ -1023,10 +1241,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             data.y += start.Y;
 
 
-            //double cx, cy, theta1, theta2;
-            //arc_endpoint_to_center(start.X, start.Y, data.x, data.y, data.rx, data.ry, data.xAxisRotation, data.largeArcFlag, data.sweepFlag, cx, cy, theta1, theta2);
-            //theta1 = theta1 * (180.0f / pi);
-            //theta2 = theta2 * (180.0f / pi);
+
             double cx, cy;
             double start_angle, sweep_angle;
 
@@ -1034,26 +1249,22 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 data.sweepFlag, data.x, data.y, start_angle, sweep_angle, cx, cy);
 
 
-            //RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
             RectF bounds(cx - data.rx, cy - data.ry, 2 * data.rx, 2 * data.ry);
-
             // Vẽ đoạn cung
             start_angle = start_angle * (180.0f / pi);
             sweep_angle = sweep_angle * (180.0f / pi);
             path.AddArc(bounds, start_angle, sweep_angle);
             start.X = data.x;
             start.Y = data.y;
-            typeBefore = 'a';
+            isCurve = 0;
         }
 
         else if (data.typePointPath == 'Z' || data.typePointPath == 'z') {
             start = start2;
             path.CloseFigure();
-
         }
 
     }
-
     pointMinMax p;
     this->getPointMINMAX(p);
     if (hasGradientFill) {
@@ -1085,9 +1296,10 @@ void PathSVG::drawSVG(Graphics& graphics) {
         Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
         graphics.DrawPath(&pen, &path);
     }
-
     graphics.Restore(state);
 }
+
+        
 
 void GroupSVG::drawSVG(Graphics& graphics) {
     for (auto& element : elements) {
