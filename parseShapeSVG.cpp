@@ -75,7 +75,7 @@ void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
                 gradient.x2 = stod(attr.second);
                 size_t found = attr.second.find('%');
                 if (found != std::string::npos) {
-                    gradient.x1 /= 100;
+                    gradient.x2 /= 100;
                 }
             }
             else if (attr.first == "y2") {
@@ -180,7 +180,7 @@ void parseGradientSVG2(vector<Gradient>& gradients,  SVGElement& input) {
             
     }    
 }
-fstream fop("Text1.txt");
+fstream fop("2.txt");
 void printGradientSVG(const vector<Gradient>& gradients) {
     for (const auto& gradient : gradients) {
         fop << "Gradient ID: " << gradient.id << endl;
@@ -210,6 +210,15 @@ string trim(const string& str) {
     return str.substr(first, last - first + 1);
 }
 
+bool checkGradient(string id, vector<Gradient>& Gradients) {
+    for (const auto& gradient : Gradients) {
+        if (gradient.id == id) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 bool isUrl(const std::string& str) {
     std::regex pattern("^url\\(#[^)]+\\)$");
     return std::regex_match(str, pattern);
@@ -225,10 +234,10 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, v
         }
         s = result;
         if (isUrl(s)) {
-            hasGradientFill = 1;
             bool found = false;
             for (const auto& gradient : Gradients) {
                 if (gradient.id == s) {
+                    hasGradientFill = 1;
                     found = true;
                     cf = 1;
                     Gfill = gradient;
@@ -236,6 +245,7 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, v
                     break;
                 }
             }
+
         }
         else
             fill = colorSVG(s, cf);
@@ -253,17 +263,17 @@ void ShapeSVG::parseDataSVG(string attribute, string data, bool& cf, bool& cs, v
         }
         s = result;
         if (isUrl(s)) {
-            hasGradientStroke = 1;
             bool found = false;
             for (const auto& gradient : Gradients) {
                 if (gradient.id == s) {
+                    hasGradientStroke = 1;
                     found = true;
                     cs = 1;
                     Gstroke = gradient;
-                    stroke = Gstroke.stops[0].stopColor;
                     break;
                 }
             }
+
         }
         else
             stroke = colorSVG(s, cs);
