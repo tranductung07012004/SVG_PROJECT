@@ -24,16 +24,9 @@ using namespace Gdiplus;
 double width = CW_USEDEFAULT, height = CW_USEDEFAULT;
 double viewBoxX = CW_USEDEFAULT, viewBoxY = CW_USEDEFAULT, viewBoxWidth = CW_USEDEFAULT, viewBoxHeight = CW_USEDEFAULT;
 
-//typedef struct viewBox_SVG {
-//    FLOAT x;
-//    FLOAT y;
-//    FLOAT width;
-//    FLOAT height;
-//
-//} viewBox_d2d1;
 D2D1_SVG_VIEWBOX viewBox;
 float rotate_angle = 0.0f;
-string filename = "svg-203.svg";
+string filename = "svg-204.svg";
 
 vector<SVGElement> elements; //= parseSVG(filename, width, height, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 
@@ -124,22 +117,25 @@ VOID OnPaint(HDC hdc, float zoomFactor, PAINTSTRUCT ps, int clientWidth, int cli
 
     graphics.TranslateTransform(-p.X, -p.Y);
 
-    if (viewBoxX == CW_USEDEFAULT) {// which means there is only viewPort but no viewBox
+    if (viewBoxX == CW_USEDEFAULT && width != CW_USEDEFAULT) {// which means there is only viewPort but no viewBox
         Region viewBox(Rect(0, 0, width, height));
         graphics.SetClip(&viewBox, CombineModeReplace);
     }
     // this is for viewBox only
-        /*
-    else if (viewBoxX != CW_USEDEFAULT && width == CW_USEDEFAULT) {  // which means there is viewBox but no viewPort
-        //graphics.ScaleTransform(horizontal/ (viewBoxWidth* 1.0), vertical / (viewBoxHeight * 1.0));
-        graphics.ScaleTransform(width / viewBoxWidth, height / viewBoxHeight);
-        //graphics.TranslateTransform(-viewBoxX, -viewBoxY);
-        //translateClip();
-    }
-    */
+        
+    //else if (viewBoxX != CW_USEDEFAULT && width == CW_USEDEFAULT) {  // which means there is viewBox but no viewPort
+    //    double scale_x = min(width / viewBoxWidth, height / viewBoxHeight);
+    //    double scale_y = scale_x;
+    //    double translate_x = width/2 - scale_x * (viewBoxX + viewBoxWidth / 2);
+    //    double translate_y = height/2 - scale_y * (viewBoxY + viewBoxHeight / 2);
+    //  
+    //    graphics.ScaleTransform(scale_x, scale_y);
+
+    //    graphics.TranslateTransform(translate_x, translate_y);
+    //}
     else if (viewBoxX != CW_USEDEFAULT && width != CW_USEDEFAULT) { // which means there are viewPort and viewBox
         graphics.ScaleTransform(width / viewBoxWidth, height / viewBoxHeight);
-        Region viewBox(Rect(viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight));
+        Region viewBox(Rect(viewBoxX, viewBoxY, viewBoxWidth + 2, viewBoxHeight + 2));
         graphics.SetClip(&viewBox, CombineModeReplace);
     }
 
