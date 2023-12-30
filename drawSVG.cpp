@@ -113,7 +113,7 @@ void RectSVG::drawSVG(Graphics& graphics) {
         Color colors[100];
         REAL positions[100];
         for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
             positions[i] = Gfill.stops[i].offset;
         }
         //Color colors[] = { Color(255, 255, 0, 0), Color(255, 255, 255, 0), Color(255, 0, 255, 0) }; // Mảng màu
@@ -137,9 +137,9 @@ void RectSVG::drawSVG(Graphics& graphics) {
     if (hasGradientStroke) {
         Color colors[100];
         REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        for (int i = 0; i < Gstroke.stops.size(); i++) {
+            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+            positions[i] = Gstroke.stops[i].offset;
         }
         LinearGradientBrush strokeBrush(
             Point(p.X, p.Y),      // Start point
@@ -147,7 +147,7 @@ void RectSVG::drawSVG(Graphics& graphics) {
             Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
             Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
         );
-        strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
         Pen strokePen(&strokeBrush, strokeWidth);
         graphics.DrawRectangle(&strokePen, (int)p.X, (int)p.Y, width, height);
     }
@@ -226,7 +226,7 @@ void TextSVG::drawSVG(Graphics& graphics) {
         Color colors[100];
         REAL positions[100];
         for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
             positions[i] = Gfill.stops[i].offset;
         }
         LinearGradientBrush fillBrush(
@@ -245,9 +245,9 @@ void TextSVG::drawSVG(Graphics& graphics) {
     if (hasGradientStroke) {
         Color colors[100];
         REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        for (int i = 0; i < Gstroke.stops.size(); i++) {
+            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+            positions[i] = Gstroke.stops[i].offset;
         }
         LinearGradientBrush strokeBrush(
             Point(p.X, this->p.Y - this->fontSize),      // Start point
@@ -289,7 +289,7 @@ void CircleSVG::drawSVG(Graphics & graphics) {
             Color colors[100];
             REAL positions[100];
             for (int i = 0; i < Gfill.stops.size(); i++) {
-                colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
                 positions[i] = Gfill.stops[i].offset;
             }
             LinearGradientBrush fillBrush(
@@ -308,9 +308,9 @@ void CircleSVG::drawSVG(Graphics & graphics) {
         if (hasGradientStroke) {
             Color colors[100];
             REAL positions[100];
-            for (int i = 0; i < Gfill.stops.size(); i++) {
-                colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-                positions[i] = Gfill.stops[i].offset;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
             }
             LinearGradientBrush strokeBrush(
                 Point(this->c.X - this->r, this->c.Y - this->r),      // Start point
@@ -318,7 +318,7 @@ void CircleSVG::drawSVG(Graphics & graphics) {
                 Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
                 Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
             );
-            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
 
             Pen strokePen(&strokeBrush, strokeWidth);
 
@@ -356,7 +356,7 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
         Color colors[100];
         REAL positions[100];
         for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
             positions[i] = Gfill.stops[i].offset;
         }
         LinearGradientBrush fillBrush(
@@ -376,9 +376,9 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     if (hasGradientStroke) {
         Color colors[100];
         REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        for (int i = 0; i < Gstroke.stops.size(); i++) {
+            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+            positions[i] = Gstroke.stops[i].offset;
         }
         LinearGradientBrush strokeBrush(
             Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
@@ -386,7 +386,7 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
             Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
             Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
         );
-        strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
 
         Pen strokePen(&strokeBrush, strokeWidth);
 
@@ -424,9 +424,9 @@ void LineSVG::drawSVG(Graphics& graphics) {
     if (hasGradientStroke) {
         Color colors[100];
         REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        for (int i = 0; i < Gstroke.stops.size(); i++) {
+            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+            positions[i] = Gstroke.stops[i].offset;
         }
         LinearGradientBrush strokeBrush(
             Point(p.pointMin.X, p.pointMin.Y),      // Start point
@@ -479,7 +479,7 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
         Color colors[100];
         REAL positions[100];
         for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
             positions[i] = Gfill.stops[i].offset;
         }
         LinearGradientBrush fillBrush(
@@ -499,9 +499,9 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
     if (hasGradientStroke) {
         Color colors[100];
         REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        for (int i = 0; i < Gstroke.stops.size(); i++) {
+            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+            positions[i] = Gstroke.stops[i].offset;
         }
         LinearGradientBrush strokeBrush(
             Point(p.pointMin.X, p.pointMin.Y),      // Start point
@@ -509,7 +509,7 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
             Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
             Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
         );
-        strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
 
         Pen strokePen(&strokeBrush, strokeWidth);
 
@@ -555,7 +555,7 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
         Color colors[100];
         REAL positions[100];
         for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
             positions[i] = Gfill.stops[i].offset;
         }
         LinearGradientBrush fillBrush(
@@ -574,9 +574,9 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     if (hasGradientStroke) {
         Color colors[100];
         REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        for (int i = 0; i < Gstroke.stops.size(); i++) {
+            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+            positions[i] = Gstroke.stops[i].offset;
         }
         LinearGradientBrush strokeBrush(
             Point(p.pointMin.X, p.pointMin.Y),      // Start point
@@ -584,7 +584,7 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
             Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
             Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
         );
-        strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
 
         Pen strokePen(&strokeBrush, strokeWidth);
 
@@ -944,6 +944,7 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
 void PathSVG::drawSVG(Graphics& graphics) {
     double pi = atan(1) * 4;
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+
     GraphicsState state = graphics.Save();
     for (const auto& tf : tfSVG) {
         if (tf.transformType == "translate") {
@@ -966,7 +967,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     GraphicsPath path1;
     GraphicsPath path2;
     char typeBefore = NULL;
-    bool isCurve = 0;
+    int isCurve = 0;
     bool check = 1;
     Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
     SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
@@ -1113,6 +1114,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
+                    control = controlPoint1;
                 }
                 else {
                     check = 0;
@@ -1137,7 +1139,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 if (check == 0) break;
                 if (data.points.size() % 3 != 0) break;
             }
-            isCurve = 1;
+            isCurve = 2;
         }
         else if (data.typePointPath == 'c') {
             if (data.points.size() < 3) break;
@@ -1170,13 +1172,13 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 if (check == 0) break;
                 if (data.points.size() % 3 != 0) break;
             }
-            isCurve = 1;
+            isCurve = 2;
         }
         else if (data.typePointPath == 'S') {
             // Draw a smooth cubic Bezier curve
             if (data.points.size() < 2) break;
             if (data.points.size() == 2) {
-                if (isCurve == 1) {
+                if (isCurve == 2) {
                     PointF controlPoint2(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y));
                     PointF endPoint(static_cast<float>(data.points[1].X), static_cast<float>(data.points[1].Y));
                     PointF controlPoint1;
@@ -1186,7 +1188,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
-                    isCurve = 1;
+                    isCurve = 2;
                 }
                 else {
                     PointF controlPoint2(static_cast<float>(data.points[0].X), static_cast<float>(data.points[0].Y) + 10);
@@ -1198,12 +1200,12 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
-                    isCurve = 1;
+                    isCurve = 2;
                 }
             }
             else if (data.points.size() > 2) {
                 for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2)
-                    if (isCurve == 1) {
+                    if (isCurve == 2) {
                         PointF controlPoint2(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
                         PointF endPoint(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
                         PointF controlPoint1;
@@ -1213,7 +1215,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                         path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                         start = endPoint;
                         controlPoint = controlPoint2;
-                        isCurve = 1;
+                        isCurve = 2;
                     }
                     else {
                         PointF controlPoint2(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y) + 10);
@@ -1224,7 +1226,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                         path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                         start = endPoint;
                         controlPoint = controlPoint2;
-                        isCurve = 1;
+                        isCurve = 2;
                     }
                 if (data.points.size() % 2 != 0) break;
             }
@@ -1233,7 +1235,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             // Draw a smooth cubic Bezier curve
             if (data.points.size() < 2) break;
             if (data.points.size() == 2) {
-                if (isCurve == 1) {
+                if (isCurve == 2) {
                     PointF controlPoint2(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
                     PointF endPoint(static_cast<float>(data.points[1].X) + start.X, static_cast<float>(data.points[1].Y) + start.Y);
                     PointF controlPoint1;
@@ -1243,7 +1245,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
-                    isCurve = 1;
+                    isCurve = 2;
                 }
                 else {
                     PointF controlPoint2(static_cast<float>(data.points[0].X) + start.X, static_cast<float>(data.points[0].Y) + start.Y);
@@ -1254,12 +1256,12 @@ void PathSVG::drawSVG(Graphics& graphics) {
                     path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
-                    isCurve = 1;
+                    isCurve = 2;
                 }
             }
             else if (data.points.size() > 2) {
                 for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2)
-                    if (isCurve == 1) {
+                    if (isCurve == 2) {
                         PointF controlPoint2(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
                         PointF endPoint(static_cast<float>(data.points[i + 1].X) + start.X, static_cast<float>(data.points[i + 1].Y) + start.Y);
                         PointF controlPoint1;
@@ -1269,7 +1271,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                         path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                         start = endPoint;
                         controlPoint = controlPoint2;
-                        isCurve = 1;
+                        isCurve = 2;
                     }
                     else {
                         PointF controlPoint2(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
@@ -1280,7 +1282,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                         path.AddBezier(start, controlPoint1, controlPoint2, endPoint);
                         start = endPoint;
                         controlPoint = controlPoint2;
-                        isCurve = 1;
+                        isCurve = 2;
                     }
                 if (data.points.size() % 2 != 0) break;
             }
@@ -1291,7 +1293,10 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2) {
                     PointF controlPoint2(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
                     PointF endPoint(static_cast<float>(data.points[i + 1].X), static_cast<float>(data.points[i + 1].Y));
-                    path.AddBezier(start, controlPoint2, controlPoint2, endPoint);
+                    //path.AddBezier(start, controlPoint2, controlPoint2, endPoint);
+                    PointF bezierControl = PointF((start.X + 2 * controlPoint2.X) / 3, (start.Y + 2 * controlPoint2.Y) / 3);
+                    PointF bezierControl2 = PointF((endPoint.X + 2 * controlPoint2.X) / 3, (endPoint.Y + 2 * controlPoint2.Y) / 3);
+                    path.AddBezier(start, bezierControl, bezierControl2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
                     isCurve = 1;
@@ -1305,7 +1310,9 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 for (int i = 0; i < (data.points.size()) / 2 * 2; i += 2) {
                     PointF controlPoint2(static_cast<float>(data.points[i].X) + start.X, static_cast<float>(data.points[i].Y) + start.Y);
                     PointF endPoint(static_cast<float>(data.points[i + 1].X) + start.X, static_cast<float>(data.points[i + 1].Y) + start.Y);
-                    path.AddBezier(start, controlPoint2, controlPoint2, endPoint);
+                    PointF bezierControl = PointF((start.X + 2 * controlPoint2.X) / 3, (start.Y + 2 * controlPoint2.Y) / 3);
+                    PointF bezierControl2 = PointF((endPoint.X + 2 * controlPoint2.X) / 3, (endPoint.Y + 2 * controlPoint2.Y) / 3);
+                    path.AddBezier(start, bezierControl, bezierControl2, endPoint);
                     start = endPoint;
                     controlPoint = controlPoint2;
                     isCurve = 1;
@@ -1313,8 +1320,68 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
             if (data.points.size() % 2 != 0) break;
         }
+        else if (data.typePointPath == 'T') {
+            // Draw a smooth quadratic Bezier curve
+            for (int i = 0; i < (data.points.size()); i++) {
+                if (isCurve == 1) {
+                    {
+                        PointF endPoint(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
+                        PointF controlPoint2;
+                        controlPoint2.X = start.X * 2 - controlPoint.X;
+                        controlPoint2.Y = start.Y * 2 - controlPoint.Y;
+                        PointF bezierControl = PointF((start.X + 2 * controlPoint2.X) / 3, (start.Y + 2 * controlPoint2.Y) / 3);
+                        PointF bezierControl2 = PointF((endPoint.X + 2 * controlPoint2.X) / 3, (endPoint.Y + 2 * controlPoint2.Y) / 3);
+                        path.AddBezier(start, bezierControl, bezierControl2, endPoint);
+                        start = endPoint;
+                        controlPoint = controlPoint2;
+                        isCurve = 1;
+                    }
+                }
+                else {
+                    PointF endPoint(static_cast<float>(data.points[i].X), static_cast<float>(data.points[i].Y));
+                    PointF controlPoint1;
+                    controlPoint1.X = start.X;
+                    controlPoint1.Y = start.Y;
+                    path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
+                    start = endPoint;
+                    controlPoint = controlPoint1;
+                    control = controlPoint1;
+                    isCurve = 1;
+                }
+            }
+
+        }
+        else if (data.typePointPath == 't') {
+            // Draw a smooth quadratic Bezier curve
+            for (int i = 0; i < (data.points.size()); i++) {
+                if (isCurve == 1) {
+                    PointF endPoint(static_cast<float>(data.points[i].X + start.X), static_cast<float>(data.points[i].Y + start.Y));
+                    PointF controlPoint2;
+                    controlPoint2.X = start.X * 2 - controlPoint.X;
+                    controlPoint2.Y = start.Y * 2 - controlPoint.Y;
+                    PointF bezierControl = PointF((start.X + 2 * controlPoint2.X) / 3, (start.Y + 2 * controlPoint2.Y) / 3);
+                    PointF bezierControl2 = PointF((endPoint.X + 2 * controlPoint2.X) / 3, (endPoint.Y + 2 * controlPoint2.Y) / 3);
+                    path.AddBezier(start, bezierControl, bezierControl2, endPoint);
+                    start = endPoint;
+                    controlPoint = controlPoint2;
+                    control = controlPoint2;
+                    isCurve = 1;
+                }
+                else {
+                    PointF endPoint(static_cast<float>(data.points[i].X + start.X), static_cast<float>(data.points[i].Y + start.Y));
+                    PointF controlPoint1;
+                    controlPoint1.X = start.X;
+                    controlPoint1.Y = start.Y;
+                    path.AddBezier(start, controlPoint1, controlPoint1, endPoint);
+                    start = endPoint;
+                    controlPoint = controlPoint1;
+                    control = controlPoint1;
+                    isCurve = 1;
+                }
+            }
+        }
         else if (data.typePointPath == 'A') {
-            for (const auto& Ash : data.As) {
+            for ( auto& Ash : data.As) {
                 double cx, cy;
                 double start_angle, sweep_angle;
 
@@ -1365,42 +1432,85 @@ void PathSVG::drawSVG(Graphics& graphics) {
     pointMinMax p;
     this->getPointMINMAX(p);
     if (hasGradientFill) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        if (Gfill.typeGradient == "lineargradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            LinearGradientBrush fillBrush(
+                Point(p.pointMin.X, p.pointMin.Y),      // Start point
+                Point(p.pointMax.X, p.pointMax.Y),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
+            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+            graphics.FillPath(&fillBrush, &path);
         }
-        LinearGradientBrush fillBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
-        graphics.FillPath(&fillBrush, &path);
+        else if (Gfill.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            PathGradientBrush gradientBrush(&path);
+            
+            // Thiết lập màu sắc cho gradient
+            
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetSurroundColors(colors, &count1);
+            
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.FillPath(&gradientBrush, &path);
+        }
     }
     else {
         SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
         graphics.FillPath(&brush, &path);
     }
     if (hasGradientStroke) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
-        }
-        LinearGradientBrush strokeBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
-        Pen strokePen(&strokeBrush, strokeWidth);
+        if (Gstroke.typeGradient == "lineargradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            LinearGradientBrush strokeBrush(
+                Point(p.pointMin.X, p.pointMin.Y),      // Start point
+                Point(p.pointMax.X, p.pointMax.Y),    // End point
+                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+            );
+            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+            Pen strokePen(&strokeBrush, strokeWidth);
 
-        graphics.DrawPath(&strokePen, &path);
+            graphics.DrawPath(&strokePen, &path);
+        }
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
+
+            // Thiết lập màu sắc cho gradient
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawPath(&strokePen, &path);
+        }
     }
 
     else {
