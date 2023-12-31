@@ -1445,7 +1445,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
                 Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
             );
-            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
             graphics.FillPath(&fillBrush, &path);
         }
         else if (Gfill.typeGradient == "radialgradient") {
@@ -1462,9 +1462,9 @@ void PathSVG::drawSVG(Graphics& graphics) {
             //REAL positions[] = { 0.0f, 10.0f };
             int count1 = Gfill.stops.size();
             
-            //gradientBrush.SetSurroundColors(colors, &count1);
-            gradientBrush.SetSurroundColors(colors, &count1);
             
+            gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
             // Vẽ hình dạng gradient lên màn hình
             graphics.FillPath(&gradientBrush, &path);
         }
@@ -1487,7 +1487,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
                 Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
             );
-            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size());
             Pen strokePen(&strokeBrush, strokeWidth);
 
             graphics.DrawPath(&strokePen, &path);
@@ -1507,6 +1507,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             int count1 = Gfill.stops.size();
             //gradientBrush.SetSurroundColors(colors, &count1);
             strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
             Pen strokePen(&strokeBrush, strokeWidth);
             // Vẽ hình dạng gradient lên màn hình
             graphics.DrawPath(&strokePen, &path);
