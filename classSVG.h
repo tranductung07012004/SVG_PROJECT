@@ -16,6 +16,7 @@
 #include <codecvt>
 #include <unordered_map>.
 #include <cmath>
+
 #include "FunctionRead.h"
 using namespace std;
 using namespace rapidxml;
@@ -28,6 +29,7 @@ struct transformSVG {
     float rotateAngle;
     float scaleX, scaleY;
     string transformType;
+    vector<double> matrix;
 };
 void parsetransformSVG(vector<transformSVG>& transformations, const string& input);
 
@@ -54,8 +56,8 @@ struct Gradient {
     double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
     double  cx = 0, cy = 0, r = 0, fx = 0, fy = 0;
     vector<Stop> stops;
+    vector<transformSVG> transformationGradient;
 };
-
 void parseStopSVG(vector<Stop>& stops, const SVGElement& input);
 void parseGradientSVG2(vector<Gradient>& gradients, SVGElement& input);
 void parseGradientSVG(vector<Gradient>& Gradient, const SVGElement& input);
