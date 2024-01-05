@@ -2,6 +2,7 @@
 #include "classSVG.h"
 #include "DataRead.h"
 #include "FunctionRead.h"
+
 void parsetransformSVG(vector<transformSVG>& transformations, const string& input) {
     string result;
     for (char c : input) {
@@ -9,9 +10,29 @@ void parsetransformSVG(vector<transformSVG>& transformations, const string& inpu
             result += c;
         }
     }
-    transform(result.begin(), result.end(), result.begin(), ::towlower);
-    regex transformRegex(R"((\w+)\s*\(\s*([+-]?\d*\.?\d+)\s*(?:[, ]\s*([+-]?\d*\.?\d+))?\s*\))");
+    transform(result.begin(), result.end(), result.begin(), ::tolower);
+    regex transformRegex(R"((\w+)\s*\(\s*([+-]?\d*\.?\d+)\s*(?:[, ]\s*([+-]?\d*\.?\d+))?\s*(?:[, ]\s*([+-]?\d*\.?\d+))?\s*(?:[, ]\s*([+-]?\d*\.?\d+))?\s*(?:[, ]\s*([+-]?\d*\.?\d+))?\s*\))");
 
+    // Update the regular expression pattern to match the matrix transformation
+    regex matrixRegex(R"(matrix\(\s*([+-]?\d*\.?\d+)\s+([+-]?\d*\.?\d+)\s+([+-]?\d*\.?\d+)\s+([+-]?\d*\.?\d+)\s+([+-]?\d*\.?\d+)\s+([+-]?\d*\.?\d+)\s*\))");
+
+    // Check if the input matches the matrix transformation pattern
+    smatch matrixMatch;
+    if (regex_match(result, matrixMatch, matrixRegex)) {
+        transformSVG transform;
+        transform.transformType = "matrix";
+
+        // Extract the matrix values from the regex match groups
+        for (int i = 1; i <= 6; ++i) {
+            transform.matrix.push_back(stod(matrixMatch[i]));
+        }
+
+        // Add the transformation to the vector
+        transformations.push_back(transform);
+        return;
+    }
+
+    // If the input doesn't match the matrix transformation, use the original logic
     // Iterator to iterate over matches
     sregex_iterator it(result.begin(), result.end(), transformRegex);
     sregex_iterator end;
@@ -41,6 +62,7 @@ void parsetransformSVG(vector<transformSVG>& transformations, const string& inpu
         ++it;
     }
 }
+
 string remove_spaces(const string& input_string) {
     string result = input_string;
     result.erase(remove_if(result.begin(), result.end(), ::isspace), result.end());
