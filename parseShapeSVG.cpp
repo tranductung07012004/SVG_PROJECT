@@ -130,7 +130,9 @@ void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
         {
             gradient.xlink = "url(" + attr.second + ")";
         }
-
+        if (attr.first == "gradienttransform") {
+            parsetransformSVG(gradient.transformationGradient, attr.second);
+        }
     }
     for (const auto& gradientc : gradients) {
         if (gradient.xlink == gradientc.id)
@@ -145,7 +147,7 @@ void parseGradientSVG(vector<Gradient>& gradients, const SVGElement& input) {
 
     gradients.push_back(gradient);
 }
-void parseGradientSVG2(vector<Gradient>& gradients,  SVGElement& input) {
+void parseGradientSVG2(vector<Gradient>& gradients, SVGElement& input) {
     // Check if the id already exists
     const string id = "url(#" + input.attributes.at("id") + ")";
     Gradient gradient;
@@ -171,14 +173,14 @@ void parseGradientSVG2(vector<Gradient>& gradients,  SVGElement& input) {
             parseStopSVG(gradient.stops, child);
         }
     }
-    for ( auto& gradientc : gradients) {
+    for (auto& gradientc : gradients) {
         if (gradient.id == gradientc.id && input.parseYes == 0) {
             gradientc.stops = gradient.stops;
             input.parseYes = 1;
             break;
         }
-            
-    }    
+
+    }
 }
 fstream fop("2.txt");
 void printGradientSVG(const vector<Gradient>& gradients) {
@@ -196,6 +198,25 @@ void printGradientSVG(const vector<Gradient>& gradients) {
         fop << "Stops:" << endl;
         for (const auto& stop : gradient.stops) {
             fop << "  Offset: " << stop.offset << ", Color: " << stop.stopColor.R << " " << stop.stopColor.G << " " << stop.stopColor.B << ", Opacity: " << stop.stopOpacity << endl;
+        }
+        for (const auto& transform : gradient.transformationGradient) {
+            fop << "Type: " << transform.transformType << endl;
+            if (transform.transformType == "translate") {
+                fop << "TranslateX: " << transform.translateX << ", TranslateY: " << transform.translateY << endl;
+            }
+            else if (transform.transformType == "rotate") {
+                fop << "RotateAngle: " << transform.rotateAngle << endl;
+            }
+            else if (transform.transformType == "scale") {
+                fop << "ScaleX: " << transform.scaleX << ", ScaleY: " << transform.scaleY << endl;
+            }
+            else if (transform.transformType == "matrix") {
+                fop << "Matrix: ";
+                for (const auto& value : transform.matrix) {
+                    fop << value << " ";
+                }
+                fop << endl;
+            }
         }
         fop << endl;
     }
