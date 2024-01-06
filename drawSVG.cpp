@@ -110,46 +110,90 @@ void RectSVG::drawSVG(Graphics& graphics) {
     }
     this->TranslateRectangle(graphics, dx, dy);
     if (hasGradientFill) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
-        }
-        //Color colors[] = { Color(255, 255, 0, 0), Color(255, 255, 255, 0), Color(255, 0, 255, 0) }; // Mảng màu
-        //REAL positions[] = { 0.0f, 0.5f, 1.0f }; // Mảng vị trí tương ứng với mỗi màu
-        LinearGradientBrush fillBrush(
-            Point(p.X,  p.Y),      // Start point
-            Point( (p.X + width),  (p.Y + height)),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
+        if (Gfill.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            //Color colors[] = { Color(255, 255, 0, 0), Color(255, 255, 255, 0), Color(255, 0, 255, 0) }; // Mảng màu
+            //REAL positions[] = { 0.0f, 0.5f, 1.0f }; // Mảng vị trí tương ứng với mỗi màu
+            LinearGradientBrush fillBrush(
+                Point(p.X, p.Y),      // Start point
+                Point((p.X + width), (p.Y + height)),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
 
-        fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size()-1);
-        graphics.FillRectangle(&fillBrush, (int)p.X, (int)p.Y, width, height);
+            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+            graphics.FillRectangle(&fillBrush, (int)p.X, (int)p.Y, width, height);
+        }
+        else if (Gfill.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            PathGradientBrush gradientBrush(&path);
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+
+
+            gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.FillRectangle(&gradientBrush, (int)p.X, (int)p.Y, width, height);
+        }
     }
-    
+
     else {
- 
+
         SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
         graphics.FillRectangle(&brush, (int)p.X, (int)p.Y, width, height);
     }
     if (hasGradientStroke) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gstroke.stops.size(); i++) {
-            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
-            positions[i] = Gstroke.stops[i].offset;
+        if (Gstroke.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            LinearGradientBrush strokeBrush(
+                Point(p.X, p.Y),      // Start point
+                Point((p.X + width), (p.Y + height)),    // End point
+                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+            );
+            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+            Pen strokePen(&strokeBrush, strokeWidth);
+            graphics.DrawRectangle(&strokePen, (int)p.X, (int)p.Y, width, height);
         }
-        LinearGradientBrush strokeBrush(
-            Point(p.X, p.Y),      // Start point
-            Point((p.X + width), (p.Y + height)),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
-        Pen strokePen(&strokeBrush, strokeWidth);
-        graphics.DrawRectangle(&strokePen, (int)p.X, (int)p.Y, width, height);
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
+
+            // Thiết lập màu sắc cho gradient
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawRectangle(&strokePen, (int)p.X, (int)p.Y, width, height);
+        }
     }
 
     else {
@@ -223,41 +267,86 @@ void TextSVG::drawSVG(Graphics& graphics) {
 
 
     if (hasGradientFill) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        if (Gfill.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            LinearGradientBrush fillBrush(
+                Point(p.X, this->p.Y - this->fontSize),      // Start point
+                Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
+            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+            graphics.FillPath(&fillBrush, &path);
         }
-        LinearGradientBrush fillBrush(
-            Point(p.X, this->p.Y - this->fontSize),      // Start point
-            Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
-        graphics.FillPath(&fillBrush, &path);
+        else if (Gfill.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            PathGradientBrush gradientBrush(&path);
+
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+
+
+            gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.FillPath(&gradientBrush, &path);
+        }
     }
     else {
         SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
         graphics.FillPath(&brush, &path);
     }
     if (hasGradientStroke) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gstroke.stops.size(); i++) {
-            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
-            positions[i] = Gstroke.stops[i].offset;
+        if (Gstroke.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            LinearGradientBrush strokeBrush(
+                Point(p.X, this->p.Y - this->fontSize),      // Start point
+                Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
+                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+            );
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+            Pen strokePen(&strokeBrush, strokeWidth);
+            graphics.DrawPath(&strokePen, &path);
         }
-        LinearGradientBrush strokeBrush(
-            Point(p.X, this->p.Y - this->fontSize),      // Start point
-            Point(this->p.X + this->textContent.size() * this->fontSize, p.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
-        Pen strokePen(&strokeBrush, strokeWidth);
-        graphics.DrawPath(&strokePen, &path);
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
+
+            // Thiết lập màu sắc cho gradient
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawPath(&strokePen, &path);
+        }
     }
 
     else {
@@ -267,25 +356,26 @@ void TextSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 
-void CircleSVG::drawSVG(Graphics & graphics) {
-        graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+void CircleSVG::drawSVG(Graphics& graphics) {
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
-        GraphicsState state = graphics.Save();
-        for (const auto& tf : tfSVG) {
-            if (tf.transformType == "translate") {
-                this->TranslateCircle(graphics, tf.translateX, tf.translateY);
-            }
-            else if (tf.transformType == "scale") {
-                this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
-            }
-            else if (tf.transformType == "rotate") {
-                this->RotateCircle(graphics, tf.rotateAngle);
-            }
+    GraphicsState state = graphics.Save();
+    for (const auto& tf : tfSVG) {
+        if (tf.transformType == "translate") {
+            this->TranslateCircle(graphics, tf.translateX, tf.translateY);
         }
-        this->TranslateCircle(graphics, dx, dy);
-        RectF ellipseRect(c.X - r, c.Y - r, r * 2, r * 2);
+        else if (tf.transformType == "scale") {
+            this->ScaleCircle(graphics, tf.scaleX, tf.scaleY);
+        }
+        else if (tf.transformType == "rotate") {
+            this->RotateCircle(graphics, tf.rotateAngle);
+        }
+    }
+    this->TranslateCircle(graphics, dx, dy);
+    RectF ellipseRect(c.X - r, c.Y - r, r * 2, r * 2);
 
-        if (hasGradientFill) {
+    if (hasGradientFill) {
+        if (Gfill.typeGradient == "linearGradient") {
             Color colors[100];
             REAL positions[100];
             for (int i = 0; i < Gfill.stops.size(); i++) {
@@ -301,11 +391,33 @@ void CircleSVG::drawSVG(Graphics & graphics) {
             fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
             graphics.FillEllipse(&fillBrush, ellipseRect);
         }
-        else {
-            SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
-            graphics.FillEllipse(&brush, ellipseRect);
+        else if (Gfill.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            PathGradientBrush gradientBrush(&path);
+
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+
+
+            gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.FillEllipse(&gradientBrush, ellipseRect);
         }
-        if (hasGradientStroke) {
+    }
+    else {
+        SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
+        graphics.FillEllipse(&brush, ellipseRect);
+    }
+    if (hasGradientStroke) {
+        if (Gstroke.typeGradient == "linearGradient") {
             Color colors[100];
             REAL positions[100];
             for (int i = 0; i < Gstroke.stops.size(); i++) {
@@ -324,12 +436,34 @@ void CircleSVG::drawSVG(Graphics & graphics) {
 
             graphics.DrawEllipse(&strokePen, ellipseRect);
         }
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
 
-        else {
-            Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
-            graphics.DrawEllipse(&pen, ellipseRect);
+            // Thiết lập màu sắc cho gradient
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawEllipse(&strokePen, ellipseRect);
         }
-        graphics.Restore(state);
+    }
+
+    else {
+        Pen pen(Color(strokeOpacity * 255, stroke.R, stroke.G, stroke.B), strokeWidth);
+        graphics.DrawEllipse(&pen, ellipseRect);
+    }
+    graphics.Restore(state);
 }
 
 void EllipseSVG::drawSVG(Graphics& graphics) {
@@ -353,44 +487,89 @@ void EllipseSVG::drawSVG(Graphics& graphics) {
     this->TranslateEllipse(graphics, dx, dy);
     RectF ellipseRect(c.X - rx, c.Y - ry, rx * 2, ry * 2);
     if (hasGradientFill) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
-        }
-        LinearGradientBrush fillBrush(
-            Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
-            Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+        if (Gfill.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            LinearGradientBrush fillBrush(
+                Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
+                Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
+            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
 
-        graphics.FillEllipse(&fillBrush, ellipseRect);
+            graphics.FillEllipse(&fillBrush, ellipseRect);
+        }
+        else if (Gfill.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            PathGradientBrush gradientBrush(&path);
+
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+
+
+            gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.FillEllipse(&gradientBrush, ellipseRect);
+        }
     }
     else {
         SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
         graphics.FillEllipse(&brush, ellipseRect);
     }
     if (hasGradientStroke) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gstroke.stops.size(); i++) {
-            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
-            positions[i] = Gstroke.stops[i].offset;
+        if (Gstroke.typeGradient == "radialGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            LinearGradientBrush strokeBrush(
+                Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
+                Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
+                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+            );
+            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+
+            Pen strokePen(&strokeBrush, strokeWidth);
+
+            graphics.DrawEllipse(&strokePen, ellipseRect);
         }
-        LinearGradientBrush strokeBrush(
-            Point(this->c.X - this->rx, this->c.Y - this->ry),      // Start point
-            Point((this->c.X - this->rx) + 2 * rx, (this->c.Y - this->ry) + 2 * ry),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
 
-        Pen strokePen(&strokeBrush, strokeWidth);
+            // Thiết lập màu sắc cho gradient
 
-        graphics.DrawEllipse(&strokePen, ellipseRect);
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawEllipse(&strokePen, ellipseRect);
+        }
     }
 
     else {
@@ -422,23 +601,46 @@ void LineSVG::drawSVG(Graphics& graphics) {
     pointMinMax p;
     this->getPointMINMAX(p);
     if (hasGradientStroke) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gstroke.stops.size(); i++) {
-            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
-            positions[i] = Gstroke.stops[i].offset;
+        if (Gstroke.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            LinearGradientBrush strokeBrush(
+                Point(p.pointMin.X, p.pointMin.Y),      // Start point
+                Point(p.pointMax.X, p.pointMax.Y),    // End point
+                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+            );
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+
+            Pen strokePen(&strokeBrush, strokeWidth);
+
+            graphics.DrawLine(&strokePen, point1, point2);
         }
-        LinearGradientBrush strokeBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
 
-        Pen strokePen(&strokeBrush, strokeWidth);
+            // Thiết lập màu sắc cho gradient
 
-        graphics.DrawLine(&strokePen, point1, point2);
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawLine(&strokePen, point1, point2);
+        }
     }
 
     else {
@@ -476,44 +678,89 @@ void PolygonSVG::drawSVG(Graphics& graphics) {
     pointMinMax p;
     this->getPointMINMAX(p);
     if (hasGradientFill) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
-        }
-        LinearGradientBrush fillBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+        if (Gfill.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            LinearGradientBrush fillBrush(
+                Point(p.pointMin.X, p.pointMin.Y),      // Start point
+                Point(p.pointMax.X, p.pointMax.Y),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
+            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
 
-        graphics.FillPolygon(&fillBrush, point, size, FillModeWinding);
+            graphics.FillPolygon(&fillBrush, point, size, FillModeWinding);
+        }
+        else if (Gfill.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            PathGradientBrush gradientBrush(&path);
+
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+
+
+            gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.FillPolygon(&gradientBrush, point, size, FillModeWinding);
+        }
     }
     else {
         SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
         graphics.FillPolygon(&brush, point, size, FillModeWinding);
     }
     if (hasGradientStroke) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gstroke.stops.size(); i++) {
-            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
-            positions[i] = Gstroke.stops[i].offset;
+        if (Gstroke.typeGradient == "radialGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            LinearGradientBrush strokeBrush(
+                Point(p.pointMin.X, p.pointMin.Y),      // Start point
+                Point(p.pointMax.X, p.pointMax.Y),    // End point
+                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+            );
+            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+
+            Pen strokePen(&strokeBrush, strokeWidth);
+
+            graphics.DrawPolygon(&strokePen, point, size);
         }
-        LinearGradientBrush strokeBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
 
-        Pen strokePen(&strokeBrush, strokeWidth);
+            // Thiết lập màu sắc cho gradient
 
-        graphics.DrawPolygon(&strokePen, point, size);
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawPolygon(&strokePen, point, size);
+        }
     }
 
     else {
@@ -548,47 +795,92 @@ void PolylineSVG::drawSVG(Graphics& graphics) {
     }
     this->TranslatePolyline(graphics, dx, dy);
 
-   
+
     pointMinMax p;
     this->getPointMINMAX(p);
     if (hasGradientFill) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gfill.stops.size(); i++) {
-            colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
-            positions[i] = Gfill.stops[i].offset;
+        if (Gfill.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            LinearGradientBrush fillBrush(
+                Point(p.pointMin.X, p.pointMin.Y),      // Start point
+                Point(p.pointMax.X, p.pointMax.Y),    // End point
+                Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
+                Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
+            );
+            fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
+            graphics.FillPolygon(&fillBrush, point, size);
         }
-        LinearGradientBrush fillBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gfill.stops[0].stopOpacity * 255 * fillOpacity, Gfill.stops[0].stopColor.R, Gfill.stops[0].stopColor.G, Gfill.stops[0].stopColor.B),
-            Color(Gfill.stops[Gfill.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gfill.stops[Gfill.stops.size() - 1].stopColor.R, Gfill.stops[Gfill.stops.size() - 1].stopColor.G, Gfill.stops[Gfill.stops.size() - 1].stopColor.B)
-        );
-        fillBrush.SetInterpolationColors(colors, positions, Gfill.stops.size() - 1);
-        graphics.FillPolygon(&fillBrush, point, size);
+        else if (Gfill.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gfill.stops.size(); i++) {
+                colors[i] = Color(Gfill.stops[i].stopOpacity * 255, Gfill.stops[i].stopColor.R, Gfill.stops[i].stopColor.G, Gfill.stops[i].stopColor.B);
+                positions[i] = Gfill.stops[i].offset;
+            }
+            PathGradientBrush gradientBrush(&path);
+
+
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+
+
+            gradientBrush.SetSurroundColors(colors, &count1);
+            gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.FillPolygon(&gradientBrush, point, size);
+        }
     }
     else {
         SolidBrush brush(Color(fillOpacity * 255, fill.R, fill.G, fill.B));
         graphics.FillPolygon(&brush, point, size);
     }
     if (hasGradientStroke) {
-        Color colors[100];
-        REAL positions[100];
-        for (int i = 0; i < Gstroke.stops.size(); i++) {
-            colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
-            positions[i] = Gstroke.stops[i].offset;
+        if (Gstroke.typeGradient == "linearGradient") {
+            Color colors[100];
+            REAL positions[100];
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            LinearGradientBrush strokeBrush(
+                Point(p.pointMin.X, p.pointMin.Y),      // Start point
+                Point(p.pointMax.X, p.pointMax.Y),    // End point
+                Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
+                Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
+            );
+            strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+
+            Pen strokePen(&strokeBrush, strokeWidth);
+
+            graphics.DrawLines(&strokePen, point, size);
         }
-        LinearGradientBrush strokeBrush(
-            Point(p.pointMin.X, p.pointMin.Y),      // Start point
-            Point(p.pointMax.X, p.pointMax.Y),    // End point
-            Color(Gstroke.stops[0].stopOpacity * 255 * fillOpacity, Gstroke.stops[0].stopColor.R, Gstroke.stops[0].stopColor.G, Gstroke.stops[0].stopColor.B),
-            Color(Gstroke.stops[Gstroke.stops.size() - 1].stopOpacity * 255 * fillOpacity, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.R, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.G, Gstroke.stops[Gstroke.stops.size() - 1].stopColor.B)
-        );
-        strokeBrush.SetInterpolationColors(colors, positions, Gstroke.stops.size() - 1);
+        else if (Gstroke.typeGradient == "radialgradient") {
+            Color colors[100];
+            REAL positions[100];
+            GraphicsPath path;
+            for (int i = 0; i < Gstroke.stops.size(); i++) {
+                colors[i] = Color(Gstroke.stops[i].stopOpacity * 255, Gstroke.stops[i].stopColor.R, Gstroke.stops[i].stopColor.G, Gstroke.stops[i].stopColor.B);
+                positions[i] = Gstroke.stops[i].offset;
+            }
+            PathGradientBrush strokeBrush(&path);
 
-        Pen strokePen(&strokeBrush, strokeWidth);
+            // Thiết lập màu sắc cho gradient
 
-        graphics.DrawLines(&strokePen, point, size);
+            //REAL positions[] = { 0.0f, 10.0f };
+            int count1 = Gfill.stops.size();
+            //gradientBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetSurroundColors(colors, &count1);
+            strokeBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
+            Pen strokePen(&strokeBrush, strokeWidth);
+            // Vẽ hình dạng gradient lên màn hình
+            graphics.DrawLines(&strokePen, point, size);
+        }
     }
 
     else {
@@ -1040,7 +1332,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             }
         }
         else if (data.typePointPath == 'A') {
-            for ( auto& Ash : data.As) {
+            for (auto& Ash : data.As) {
                 double cx, cy;
                 double start_angle, sweep_angle;
 
@@ -1061,7 +1353,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
         }
 
         else if (data.typePointPath == 'a') {
-            for ( auto& Ash : data.As) {
+            for (auto& Ash : data.As) {
                 Ash.x += start.X;
                 Ash.y += start.Y;
                 double cx, cy;
@@ -1115,12 +1407,12 @@ void PathSVG::drawSVG(Graphics& graphics) {
                 positions[i] = Gfill.stops[i].offset;
             }
             PathGradientBrush gradientBrush(&path);
-           
-            
+
+
             //REAL positions[] = { 0.0f, 10.0f };
             int count1 = Gfill.stops.size();
-            
-            
+
+
             gradientBrush.SetSurroundColors(colors, &count1);
             gradientBrush.SetInterpolationColors(colors, positions, Gfill.stops.size());
             // Vẽ hình dạng gradient lên màn hình
@@ -1149,6 +1441,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
             Pen strokePen(&strokeBrush, strokeWidth);
 
             graphics.DrawPath(&strokePen, &path);
+
         }
         else if (Gstroke.typeGradient == "radialgradient") {
             Color colors[100];
@@ -1179,7 +1472,7 @@ void PathSVG::drawSVG(Graphics& graphics) {
     graphics.Restore(state);
 }
 
-        
+
 
 void GroupSVG::drawSVG(Graphics& graphics) {
     for (auto& element : elements) {
